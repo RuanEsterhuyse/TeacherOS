@@ -1,0 +1,238 @@
+# TeacherOS
+
+TeacherOS is an extensible instructional-design system that transforms curriculum evidence into structured, classroom-ready lesson packages. Its deterministic orchestration layer now connects the Curriculum Library and saved lesson indexes to a validated instructional-pipeline handoff.
+
+## Instructional generation pipeline
+
+`TeacherOS.generate_lesson(...)` executes the Curriculum Reader, Curriculum Analyzer, Instruction Designer, Slide Designer, Lesson Assembler, Lesson Validator, and existing Lesson Package parser. Each AI stage uses the official OpenAI Python SDK Responses API with a Pydantic structured output. The model is configured once with `TEACHEROS_MODEL` (default: `gpt-5-mini`); the API key is read only from `OPENAI_API_KEY`.
+
+Copy `.env.example` into your preferred secret-management workflow and export the variables in your shell. TeacherOS does not load or commit secrets automatically.
+
+First validate the real curriculum input and planned workflow without making an API call:
+
+```bash
+python -m app.cli generate-lesson \
+  --curriculum CKLA --grade 8 --unit 1 --lesson 1 --dry-run
+```
+
+Then generate when `OPENAI_API_KEY` is configured:
+
+```bash
+python -m app.cli generate-lesson \
+  --curriculum CKLA --grade 8 --unit 1 --lesson 1
+```
+
+Human-readable stage files are saved under `output/generation_runs/<request_id>/`. A failed run preserves completed files. Running the same command resumes from every valid saved stage; use `--no-resume` to deliberately regenerate all AI stages. Automated tests mock all OpenAI calls and never make paid requests. Generation does not render Google Slides.
+
+Generated lesson metadata carries this attribution: “This work is based on an original work of the Core Knowledge Foundation made available under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License. This does not imply endorsement by the Core Knowledge Foundation.” This attribution does not apply the CKLA license to independently published trade-book text.
+
+## Lesson preparation orchestration
+
+`TeacherOS.prepare_lesson(...)` is the application entry point for preparing one registered lesson. It retrieves the curriculum record, loads the existing saved index, selects the requested lesson, extracts only its exact Teacher Guide pages, copies the already-indexed metadata, validates the handoff, and writes human-readable JSON under `output/pipeline_inputs/`.
+
+```bash
+python -m app.cli prepare-lesson \
+  --curriculum CKLA \
+  --grade 8 \
+  --unit 1 \
+  --lesson 1
+```
+
+The predictable output name is `ckla_grade_8_unit_1_lesson_1_pipeline_input.json`. It contains request metadata, exact Teacher Guide text, title, objectives, standards, materials, homework, duration, Reader and Activity Book references, assessment and PDF page references, source references, and extraction warnings. Unavailable curriculum metadata remains empty or null and is reported as a warning; TeacherOS never invents it.
+
+Preparation returns `completed`, `completed_with_warnings`, or `failed`. The CLI prints warnings and exact failing stages, and returns exit code 2 for failures such as an unregistered unit, missing source PDF or index, corrupt/mismatched index, unknown lesson, extraction failure, or invalid output location.
+
+Preparation is not lesson generation. It makes no AI calls, changes no instructional content, and creates no slides. It establishes the validated input boundary for the existing Curriculum Reader, Analyzer, Instruction Designer, Slide Designer, and Lesson Assembler.
+
+```text
+Lesson request
+    ↓
+TeacherOS orchestrator
+    ↓
+Curriculum Library
+    ↓
+Curriculum Index
+    ↓
+LessonSource and metadata
+    ↓
+Validated pipeline input JSON
+    ↓
+Existing TeacherOS instructional pipeline
+    ↓
+Lesson Package
+    ↓
+Parser
+    ↓
+Google Slides renderer
+```
+
+## Curriculum Library and Lesson Locator
+
+The Curriculum Library registers local paths and metadata for a curriculum unit's Teacher Guide, Student Reader, and Activity Book in SQLite. It does not copy or read the source files. The PDF extractor reads only the registered Teacher Guide, keeps zero-based PDF page coordinates and one-based display page numbers, and flags pages with little or no usable text. OCR is intentionally not attempted.
+
+The CKLA locator searches for real lesson boundaries using several signals: exact standalone lesson headings, heading placement, a nearby title, contents-page context, and increasing lesson order. It rejects table-of-contents entries and inline references, supports multi-digit lesson numbers, and saves confidence and warnings with every result. The generated human-readable JSON index can be reused without rescanning the guide. Extracting a lesson rereads only the indexed page range and returns the curriculum text without summarizing or rewriting it.
+
+Keep curriculum PDFs in a private local location, optionally under `data/curriculum/`. SQLite metadata is stored at `data/curriculum/library.sqlite3`, and indexes are stored under `data/indexes/`. These local files, generated presentations, and common OAuth credential files are ignored by Git.
+
+Register and inspect a unit with:
+
+```bash
+python -m curriculum.cli register \
+  --curriculum CKLA --grade 8 --unit 1 \
+  --unit-title "Unit title" \
+  --teacher-guide "/private/curriculum/teacher-guide.pdf" \
+  --student-reader "/private/curriculum/student-reader.pdf" \
+  --activity-book "/private/curriculum/activity-book.pdf"
+
+python -m curriculum.cli index --grade 8 --unit 1
+python -m curriculum.cli list-lessons --grade 8 --unit 1
+python -m curriculum.cli extract-lesson \
+  --grade 8 --unit 1 --lesson 6 \
+  --output output/grade8_unit1_lesson6.txt
+```
+
+All commands default to curriculum name `CKLA` after registration. Use `--curriculum` for another registered name. `index`, `list-lessons`, and `extract-lesson` also accept `--index-file`; `index` accepts `--override`.
+
+For an uncertain or missed boundary, create a private JSON override file. Page values are zero-based PDF page numbers:
+
+```json
+{
+  "lessons": {
+    "6": {
+      "start_pdf_page": 42,
+      "lesson_title": "Optional corrected title"
+    }
+  }
+}
+```
+
+Then rebuild the index:
+
+```bash
+python -m curriculum.cli index --grade 8 --unit 1 --override /private/curriculum/overrides.json
+```
+
+The end-to-end pipeline is:
+
+```text
+Curriculum files
+    ↓
+Curriculum Library
+    ↓
+PDF Text Extractor
+    ↓
+Lesson Locator
+    ↓
+Curriculum Index
+    ↓
+Requested LessonSource
+    ↓
+Existing TeacherOS brain
+    ↓
+Lesson Package
+    ↓
+Parser
+    ↓
+Google Slides renderer
+```
+
+`LessonSource` is the future handoff to the existing TeacherOS brain. This milestone stops at exact source retrieval: it makes no instructional decisions, does not call an AI service, and does not generate slides.
+
+Curriculum materials may be copyrighted and can contain sensitive annotations. Store source PDFs and manual overrides outside public repositories, restrict filesystem access, and share only where licensing permits. Never commit OAuth credentials, local indexes derived from copyrighted works, or generated presentations containing protected content.
+
+## Milestone 3 scope
+
+- Pydantic models and a stable schema boundary for renderer-ready lessons.
+- A deterministic Google Slides renderer using the Slides and Drive APIs.
+- Editable 16:9 slides, fixed educational layouts, and speaker notes.
+- Automated schema and mocked renderer tests.
+- A deterministic parser for structured JSON Lesson Packages.
+- Package-level checks for metadata, slide titles and notes, unique slide IDs, ordering, and timing.
+
+The parser and renderer make no instructional decisions and contain no AI or lesson-generation behavior. The parser only renames and validates supplied fields; the renderer maps only validated `Lesson` and `Slide` fields to presentation objects.
+
+## Architecture
+
+1. The existing pipeline reads and analyzes curriculum, designs instruction and slides, and assembles a structured Lesson Package.
+2. `brain/lesson_package_parser.py` validates package completeness and transforms it into the existing `Lesson` object.
+3. `schemas/lesson_schema.py` exposes the validated contract, and `models/` owns the unchanged domain models.
+4. `renderer/` owns delivery adapters. The unchanged Google Slides adapter receives the `Lesson` object and maps it to editable API objects.
+5. `lesson_packages/` stores structured JSON inputs; `output/` is reserved for exports.
+
+The data flow is:
+
+```text
+Lesson Package → Lesson Object → Renderer → Google Slides
+```
+
+A Lesson Package contains `lesson_metadata`, an explicit `slide_order`, slide records, and lesson-level vocabulary, activities, assessments, and homework. Slide records contain visible content, bullets, speaker notes, teacher directions, timing, materials, image prompts, and source references. The parser accepts either an in-memory mapping or a `.json` path. It never reads PDFs, invokes AI, rewrites, or summarizes lesson content.
+
+```python
+from brain.lesson_package_parser import parse_lesson_package
+from renderer.google_slides_renderer import GoogleSlidesRenderer
+
+lesson = parse_lesson_package("lesson_packages/lesson_1.json")
+presentation = GoogleSlidesRenderer().create_presentation(lesson)
+```
+
+## Setup and testing
+
+TeacherOS targets Python 3.12.
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+pytest
+```
+
+## Google Cloud and OAuth setup
+
+1. Create or select a project in the [Google Cloud Console](https://console.cloud.google.com/).
+2. Configure the OAuth consent screen. While the app is in testing, add each teacher account as a test user.
+3. In **APIs & Services → Library**, enable both **Google Slides API** and **Google Drive API**.
+4. In **APIs & Services → Credentials**, create an OAuth client ID with application type **Desktop app**.
+5. Download the client file, keep it outside version control, and provide its path to the renderer.
+
+On first authentication, a browser opens for consent. The renderer saves the OAuth token at `token_path` (default `token.json`) and refreshes it when possible. Never commit either credential file. The Slides scope permits presentation editing; `drive.file` permits access to presentations TeacherOS creates and exports.
+
+```python
+from renderer.google_slides_renderer import GoogleSlidesRenderer
+
+renderer = GoogleSlidesRenderer(
+    credentials_path="/secure/path/google-oauth-client.json",
+    token_path="/secure/path/teacheros-token.json",
+)
+renderer.authenticate()
+presentation = renderer.create_presentation(lesson)
+renderer.export(presentation, "output/lesson.pptx")  # .pdf also supported
+print(presentation["url"])
+```
+
+The Google Slides API creates native text boxes, fixed layouts, and speaker notes. The Google Drive API exports the native deck to `.pptx` or `.pdf`. All visible slide content remains editable text.
+
+Once `07_validated_lesson.json` exists, create a new editable presentation without rerunning lesson generation:
+
+```bash
+python -m app.cli create-slides \
+  --curriculum CKLA \
+  --grade 8 \
+  --unit 1 \
+  --lesson 1
+```
+
+The command validates the saved lesson, checks its identity against the request, and passes it directly to `GoogleSlidesRenderer`. It does not invoke the instructional pipeline or OpenAI.
+
+## Validation
+
+The parser rejects missing lesson metadata, slide titles, speaker notes, duplicate slide IDs, inconsistent slide order, and invalid timing. Pydantic then validates the complete `Lesson` object. The renderer rejects unknown layouts before creating a presentation, permits title-only slides, preserves long text while reducing its font size, and creates stable API-safe object IDs.
+
+## Future roadmap
+
+- Emit structured JSON Lesson Packages from the existing CKLA curriculum pipeline.
+- Add integration tests in an isolated Google Workspace test account.
+- Add retry/backoff, API error translation, revision tracking, and observability.
+- Add application entry points, secure deployment credential management, and teacher approval workflows.
+- Add lesson-package schema versioning and migrations.
+
+Google credentials and generated files must never be committed to source control.

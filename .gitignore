@@ -1,0 +1,21 @@
+# Google authentication
+credentials*.json
+token.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Environment variables
+.env
+.env.*
+
+# macOS
+.DS_Store
+
+# Generated output
+output/
+credentials.json.json
+token.json
