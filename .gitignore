@@ -19,3 +19,5 @@ venv/
 output/
 credentials.json.json
 token.json
+data/curriculum/library.sqlite3
+data/curriculum/CKLA/
