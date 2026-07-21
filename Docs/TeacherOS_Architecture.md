@@ -272,3 +272,10 @@ Version 2 introduces governed automation around repeated production tasks. Prior
 ### Version 3 — TeacherOS Product Platform
 
 Version 3 evolves the repository workflow into a multi-user TeacherOS application. The target architecture includes managed curriculum libraries, role-aware workspaces, orchestrated AI agents, collaborative review, reusable design-system components, analytics from classroom feedback, and integrations with presentation and instructional tools. The platform should support additional curricula and organizations without weakening fidelity, privacy, auditability, or teacher control.
+# Presentation-design stage
+
+After instructional design, `PresentationDesigner` produces `04_presentation_design.json` as a Pydantic structured output through the shared Responses API client. Its schema deliberately separates student projection, speaker notes, semantic layout, visual asset planning, interaction, sources, and fidelity. Exact typography and color decisions live in the deterministic `config/presentation_theme.json` rather than model output.
+
+`LessonAssembler` remains a compatibility boundary: it converts presentation slides to the existing renderer-ready slide records for older consumers. Day-divider slides contribute zero instructional minutes, preventing overview timing from being counted twice. Presentation-quality issues are warnings unless core package fidelity or structure is invalid.
+
+The Google Slides renderer now also accepts `PresentationDesignOutput` directly. New CLI rendering prefers the rich stage file, while the legacy `Lesson` renderer remains available. A fixed dispatcher maps every semantic layout to theme-driven geometry; student content is sanitized and bounded before visible requests are built, and rich teacher fields plus sources are inserted into editable speaker notes. Missing visuals become native placeholders with structured warnings. Local files are detected but are never uploaded, extracted, or downloaded automatically; a future asset-publication service can supply approved Google-accessible URLs.

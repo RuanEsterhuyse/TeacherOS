@@ -11,6 +11,7 @@ from pydantic import ValidationError
 from app.teacheros import TeacherOS
 from renderer.google_slides_renderer import GoogleSlidesRenderer
 from schemas.lesson_schema import Lesson
+from schemas.presentation_design_schema import PresentationDesignOutput
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -55,17 +56,24 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "create-slides":
         request = teacheros.create_lesson_request(curriculum_name=args.curriculum, grade=args.grade,
                                                   unit=args.unit, lesson_number=args.lesson)
-        lesson_path = teacheros.generation_output_directory / request.request_id / "07_validated_lesson.json"
+        run_directory = teacheros.generation_output_directory / request.request_id
+        rich_path = run_directory / "04_presentation_design.json"
+        lesson_path = run_directory / "07_validated_lesson.json"
         try:
-            lesson = Lesson.model_validate_json(lesson_path.read_text(encoding="utf-8"))
-            expected = (request.grade, request.unit, request.lesson_number)
-            actual = (lesson.grade, lesson.unit, lesson.lesson_number)
-            if actual != expected:
-                raise ValueError(
-                    "Validated lesson identity does not match the request: "
-                    f"expected Grade {expected[0]} Unit {expected[1]} Lesson {expected[2]}, "
-                    f"found Grade {actual[0]} Unit {actual[1]} Lesson {actual[2]}"
-                )
+            if rich_path.is_file():
+                lesson = PresentationDesignOutput.model_validate_json(rich_path.read_text(encoding="utf-8"))
+                if lesson.request_id != request.request_id:
+                    raise ValueError("Presentation design identity does not match the request")
+            else:
+                lesson = Lesson.model_validate_json(lesson_path.read_text(encoding="utf-8"))
+                expected = (request.grade, request.unit, request.lesson_number)
+                actual = (lesson.grade, lesson.unit, lesson.lesson_number)
+                if actual != expected:
+                    raise ValueError(
+                        "Validated lesson identity does not match the request: "
+                        f"expected Grade {expected[0]} Unit {expected[1]} Lesson {expected[2]}, "
+                        f"found Grade {actual[0]} Unit {actual[1]} Lesson {actual[2]}"
+                    )
             renderer = GoogleSlidesRenderer(credentials_path=args.credentials, token_path=args.token)
             presentation = renderer.create_presentation(lesson)
         except FileNotFoundError as error:
@@ -83,7 +91,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Google Slides URL: {presentation['url']}")
         print(f"Presentation ID: {presentation['presentationId']}")
         print(f"Slides created: {len(presentation['slideIds'])}")
-        print("Rendering warnings: none")
+        warnings = presentation.get("warnings", [])
+        print(f"Rendering warnings: {len(warnings)}")
+        for warning in warnings:
+            print(f"Warning [{warning.get('slide_id', 'deck')}/{warning.get('code', 'render')}]: {warning.get('message', warning)}", file=sys.stderr)
         return 0
     if args.command == "generate-lesson":
         result = teacheros.generate_lesson(curriculum_name=args.curriculum, grade=args.grade,

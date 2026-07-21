@@ -23,6 +23,12 @@ class SlideSpecificationItem(BaseModel):
     source_references: list[str] = Field(default_factory=list)
     fidelity_classification: Literal["source_required", "source_derived", "teacheros_added"]
 
+    @model_validator(mode="after")
+    def validate_semantic_timing(self):
+        if self.slide_type != "day divider" and self.timing == 0:
+            raise ValueError("instructional slide timing must be positive when provided")
+        return self
+
 
 class SlideSpecification(BaseModel):
     request_id: str

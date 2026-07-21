@@ -303,12 +303,12 @@ class TeacherOS:
     def generate_lesson(self, *, curriculum_name: str = "CKLA", grade: Union[str, int] = 8,
                         unit: Union[str, int] = 1, lesson_number: int = 1,
                         dry_run: bool = False, resume: bool = True) -> GenerationResult:
-        """Run or plan the six-stage instructional generation pipeline."""
+        """Run or plan the presentation-aware instructional generation pipeline."""
         preparation = self.prepare_lesson(curriculum_name=curriculum_name, grade=grade, unit=unit,
                                           lesson_number=lesson_number)
         run_dir = self.generation_output_directory / preparation.request_id
         stages = ["curriculum_reader", "curriculum_analyzer", "instruction_designer",
-                  "slide_designer", "lesson_assembler", "lesson_validator", "lesson_package_parser"]
+                  "presentation_designer", "lesson_assembler", "lesson_validator", "lesson_package_parser"]
         if preparation.status == "failed":
             return GenerationResult(request_id=preparation.request_id, status="failed",
                 output_directory=str(run_dir), failed_stage="prepare_lesson", errors=preparation.errors,
@@ -321,7 +321,7 @@ class TeacherOS:
         from brain.curriculum_reader import CurriculumReader
         from brain.curriculum_analyzer import CurriculumAnalyzer
         from brain.instruction_designer import InstructionDesigner
-        from brain.slide_designer import SlideDesigner
+        from brain.presentation_designer import PresentationDesigner
         from brain.lesson_assembler import LessonAssembler
         from brain.lesson_validator import LessonValidator
         from brain.lesson_package_parser import parse_lesson_package
@@ -329,7 +329,7 @@ class TeacherOS:
         from schemas.reader_output_schema import CurriculumReaderOutput
         from schemas.analyzer_output_schema import CurriculumAnalyzerOutput
         from schemas.instruction_design_schema import InstructionDesign
-        from schemas.slide_specification_schema import SlideSpecification
+        from schemas.presentation_design_schema import PresentationDesignOutput
         from schemas.lesson_package_schema import LessonPackage
         from services.openai_client import OpenAIClient
 
@@ -348,8 +348,9 @@ class TeacherOS:
             ("curriculum_reader", "01_reader_output.json", CurriculumReaderOutput, CurriculumReader, lambda values: pipeline_input),
             ("curriculum_analyzer", "02_analyzer_output.json", CurriculumAnalyzerOutput, CurriculumAnalyzer, lambda values: values[0]),
             ("instruction_designer", "03_instruction_design.json", InstructionDesign, InstructionDesigner, lambda values: {"reader": values[0].model_dump(), "analyzer": values[1].model_dump()}),
-            ("slide_designer", "04_slide_specification.json", SlideSpecification, SlideDesigner, lambda values: values[2]),
-            ("lesson_assembler", "05_lesson_package.json", LessonPackage, LessonAssembler, lambda values: {"pipeline_input": pipeline_input.model_dump(), "reader": values[0].model_dump(), "analyzer": values[1].model_dump(), "instruction_design": values[2].model_dump(), "slide_specification": values[3].model_dump()}),
+            ("presentation_designer", "04_presentation_design.json", PresentationDesignOutput, PresentationDesigner,
+             lambda values: {"instruction_design": values[2].model_dump(), "analyzer": values[1].model_dump(), "reader": values[0].model_dump()}),
+            ("lesson_assembler", "05_lesson_package.json", LessonPackage, LessonAssembler, lambda values: {"pipeline_input": pipeline_input.model_dump(), "reader": values[0].model_dump(), "analyzer": values[1].model_dump(), "instruction_design": values[2].model_dump(), "presentation_design": values[3].model_dump()}),
         ]
         values: list[BaseModel] = []
         for stage_name, filename, schema, stage_class, input_builder in definitions:
@@ -369,9 +370,9 @@ class TeacherOS:
                     output_directory=str(run_dir), completed_stages=completed, failed_stage=stage_name,
                     warnings=preparation.warnings, errors=[f"{stage_name} failed: {error}"], usage=usage)
 
-        reader, analyzer, design, slides, package = values
+        reader, analyzer, design, presentation, package = values
         try:
-            report: LessonValidationReport = LessonValidator().validate(package, reader, design)
+            report: LessonValidationReport = LessonValidator().validate(package, reader, design, presentation)
             self._write_json(run_dir / "06_validation_report.json", report)
             completed.append("lesson_validator")
             if report.status == "fail":

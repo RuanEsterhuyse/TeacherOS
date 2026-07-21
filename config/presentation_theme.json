@@ -1,0 +1,10 @@
+{
+  "name": "grade_8_modern",
+  "dimensions": {"aspect_ratio": "16:9", "width_inches": 13.333, "height_inches": 7.5},
+  "typography": {"title_font": "Arial", "body_font": "Arial", "fallback_fonts": ["Roboto", "Verdana", "sans-serif"], "title_size": 30, "subtitle_size": 22, "body_size": 20, "caption_size": 12, "minimum_body_size": 18},
+  "colors": {"background": "#F7F5F0", "background_alternate": "#EAF1F5", "primary": "#17324D", "secondary": "#2D6A6A", "accent": "#D9822B", "text": "#18212B", "muted_text": "#5D6873"},
+  "layout": {"margin_inches": 0.6, "spacing_inches": 0.25, "card_corner_radius_points": 10, "image_border_radius_points": 8},
+  "content_limits": {"maximum_bullets": 3, "maximum_words_per_slide": 45, "minimum_font_size": 18},
+  "default_visual_style": "Editorial, concept-first, mature Grade 8 classroom visual; uncluttered and accessible",
+  "attribution_footer": {"enabled": true, "font_size": 12, "position": "bottom", "style": "muted"}
+}

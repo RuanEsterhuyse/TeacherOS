@@ -121,7 +121,8 @@ class LessonPackageParser:
             "student_content": slide.get("student_facing_content", slide.get("student_content", "")),
             "bullet_points": slide.get("bullet_points", []),
             "speaker_notes": slide["speaker_notes"],
-            "timing": self._timing(slide.get("timing"), slide_id),
+            "timing": self._timing(slide.get("timing"), slide_id,
+                                   slide.get("layout_type", slide.get("type", slide.get("slide_type")))),
             "interaction": slide.get("teacher_directions", slide.get("interaction")),
             "layout_type": slide.get("layout_type", slide.get("type", slide.get("slide_type"))),
             "visual_instructions": slide.get("visual_direction", slide.get("materials", slide.get("visual_instructions"))),
@@ -129,7 +130,8 @@ class LessonPackageParser:
             "source_references": slide.get("source_references", []),
         }
 
-    def _timing(self, value: Any, slide_id: str) -> int | None:
+    def _timing(self, value: Any, slide_id: str, slide_type: Any = None) -> int | None:
+        is_divider = isinstance(slide_type, str) and slide_type.lower().replace("_", " ") == "day divider"
         if value is None:
             return None
         if isinstance(value, bool):
@@ -140,6 +142,8 @@ class LessonPackageParser:
             minutes = int(match.group(1))
         else:
             raise LessonPackageError(f"Invalid timing for slide {slide_id}: {value!r}")
+        if is_divider:
+            return None
         if minutes <= 0:
             raise LessonPackageError(f"Invalid timing for slide {slide_id}: must be positive")
         return minutes

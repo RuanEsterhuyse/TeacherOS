@@ -68,6 +68,24 @@ def test_duplicate_slide_ids_are_rejected() -> None:
         parse_lesson_package(package)
 
 
+def test_legacy_day_divider_zero_timing_becomes_absent_renderer_timing() -> None:
+    package = package_data()
+    package["slides"][0].pop("layout_type", None)
+    package["slides"][0]["slide_type"] = "day divider"
+    package["slides"][0]["timing"] = 0
+    lesson = parse_lesson_package(package)
+    assert lesson.slides[0].layout_type == "day divider"
+    assert lesson.slides[0].timing is None
+
+
+def test_legacy_normal_slide_zero_and_negative_timing_are_rejected() -> None:
+    for invalid in (0, -1):
+        package = package_data()
+        package["slides"][0]["timing"] = invalid
+        with pytest.raises(LessonPackageError, match="must be positive"):
+            parse_lesson_package(package)
+
+
 def test_parsed_lesson_passes_directly_to_unchanged_renderer() -> None:
     lesson = parse_lesson_package(FIXTURE)
     slides_service = MagicMock()

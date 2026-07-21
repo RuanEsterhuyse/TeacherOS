@@ -4,7 +4,7 @@ TeacherOS is an extensible instructional-design system that transforms curriculu
 
 ## Instructional generation pipeline
 
-`TeacherOS.generate_lesson(...)` executes the Curriculum Reader, Curriculum Analyzer, Instruction Designer, Slide Designer, Lesson Assembler, Lesson Validator, and existing Lesson Package parser. Each AI stage uses the official OpenAI Python SDK Responses API with a Pydantic structured output. The model is configured once with `TEACHEROS_MODEL` (default: `gpt-5-mini`); the API key is read only from `OPENAI_API_KEY`.
+`TeacherOS.generate_lesson(...)` executes the Curriculum Reader, Curriculum Analyzer, Instruction Designer, Presentation Designer, Lesson Assembler, Lesson Validator, and existing Lesson Package parser. Each AI stage uses the official OpenAI Python SDK Responses API with a Pydantic structured output. The model is configured once with `TEACHEROS_MODEL` (default: `gpt-5-mini`); the API key is read only from `OPENAI_API_KEY`.
 
 Copy `.env.example` into your preferred secret-management workflow and export the variables in your shell. TeacherOS does not load or commit secrets automatically.
 
@@ -42,7 +42,7 @@ The predictable output name is `ckla_grade_8_unit_1_lesson_1_pipeline_input.json
 
 Preparation returns `completed`, `completed_with_warnings`, or `failed`. The CLI prints warnings and exact failing stages, and returns exit code 2 for failures such as an unregistered unit, missing source PDF or index, corrupt/mismatched index, unknown lesson, extraction failure, or invalid output location.
 
-Preparation is not lesson generation. It makes no AI calls, changes no instructional content, and creates no slides. It establishes the validated input boundary for the existing Curriculum Reader, Analyzer, Instruction Designer, Slide Designer, and Lesson Assembler.
+Preparation is not lesson generation. It makes no AI calls, changes no instructional content, and creates no slides. It establishes the validated input boundary for the Curriculum Reader, Analyzer, Instruction Designer, Presentation Designer, and Lesson Assembler.
 
 ```text
 Lesson request
@@ -236,3 +236,20 @@ The parser rejects missing lesson metadata, slide titles, speaker notes, duplica
 - Add lesson-package schema versioning and migrations.
 
 Google credentials and generated files must never be committed to source control.
+# TeacherOS
+
+## Presentation Designer
+
+The generation pipeline runs Reader → Analyzer → Instruction Designer → Presentation Designer → Lesson Assembler → Validator → renderer handoff. The Presentation Designer accepts the instructional design plus relevant reader/analyzer context and writes `04_presentation_design.json`. The assembler then writes `05_lesson_package.json`, validation writes `06_validation_report.json`, and the parsed renderer handoff remains `07_validated_lesson.json`.
+
+Presentation design separates projected `student_view` content from detailed `teacher_notes`, and gives every slide structured `design`, `visuals`, `interaction`, timing, materials, sources, and fidelity metadata. The deterministic Grade 8 theme is in `config/presentation_theme.json`; models choose semantic layouts, while fonts, sizes, colors, margins, and content limits stay in configuration. The assembler still adapts rich slides into the established lesson-package contract for downstream compatibility, while the Google Slides renderer consumes `04_presentation_design.json` directly on new runs.
+
+## Rich Google Slides rendering
+
+`create-slides` now prefers `04_presentation_design.json` and falls back to `07_validated_lesson.json`. The renderer dispatches the controlled semantic layouts directly, applies the deterministic theme, limits visible text without reducing it below the readable minimum, and writes structured teacher guidance and CKLA attribution to editable speaker notes. Only student-facing fields and concise interaction cues are projected.
+
+Required visuals without an approved Google-accessible asset render as neutral native placeholders and produce structured warnings. Development mode may expose the short visual description, but never the image prompt or a local path. TeacherOS does not download images, extract trade-book art, or apply CKLA licensing to trade-book material. The supported semantic layouts are `title_hero`, `day_divider`, `split_visual`, `question_focus`, `quote_focus`, `map_focus`, `vocabulary_cards`, `three_card`, `reading_checkpoint`, `discussion_prompt`, `activity_steps`, `comparison`, `evidence_chart`, `exit_ticket`, `minimal_text`, and `no_visual`.
+
+Run renderer tests with `PYTHONPATH=. .venv/bin/pytest -q Tests/test_google_slides_renderer.py Tests/test_create_slides_cli.py`. A seven-layout offline Lesson 1 sample is available at `Tests/fixtures/sample_lesson_1_presentation_design.json`. With Google OAuth configured, render a generated lesson using `python -m app.cli create-slides --grade 8 --unit 1 --lesson 1`.
+
+Run all tests with `PYTHONPATH=. .venv/bin/pytest`. Run one generation with `python -m app.cli generate-lesson --grade 8 --unit 1 --lesson 1` (an API key and registered curriculum files are required).

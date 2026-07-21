@@ -1,0 +1,5 @@
+{
+  "modern_middle_school":{"primary":"#17324D","secondary":"#2D6A6A","accent":"#F2A65A","background":"#F7F9FC","surface":"#FFFFFF","heading_font":"Arial","body_font":"Arial","card_style":"soft","radius":14,"shadow":"subtle","icon_style":"line","image_treatment":"rounded","divider_treatment":"bold_band","footer_style":"muted"},
+  "warm_humanities":{"primary":"#352A3B","secondary":"#7A4E48","accent":"#D89B5B","background":"#F7F1E8","surface":"#FFFDF8","heading_font":"Georgia","body_font":"Arial","card_style":"editorial","radius":12,"shadow":"soft","icon_style":"duotone","image_treatment":"editorial_crop","divider_treatment":"warm_band","footer_style":"quiet"},
+  "clean_academic":{"primary":"#183B56","secondary":"#486581","accent":"#2CB1BC","background":"#F5F7FA","surface":"#FFFFFF","heading_font":"Arial","body_font":"Arial","card_style":"crisp","radius":8,"shadow":"none","icon_style":"geometric","image_treatment":"contained","divider_treatment":"rule","footer_style":"minimal"}
+}
