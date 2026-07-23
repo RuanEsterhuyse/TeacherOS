@@ -5,7 +5,10 @@ from __future__ import annotations
 import json
 
 from renderer.prompt_bundle import PromptBundle, RendererType
-from renderer.prompt_generator import generate_prompt_bundle
+from renderer.prompt_generator import (
+    generate_prompt_bundle,
+    load_presentation_design_guide,
+)
 from renderer.theme_loader import load_prompt_theme
 from schemas.presentation_design_schema import PresentationDesignOutput, PresentationSlide
 from Tests.test_generation_pipeline import presentation
@@ -153,3 +156,18 @@ def test_theme_loader_merges_partial_theme_and_warns_on_missing_file(tmp_path) -
     fallback = load_prompt_theme(tmp_path / "missing-theme.json")
     assert fallback.name == "grade_8_modern"
     assert fallback.warnings
+
+
+def test_design_guide_is_injected_once_into_deck_prompt_only() -> None:
+    guide = load_presentation_design_guide()
+    bundle = generate_prompt_bundle(two_slide_presentation(), THEME)
+
+    assert bundle.deck_prompt.count(guide) == 1
+    assert bundle.deck_prompt.index(guide) < bundle.deck_prompt.index("DECK SOURCE")
+    assert all(guide not in item.prompt for item in bundle.slide_prompts)
+
+
+def test_design_guide_is_renderer_neutral() -> None:
+    guide = load_presentation_design_guide()
+    prohibited_names = ("Gemini", "Gamma", "Google Slides")
+    assert all(name not in guide for name in prohibited_names)

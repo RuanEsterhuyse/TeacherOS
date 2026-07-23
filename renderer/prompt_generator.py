@@ -29,6 +29,10 @@ _RENDERER_DIRECTIONS = {
     ),
 }
 
+DEFAULT_DESIGN_GUIDE_PATH = (
+    Path(__file__).parents[1] / "prompts" / "presentation_design_guide.md"
+)
+
 
 def _canonical_json(value: Any, *, indent: int | None = None) -> str:
     return json.dumps(
@@ -103,17 +107,28 @@ def _slide_block(slide: PresentationSlide) -> str:
     ])
 
 
+def load_presentation_design_guide(path: str | Path | None = None) -> str:
+    """Load the permanent renderer-neutral presentation design system."""
+    target = Path(path) if path else DEFAULT_DESIGN_GUIDE_PATH
+    guide = target.read_text(encoding="utf-8").strip()
+    if not guide:
+        raise ValueError(f"presentation design guide is empty: {target}")
+    return guide
+
+
 def generate_prompt_bundle(
     presentation: PresentationDesignOutput,
     theme: Mapping[str, Any] | str | Path | None = None,
     *,
     renderer_type: RendererType = RendererType.GENERIC,
+    design_guide_path: str | Path | None = None,
 ) -> PromptBundle:
     """Generate synchronized deck and slide prompts without mutating lesson data."""
     if not isinstance(presentation, PresentationDesignOutput):
         raise TypeError("presentation must be a validated PresentationDesignOutput")
     renderer_type = RendererType(renderer_type)
     loaded_theme = load_prompt_theme(theme)
+    design_guide = load_presentation_design_guide(design_guide_path)
     header = _shared_header(loaded_theme, renderer_type)
     blocks = [_slide_block(slide) for slide in presentation.slides]
     deck_metadata = _canonical_json({
@@ -124,6 +139,8 @@ def generate_prompt_bundle(
     }, indent=2)
     deck_prompt = "\n\n".join([
         header,
+        "MASTER PRESENTATION DESIGN GUIDE",
+        design_guide,
         "DECK SOURCE",
         "BEGIN DECK METADATA SOURCE JSON",
         deck_metadata,
@@ -168,4 +185,8 @@ def generate_prompt_bundle(
     )
 
 
-__all__ = ["generate_prompt_bundle"]
+__all__ = [
+    "DEFAULT_DESIGN_GUIDE_PATH",
+    "generate_prompt_bundle",
+    "load_presentation_design_guide",
+]

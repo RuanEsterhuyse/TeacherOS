@@ -244,6 +244,8 @@ The generation pipeline runs Reader → Analyzer → Instruction Designer → Pr
 
 The prompt generator consumes the validated `PresentationDesignOutput` directly and emits both a complete-deck prompt and synchronized per-slide prompts. It preserves the exact schema payload—including separate student content and teacher notes, visual and image directions, interaction, layout, timing, sources, and fidelity—and never asks a renderer to redesign the lesson. Renderer-specific phrasing is selected with `RendererType`; the serialized lesson data remains identical for generic, Gemini, Gamma, and future adapters.
 
+The renderer-neutral master visual design system is stored in `prompts/presentation_design_guide.md`. The generator injects it once near the beginning of every complete deck prompt; it is not repeated in the per-slide prompts.
+
 Presentation design separates projected `student_view` content from detailed `teacher_notes`, and gives every slide structured `design`, `visuals`, `interaction`, timing, materials, sources, and fidelity metadata. The deterministic Grade 8 theme is in `config/presentation_theme.json`; models choose semantic layouts, while fonts, sizes, colors, margins, and content limits stay in configuration. The assembler still adapts rich slides into the established lesson-package contract for downstream compatibility, while the Google Slides renderer consumes `04_presentation_design.json` directly on new runs.
 
 ## Rich Google Slides rendering
