@@ -24,6 +24,14 @@ python -m app.cli generate-lesson \
 
 Human-readable stage files are saved under `output/generation_runs/<request_id>/`. A failed run preserves completed files. Running the same command resumes from every valid saved stage; use `--no-resume` to deliberately regenerate all AI stages. Automated tests mock all OpenAI calls and never make paid requests. Generation does not render Google Slides.
 
+## TeacherOS v0.1 interface
+
+The responsive interface in `web/` browses the registered curriculum library,
+shows unit and lesson details, and starts the existing generation pipeline in a
+background thread. The local bridge in `app/interface_server.py` reports live
+progress by observing the normal stage artifacts; it does not replace or alter
+the generation engine. Setup and launch instructions are in `web/README.md`.
+
 Generated lesson metadata carries this attribution: “This work is based on an original work of the Core Knowledge Foundation made available under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License. This does not imply endorsement by the Core Knowledge Foundation.” This attribution does not apply the CKLA license to independently published trade-book text.
 
 ## Lesson preparation orchestration
