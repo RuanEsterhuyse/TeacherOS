@@ -807,6 +807,70 @@ button:focus-visible {
   font-size: 12px;
 }
 
+.failure-stage {
+  align-items: center;
+  background: var(--panel-soft);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  margin: 14px 0;
+  padding: 10px 12px;
+}
+
+.failure-stage span {
+  color: var(--ink-faint);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.failure-stage b {
+  font-size: 12px;
+}
+
+.finding-list {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.finding-list article {
+  background: color-mix(in srgb, var(--danger) 7%, var(--panel));
+  border: 1px solid color-mix(in srgb, var(--danger) 25%, var(--line));
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.finding-list article > div {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.finding-list code {
+  color: var(--danger);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.finding-list article span {
+  background: color-mix(in srgb, var(--danger) 12%, var(--panel));
+  border-radius: 999px;
+  color: var(--danger);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 4px 7px;
+  text-transform: uppercase;
+}
+
+.finding-list article p {
+  line-height: 1.5;
+  margin: 8px 0 0;
+}
+
 .generation-error button {
   background: transparent;
   border: 0;

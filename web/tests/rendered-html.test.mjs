@@ -55,6 +55,11 @@ test("interface preserves the v0.2 generation workflow", async () => {
   assert.match(page, /Open Output Folder/);
   assert.match(page, /Open Renderer Prompt Bundle/);
   assert.match(page, /Generate Again/);
+  assert.match(page, /Failed stage/);
+  assert.match(page, /blocking_findings/);
+  assert.match(page, /finding\.code/);
+  assert.match(page, /finding\.severity/);
+  assert.match(page, /finding\.message/);
   assert.match(page, /setInterval/);
   assert.match(page, /data-testid="generation-view"/);
   assert.match(page, /data-testid="complete-view"/);

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import subprocess
 import threading
+import time
 import uuid
 from dataclasses import dataclass, field
 from http import HTTPStatus
@@ -48,6 +49,7 @@ class GenerationJob:
     grade: str
     unit: str
     lesson_number: int
+    started_at_ns: int = field(default_factory=time.time_ns)
     state: str = "running"
     result: dict[str, Any] | None = None
     errors: list[str] = field(default_factory=list)
@@ -182,36 +184,74 @@ class TeacherOSInterface:
         if job is None:
             raise KeyError(job_id)
         run_dir = PROJECT_ROOT / "output" / "generation_runs" / job.request_id
-        completed_count = 1
-        for _, filename, _ in GENERATION_STAGES[1:]:
-            if filename and (run_dir / filename).is_file():
-                completed_count += 1
-        current_index = min(completed_count, len(GENERATION_STAGES) - 1)
-        if job.state == "complete":
-            current_index = len(GENERATION_STAGES) - 1
         completed_stages = (
             job.result.get("completed_stages", []) if job.result else []
         )
+        current_indices = [0]
+        for index, (stage_id, filename, _) in enumerate(GENERATION_STAGES):
+            path = run_dir / filename if filename else None
+            artifact_is_current = (
+                path is not None
+                and path.is_file()
+                and path.stat().st_mtime_ns >= job.started_at_ns
+            )
+            if artifact_is_current or stage_id in completed_stages:
+                current_indices.append(index)
+        furthest_completed = max(current_indices)
+        completed_count = furthest_completed + 1
+        current_index = min(
+            furthest_completed + 1,
+            len(GENERATION_STAGES) - 1,
+        )
+        if job.state == "complete":
+            current_index = len(GENERATION_STAGES) - 1
+        failed_stage = job.result.get("failed_stage") if job.result else None
+        if job.state == "failed" and failed_stage:
+            failed_index = next(
+                (
+                    index
+                    for index, (stage_id, _, _) in enumerate(GENERATION_STAGES)
+                    if stage_id == failed_stage
+                ),
+                current_index,
+            )
+            current_index = failed_index
         progress = round((completed_count / len(GENERATION_STAGES)) * 100)
         if job.state == "complete":
             progress = 100
+        blocking_findings: list[dict[str, Any]] = []
+        report_path = run_dir / "06_validation_report.json"
+        if (
+            job.state == "failed"
+            and failed_stage == "lesson_validator"
+            and report_path.is_file()
+            and report_path.stat().st_mtime_ns >= job.started_at_ns
+        ):
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+            blocking_findings = [
+                finding
+                for finding in report.get("findings", [])
+                if finding.get("severity") == "error"
+            ]
         return {
             "job_id": job.job_id,
             "request_id": job.request_id,
             "state": job.state,
             "progress": progress,
             "current_stage": GENERATION_STAGES[current_index][2],
+            "failed_stage": failed_stage,
             "stages": [
                 {
                     "id": stage_id,
                     "label": label,
                     "complete": (
-                        stage_id in completed_stages
-                        or (filename is not None and (run_dir / filename).is_file())
-                        or (stage_id == "prepare_lesson" and job.state != "queued")
+                        index <= furthest_completed
+                        or stage_id in completed_stages
                     ),
                 }
-                for stage_id, filename, label in GENERATION_STAGES
+                for index, (stage_id, filename, label) in enumerate(
+                    GENERATION_STAGES
+                )
             ],
             "validation_result": (
                 job.result.get("validation_result") if job.result else None
@@ -219,6 +259,7 @@ class TeacherOSInterface:
             "slide_count": job.result.get("slide_count", 0) if job.result else 0,
             "warnings": job.result.get("warnings", []) if job.result else [],
             "errors": job.errors,
+            "blocking_findings": blocking_findings,
         }
 
     def open_output(self, request_id: str, target: str) -> None:

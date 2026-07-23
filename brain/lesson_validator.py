@@ -10,6 +10,34 @@ from schemas.reader_output_schema import CurriculumReaderOutput
 from schemas.presentation_design_schema import PresentationDesignOutput
 import re
 from collections import Counter
+from typing import Any, Iterator
+
+
+_CONTAINMENT_TRANSLATION = str.maketrans({
+    "\u2018": "'",
+    "\u2019": "'",
+    "\u201c": '"',
+    "\u201d": '"',
+    "\u00a0": " ",
+})
+
+
+def normalize_containment_text(value: str) -> str:
+    """Canonicalize harmless typography differences for fidelity containment."""
+    normalized = value.translate(_CONTAINMENT_TRANSLATION)
+    normalized = re.sub(r"(?<!\w)'([^'\n]+)'(?!\w)", r'"\1"', normalized)
+    return re.sub(r"\s+", " ", normalized).strip()
+
+
+def _contained_text_values(value: Any) -> Iterator[str]:
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict):
+        for item in value.values():
+            yield from _contained_text_values(item)
+    elif isinstance(value, (list, tuple)):
+        for item in value:
+            yield from _contained_text_values(item)
 
 
 class LessonValidator:
@@ -81,12 +109,18 @@ class LessonValidator:
                 add("missing_source_reference", "warning", "Source-derived slide has no source reference.", slide.slide_id)
             if ("\"" in slide.student_facing_content or "“" in slide.student_facing_content) and slide.fidelity_classification == "teacheros_added":
                 add("possible_invented_quotation", "warning", "TeacherOS-added content contains quotation marks; verify against the source.", slide.slide_id)
-        package_text = "\n".join([str(package.model_dump()), *package.reader_references, *package.activity_references])
+        package_text = normalize_containment_text(
+            "\n".join([
+                *_contained_text_values(package.model_dump()),
+                *package.reader_references,
+                *package.activity_references,
+            ])
+        )
         for label, values in (("objective", reader.objectives), ("required activity", reader.lesson_sequence),
                               ("homework", reader.homework), ("Activity Book reference", reader.activity_book_references),
                               ("Reader reference", reader.reader_references)):
             for value in values:
-                if value and value not in package_text:
+                if value and normalize_containment_text(value) not in package_text:
                     add(f"missing_{label.lower().replace(' ', '_')}", "error", f"Required {label} was not preserved: {value}")
         if not package.source_references:
             add("missing_package_sources", "error", "Lesson Package has no source references.")

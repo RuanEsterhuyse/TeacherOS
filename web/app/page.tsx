@@ -44,11 +44,18 @@ type JobStatus = {
   state: "running" | "complete" | "failed";
   progress: number;
   current_stage: string;
+  failed_stage: string | null;
   stages: GenerationStage[];
   validation_result: string | null;
   slide_count: number;
   warnings: string[];
   errors: string[];
+  blocking_findings: {
+    code: string;
+    severity: "error" | "warning" | "info";
+    message: string;
+    slide_id: string | null;
+  }[];
 };
 
 const API_BASE =
@@ -58,6 +65,14 @@ const GAMMA_URL =
 
 function durationLabel(duration: number | null) {
   return duration ? `${duration} min` : "Duration not listed";
+}
+
+function stageLabel(stage: string | null) {
+  if (!stage) return "Generation";
+  return stage
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 export default function Home() {
@@ -188,11 +203,13 @@ export default function Home() {
         state: "failed",
         progress: 0,
         current_stage: "Unable to start",
+        failed_stage: "generation_start",
         stages: [],
         validation_result: null,
         slide_count: 0,
         warnings: [],
         errors: [payload.error || "Unable to start lesson generation."],
+        blocking_findings: [],
       });
       return;
     }
@@ -521,7 +538,25 @@ export default function Home() {
                 {job?.state === "failed" && (
                   <div className="generation-error">
                     <strong>Generation stopped</strong>
-                    <p>{job.errors.join(" ")}</p>
+                    <div className="failure-stage">
+                      <span>Failed stage</span>
+                      <b>{stageLabel(job.failed_stage)}</b>
+                    </div>
+                    {(job.blocking_findings || []).length > 0 ? (
+                      <div className="finding-list">
+                        {(job.blocking_findings || []).map((finding) => (
+                          <article key={`${finding.code}-${finding.slide_id || ""}`}>
+                            <div>
+                              <code>{finding.code}</code>
+                              <span>{finding.severity}</span>
+                            </div>
+                            <p>{finding.message}</p>
+                          </article>
+                        ))}
+                      </div>
+                    ) : (
+                      <p>{job.errors.join(" ")}</p>
+                    )}
                     <button onClick={generateAnother}>Return to lesson</button>
                   </div>
                 )}
