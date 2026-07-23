@@ -309,7 +309,8 @@ class TeacherOS:
         run_dir = self.generation_output_directory / preparation.request_id
         stages = ["curriculum_reader", "curriculum_analyzer", "instruction_designer",
                   "presentation_designer", "lesson_assembler", "lesson_validator",
-                  "presentation_renderer_prompt_generator", "lesson_package_parser"]
+                  "presentation_renderer_prompt_generator", "gamma_handoff_prompt_generator",
+                  "lesson_package_parser"]
         if preparation.status == "failed":
             return GenerationResult(request_id=preparation.request_id, status="failed",
                 output_directory=str(run_dir), failed_stage="prepare_lesson", errors=preparation.errors,
@@ -328,6 +329,7 @@ class TeacherOS:
         from brain.lesson_package_parser import parse_lesson_package
         from renderer.prompt_bundle import RendererType
         from renderer.prompt_generator import generate_prompt_bundle
+        from renderer.gamma_prompt import write_gamma_deck_prompt
         from config.settings import get_settings
         from schemas.reader_output_schema import CurriculumReaderOutput
         from schemas.analyzer_output_schema import CurriculumAnalyzerOutput
@@ -399,6 +401,15 @@ class TeacherOS:
             return GenerationResult(request_id=preparation.request_id, status="failed",
                 output_directory=str(run_dir), completed_stages=completed,
                 failed_stage="presentation_renderer_prompt_generator",
+                warnings=preparation.warnings, errors=[str(error)], usage=usage,
+                validation_result=report.status, slide_count=report.slide_count)
+        try:
+            write_gamma_deck_prompt(presentation, run_dir)
+            completed.append("gamma_handoff_prompt_generator")
+        except Exception as error:
+            return GenerationResult(request_id=preparation.request_id, status="failed",
+                output_directory=str(run_dir), completed_stages=completed,
+                failed_stage="gamma_handoff_prompt_generator",
                 warnings=preparation.warnings, errors=[str(error)], usage=usage,
                 validation_result=report.status, slide_count=report.slide_count)
         try:

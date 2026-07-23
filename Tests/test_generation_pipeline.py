@@ -180,10 +180,12 @@ def test_orchestration_order_and_resume_avoid_repeat_calls(tmp_path) -> None:
     assert not (run / "04_slide_specification.json").exists()
     assert (run / "RendererPromptBundle.json").is_file()
     assert (run / "RendererPromptBundle.md").is_file()
+    assert (run / "GammaDeckPrompt.md").is_file()
     prompt_bundle = json.loads((run / "RendererPromptBundle.json").read_text(encoding="utf-8"))
     assert prompt_bundle["metadata"]["request_id"] == "ckla-grade-8-unit-1-lesson-1"
     assert prompt_bundle["metadata"]["slide_ids"] == ["S01"]
     assert "presentation_renderer_prompt_generator" in first.completed_stages
+    assert "gamma_handoff_prompt_generator" in first.completed_stages
     client.calls.clear()
     second = teacheros.generate_lesson(grade=8, unit=1, lesson_number=1)
     assert second.status in {"completed", "completed_with_warnings"}
@@ -223,6 +225,7 @@ def test_prompt_bundle_is_not_written_when_validation_fails(tmp_path, monkeypatc
     assert result.failed_stage == "lesson_validator"
     assert not (run / "RendererPromptBundle.json").exists()
     assert not (run / "RendererPromptBundle.md").exists()
+    assert not (run / "GammaDeckPrompt.md").exists()
 
 
 def test_assembler_merges_validated_outputs_without_api_or_attribution_drift() -> None:

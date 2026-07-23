@@ -4,6 +4,7 @@ import time
 from types import SimpleNamespace
 
 from app.interface_server import TeacherOSInterface
+from app import interface_server
 from Tests.test_teacheros import prepared_fixture
 
 
@@ -47,3 +48,38 @@ def test_generation_starts_in_background_and_returns_progress(tmp_path, monkeypa
     assert status["state"] == "complete"
     assert status["progress"] == 100
     assert status["slide_count"] == 4
+
+
+def test_gamma_prompt_can_be_read_for_clipboard_and_download(
+    tmp_path, monkeypatch
+) -> None:
+    prompt = "# Gamma Deck Prompt\n\nExact lesson content."
+    path = (
+        tmp_path
+        / "output"
+        / "generation_runs"
+        / "ckla-grade-8-unit-1-lesson-2"
+        / "GammaDeckPrompt.md"
+    )
+    path.parent.mkdir(parents=True)
+    path.write_text(prompt, encoding="utf-8")
+    monkeypatch.setattr(interface_server, "PROJECT_ROOT", tmp_path)
+
+    interface = TeacherOSInterface.__new__(TeacherOSInterface)
+    assert interface.read_gamma_prompt(
+        "ckla-grade-8-unit-1-lesson-2"
+    ) == prompt
+
+    copied = {}
+    monkeypatch.setattr(
+        interface_server.subprocess,
+        "run",
+        lambda command, **kwargs: copied.update(command=command, **kwargs),
+    )
+    interface.copy_gamma_prompt("ckla-grade-8-unit-1-lesson-2")
+    assert copied == {
+        "command": ["pbcopy"],
+        "input": prompt,
+        "text": True,
+        "check": True,
+    }

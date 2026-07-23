@@ -53,6 +53,8 @@ type JobStatus = {
 
 const API_BASE =
   process.env.NEXT_PUBLIC_TEACHEROS_API_URL || "http://127.0.0.1:8765";
+const GAMMA_URL =
+  process.env.NEXT_PUBLIC_GAMMA_URL || "https://gamma.app";
 
 function durationLabel(duration: number | null) {
   return duration ? `${duration} min` : "Duration not listed";
@@ -70,6 +72,7 @@ export default function Home() {
   const [darkMode, setDarkMode] = useState(false);
   const [jobId, setJobId] = useState("");
   const [job, setJob] = useState<JobStatus | null>(null);
+  const [copyStatus, setCopyStatus] = useState("");
   const [view, setView] = useState<"catalog" | "generation" | "complete">(
     "catalog",
   );
@@ -205,9 +208,39 @@ export default function Home() {
     });
   }
 
+  async function copyGammaPrompt() {
+    if (!job?.request_id) return;
+    setCopyStatus("Copying…");
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/artifacts/${job.request_id}/gamma`,
+      );
+      if (!response.ok) throw new Error("Gamma prompt is unavailable.");
+      const prompt = await response.text();
+      try {
+        await navigator.clipboard.writeText(prompt);
+      } catch {
+        const fallback = await fetch(`${API_BASE}/api/clipboard`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ request_id: job.request_id }),
+        });
+        if (!fallback.ok) throw new Error("Clipboard access is unavailable.");
+      }
+      setCopyStatus("Gamma prompt copied");
+    } catch {
+      setCopyStatus("Unable to copy prompt");
+    }
+  }
+
+  function openGamma() {
+    window.open(GAMMA_URL, "_blank", "noopener,noreferrer");
+  }
+
   function generateAnother() {
     setJobId("");
     setJob(null);
+    setCopyStatus("");
     setView("catalog");
   }
 
@@ -220,7 +253,7 @@ export default function Home() {
           </span>
           <div>
             <strong>TeacherOS</strong>
-            <span>Version 0.1</span>
+            <span>Version 0.2</span>
           </div>
         </div>
         <div className="topbar-actions">
@@ -509,9 +542,46 @@ export default function Home() {
                   ? "Validated with review notes"
                   : "Validation passed"}
               </p>
+              <div className="gamma-handoff">
+                <span className="eyebrow">Fastest path to presentation</span>
+                <ol>
+                  <li>Click Copy Gamma Prompt</li>
+                  <li>Click Open Gamma</li>
+                  <li>Open Gamma Agent</li>
+                  <li>Paste the prompt</li>
+                  <li>Generate the presentation</li>
+                </ol>
+              </div>
               <div className="complete-actions">
                 <button
                   className="primary-button"
+                  onClick={copyGammaPrompt}
+                  data-testid="copy-gamma-prompt"
+                >
+                  Copy Gamma Prompt
+                </button>
+                {copyStatus && (
+                  <span className="copy-status" role="status">
+                    {copyStatus}
+                  </span>
+                )}
+                <a
+                  className="secondary-button action-link"
+                  href={`${API_BASE}/api/artifacts/${job.request_id}/gamma?download=1`}
+                  download="GammaDeckPrompt.md"
+                  data-testid="download-gamma-prompt"
+                >
+                  Download Gamma Prompt
+                </a>
+                <button
+                  className="secondary-button"
+                  onClick={openGamma}
+                  data-testid="open-gamma"
+                >
+                  Open Gamma
+                </button>
+                <button
+                  className="secondary-button"
                   onClick={() => openOutput("folder")}
                 >
                   Open Output Folder
@@ -520,10 +590,10 @@ export default function Home() {
                   className="secondary-button"
                   onClick={() => openOutput("bundle")}
                 >
-                  Open RendererPromptBundle.md
+                  Open Renderer Prompt Bundle
                 </button>
                 <button className="text-button" onClick={generateAnother}>
-                  Generate Another Lesson
+                  Generate Again
                 </button>
               </div>
               {job.warnings.length > 0 && (

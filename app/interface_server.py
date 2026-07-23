@@ -31,6 +31,11 @@ GENERATION_STAGES = [
         "RendererPromptBundle.md",
         "Preparing renderer prompt",
     ),
+    (
+        "gamma_handoff_prompt_generator",
+        "GammaDeckPrompt.md",
+        "Preparing Gamma handoff",
+    ),
     ("lesson_package_parser", "07_validated_lesson.json", "Finalizing package"),
 ]
 
@@ -217,18 +222,36 @@ class TeacherOSInterface:
         }
 
     def open_output(self, request_id: str, target: str) -> None:
-        run_dir = (
-            PROJECT_ROOT / "output" / "generation_runs" / request_id
-        ).resolve()
-        output_root = (PROJECT_ROOT / "output" / "generation_runs").resolve()
-        if output_root not in run_dir.parents:
-            raise ValueError("invalid output path")
+        run_dir = self.artifact_path(request_id)
         selected = (
             run_dir / "RendererPromptBundle.md" if target == "bundle" else run_dir
         )
         if not selected.exists():
             raise FileNotFoundError(selected)
         subprocess.Popen(["open", str(selected)])
+
+    @staticmethod
+    def artifact_path(request_id: str, filename: str | None = None) -> Path:
+        run_dir = (PROJECT_ROOT / "output" / "generation_runs" / request_id).resolve()
+        output_root = (PROJECT_ROOT / "output" / "generation_runs").resolve()
+        if run_dir.parent != output_root:
+            raise ValueError("invalid output path")
+        return run_dir / filename if filename else run_dir
+
+    def read_gamma_prompt(self, request_id: str) -> str:
+        path = self.artifact_path(request_id, "GammaDeckPrompt.md")
+        if not path.is_file():
+            raise FileNotFoundError(path)
+        return path.read_text(encoding="utf-8")
+
+    def copy_gamma_prompt(self, request_id: str) -> None:
+        prompt = self.read_gamma_prompt(request_id)
+        subprocess.run(
+            ["pbcopy"],
+            input=prompt,
+            text=True,
+            check=True,
+        )
 
 
 INTERFACE = TeacherOSInterface()
@@ -237,7 +260,7 @@ INTERFACE = TeacherOSInterface()
 class InterfaceRequestHandler(BaseHTTPRequestHandler):
     """Small JSON API for the local TeacherOS interface."""
 
-    server_version = "TeacherOSInterface/0.1"
+    server_version = "TeacherOSInterface/0.2"
 
     def _headers(self, content_type: str, status: int = HTTPStatus.OK) -> None:
         self.send_response(status)
@@ -252,6 +275,26 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
         self._headers("application/json; charset=utf-8", status)
         self.wfile.write(body)
 
+    def _text(
+        self,
+        body: str,
+        *,
+        filename: str | None = None,
+        status: int = HTTPStatus.OK,
+    ) -> None:
+        encoded = body.encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "text/markdown; charset=utf-8")
+        self.send_header("Content-Length", str(len(encoded)))
+        self.send_header("Access-Control-Allow-Origin", "*")
+        if filename:
+            self.send_header(
+                "Content-Disposition",
+                f'attachment; filename="{filename}"',
+            )
+        self.end_headers()
+        self.wfile.write(encoded)
+
     def _body(self) -> dict[str, Any]:
         length = int(self.headers.get("Content-Length", "0"))
         return json.loads(self.rfile.read(length) or b"{}")
@@ -263,13 +306,24 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         try:
             if path == "/api/health":
-                self._json({"status": "ok", "version": "0.1"})
+                self._json({"status": "ok", "version": "0.2"})
                 return
             if path == "/api/catalog":
                 self._json(INTERFACE.catalog())
                 return
             if path.startswith("/api/jobs/"):
                 self._json(INTERFACE.job_status(path.rsplit("/", 1)[-1]))
+                return
+            if path.startswith("/api/artifacts/") and path.endswith("/gamma"):
+                parts = path.strip("/").split("/")
+                if len(parts) != 4:
+                    raise KeyError(path)
+                prompt = INTERFACE.read_gamma_prompt(parts[2])
+                download = urlparse(self.path).query == "download=1"
+                self._text(
+                    prompt,
+                    filename="GammaDeckPrompt.md" if download else None,
+                )
                 return
             self._json({"error": "Not found"}, HTTPStatus.NOT_FOUND)
         except KeyError:
@@ -299,6 +353,10 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
                     target=str(payload.get("target", "folder")),
                 )
                 self._json({"status": "opened"})
+                return
+            if path == "/api/clipboard":
+                INTERFACE.copy_gamma_prompt(str(payload["request_id"]))
+                self._json({"status": "copied"})
                 return
             self._json({"error": "Not found"}, HTTPStatus.NOT_FOUND)
         except (KeyError, TypeError, ValueError) as error:

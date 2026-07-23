@@ -34,7 +34,7 @@ test("server-renders the TeacherOS application shell", async () => {
   assert.match(html, /class="state-card"/);
 });
 
-test("interface preserves the v0.1 generation workflow", async () => {
+test("interface preserves the v0.2 generation workflow", async () => {
   const [page, layout, css, packageJson] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
@@ -44,9 +44,17 @@ test("interface preserves the v0.1 generation workflow", async () => {
 
   assert.match(page, /Generate Lesson/);
   assert.match(page, /Lesson Generated Successfully/);
+  assert.match(page, /Copy Gamma Prompt/);
+  assert.match(page, /Download Gamma Prompt/);
+  assert.match(page, /Open Gamma/);
+  assert.match(page, /Open Gamma Agent/);
+  assert.match(page, /navigator\.clipboard\.writeText/);
+  assert.match(page, /\/api\/clipboard/);
+  assert.match(page, /NEXT_PUBLIC_GAMMA_URL/);
+  assert.match(page, /GammaDeckPrompt\.md/);
   assert.match(page, /Open Output Folder/);
-  assert.match(page, /Open RendererPromptBundle\.md/);
-  assert.match(page, /Generate Another Lesson/);
+  assert.match(page, /Open Renderer Prompt Bundle/);
+  assert.match(page, /Generate Again/);
   assert.match(page, /setInterval/);
   assert.match(page, /data-testid="generation-view"/);
   assert.match(page, /data-testid="complete-view"/);

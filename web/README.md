@@ -23,6 +23,16 @@ npm run dev
 
 Open `http://localhost:3000`.
 
+To use a different Gamma entry point, configure the public URL before starting
+the interface:
+
+```bash
+NEXT_PUBLIC_GAMMA_URL=https://gamma.app npm run dev
+```
+
+The completion screen copies or downloads the generated
+`GammaDeckPrompt.md`; it never changes the renderer-neutral prompt bundle.
+
 ## Verify
 
 ```bash

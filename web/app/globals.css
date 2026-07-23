@@ -817,8 +817,8 @@ button:focus-visible {
 }
 
 .complete-view {
-  margin: 90px auto 0;
-  max-width: 690px;
+  margin: 58px auto 0;
+  max-width: 760px;
   text-align: center;
 }
 
@@ -840,8 +840,8 @@ button:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin: 30px auto 0;
-  max-width: 390px;
+  margin: 24px auto 0;
+  max-width: 430px;
 }
 
 .complete-actions .primary-button {
@@ -853,6 +853,14 @@ button:focus-visible {
   background: var(--panel);
   border: 1px solid var(--line-strong);
   padding: 13px 16px;
+}
+
+.action-link {
+  border-radius: 10px;
+  color: var(--ink);
+  cursor: pointer;
+  font-weight: 700;
+  text-decoration: none;
 }
 
 .secondary-button:hover {
@@ -870,6 +878,47 @@ button:focus-visible {
   color: var(--ink-faint) !important;
   font-size: 11px !important;
   margin: 20px auto 0 !important;
+}
+
+.gamma-handoff {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  margin: 28px auto 0;
+  max-width: 520px;
+  padding: 22px 24px;
+  text-align: left;
+}
+
+.gamma-handoff .eyebrow {
+  margin-bottom: 14px;
+}
+
+.gamma-handoff ol {
+  color: var(--ink-soft);
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding-left: 24px;
+}
+
+.gamma-handoff li {
+  font-size: 13px;
+  line-height: 1.4;
+  padding-left: 4px;
+}
+
+.gamma-handoff li::marker {
+  color: var(--brand);
+  font-weight: 800;
+}
+
+.copy-status {
+  color: var(--brand);
+  font-size: 11px;
+  font-weight: 700;
+  margin: -2px 0 2px;
 }
 
 @keyframes pulse {

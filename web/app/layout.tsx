@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "TeacherOS — Lesson Generation",
   description:
-    "A teacher-friendly workspace for browsing curriculum and generating complete TeacherOS lesson packages.",
+    "Generate complete TeacherOS lesson packages and hand validated deck prompts directly to Gamma.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
