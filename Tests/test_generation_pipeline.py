@@ -1,5 +1,6 @@
 """Mock-only tests for Milestone 7 generation contracts and validation."""
 
+import json
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 import pytest
@@ -18,6 +19,7 @@ from schemas.reader_output_schema import CurriculumReaderOutput, LessonSection
 from schemas.slide_specification_schema import SlideSpecification, SlideSpecificationItem
 from schemas.presentation_design_schema import (PresentationDesignOutput, PresentationSlide, StudentView,
     TeacherNotes, SlideDesign, VisualPlan, InteractionPlan)
+from schemas.generation_result_schema import LessonValidationReport
 from services.openai_client import OpenAIClient
 from Tests.test_teacheros import prepared_fixture
 from pydantic import ValidationError
@@ -176,6 +178,12 @@ def test_orchestration_order_and_resume_avoid_repeat_calls(tmp_path) -> None:
     run = tmp_path / "runs/ckla-grade-8-unit-1-lesson-1"
     assert (run / "04_presentation_design.json").is_file()
     assert not (run / "04_slide_specification.json").exists()
+    assert (run / "RendererPromptBundle.json").is_file()
+    assert (run / "RendererPromptBundle.md").is_file()
+    prompt_bundle = json.loads((run / "RendererPromptBundle.json").read_text(encoding="utf-8"))
+    assert prompt_bundle["metadata"]["request_id"] == "ckla-grade-8-unit-1-lesson-1"
+    assert prompt_bundle["metadata"]["slide_ids"] == ["S01"]
+    assert "presentation_renderer_prompt_generator" in first.completed_stages
     client.calls.clear()
     second = teacheros.generate_lesson(grade=8, unit=1, lesson_number=1)
     assert second.status in {"completed", "completed_with_warnings"}
@@ -193,6 +201,28 @@ def test_stage_failure_preserves_completed_outputs(tmp_path) -> None:
     assert (run / "01_reader_output.json").is_file()
     assert (run / "02_analyzer_output.json").is_file()
     assert not (run / "03_instruction_design.json").exists()
+
+
+def test_prompt_bundle_is_not_written_when_validation_fails(tmp_path, monkeypatch) -> None:
+    teacheros, _ = prepared_fixture(tmp_path)
+    teacheros.generation_output_directory = tmp_path / "runs"
+    teacheros.openai_client = PipelineClient()
+    monkeypatch.setattr(
+        LessonValidator,
+        "validate",
+        lambda *args, **kwargs: LessonValidationReport(
+            status="fail",
+            timing_total_minutes=0,
+            slide_count=1,
+        ),
+    )
+
+    result = teacheros.generate_lesson(grade=8, unit=1, lesson_number=1)
+    run = tmp_path / "runs/ckla-grade-8-unit-1-lesson-1"
+    assert result.status == "failed"
+    assert result.failed_stage == "lesson_validator"
+    assert not (run / "RendererPromptBundle.json").exists()
+    assert not (run / "RendererPromptBundle.md").exists()
 
 
 def test_assembler_merges_validated_outputs_without_api_or_attribution_drift() -> None:
