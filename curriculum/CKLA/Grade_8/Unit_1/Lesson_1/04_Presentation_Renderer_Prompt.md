@@ -1,4 +1,4 @@
-# Chalkie Build Prompt
+# Presentation Renderer Prompt
 
 ## Build Objective
 

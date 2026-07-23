@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The Lesson Assembler converts the completed slide specification and supporting lesson artifacts into one coherent, renderer-ready Lesson Package. It is the final packaging boundary between TeacherOS Brain design modules and downstream presentation systems such as Chalkie.
+The Lesson Assembler converts the completed slide specification and supporting lesson artifacts into one coherent, renderer-ready Lesson Package. It is the renderer handoff boundary between TeacherOS Brain design modules and downstream presentation systems.
 
 The module preserves approved content and decisions while verifying that all required parts are present, consistent, correctly related, and exportable. It does not redesign the lesson, make instructional decisions, or generate slides.
 
@@ -348,7 +348,7 @@ The Lesson Assembler outputs one versioned Lesson Package containing:
 
 The package must be structured, consistent, machine-readable, human-auditable, versioned, and optimized for the declared renderer. Another rendering engine must be able to build the complete presentation without selecting objectives, changing sequence, writing lesson content, inventing supports, or making any other instructional decision.
 
-The output is a specification package, not a presentation file. Rendering remains the responsibility of Chalkie or another authorized downstream engine.
+The output is a specification package, not a presentation file. Rendering remains the responsibility of an authorized downstream presentation renderer.
 
 ## Failure Conditions
 
@@ -386,7 +386,7 @@ The Lesson Assembler succeeds when:
 
 ## Version 1 Scope
 
-Version 1 outputs one Lesson Package per lesson, optimized for Chalkie rendering and Google Slides delivery. It prioritizes stable slide ordering, complete teacher notes, explicit image and interaction directions, reconciled timing, curriculum traceability, human auditability, and clear export readiness.
+Version 1 outputs one Lesson Package per lesson, optimized for presentation rendering and Google Slides delivery. It prioritizes stable slide ordering, complete teacher notes, explicit image and interaction directions, reconciled timing, curriculum traceability, human auditability, and clear export readiness.
 
 Version 1 may use renderer-specific packaging conventions where necessary, but the authoritative lesson content must remain separable from those conventions so future renderers can consume the same instructional design.
 

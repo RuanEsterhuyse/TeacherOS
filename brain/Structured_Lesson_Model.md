@@ -287,9 +287,9 @@ The Quality Checker validates the complete model for fidelity, traceability, com
 
 The Lesson Assembler consumes approved sections of the model and organizes them into a coherent lesson package. It verifies that artifact boundaries, identifiers, ordering, and versions remain consistent and that unresolved findings are visible.
 
-### Chalkie Build Engine
+### Presentation Renderer Handoff
 
-The Chalkie Build Engine consumes approved Slide Specifications, Image Directions, teacher-facing notes, timing, and presentation constraints. It produces a controlled build specification for Chalkie without redefining curriculum, instructional sequence, assessment, or learner supports.
+The renderer handoff consumes approved Slide Specifications, Image Directions, teacher-facing notes, timing, and presentation constraints. It produces a controlled build specification for a presentation renderer without redefining curriculum, instructional sequence, assessment, or learner supports.
 
 When more than one module enriches a section, the authoritative owner remains explicit. Conflicting updates require validation and resolution rather than last-write-wins replacement.
 

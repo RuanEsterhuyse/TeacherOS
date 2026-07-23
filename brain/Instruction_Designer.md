@@ -40,7 +40,7 @@ The Instruction Designer must not:
 - design final slide layouts or visual composition;
 - generate final images;
 - render Google Slides or another presentation format;
-- send content directly to Chalkie;
+- send content directly to a presentation renderer;
 - hide TeacherOS adaptations inside curriculum-original content;
 - reduce rigor merely to make the lesson simpler;
 - resolve critical source conflicts without an authorized decision.
@@ -526,7 +526,7 @@ Version 1 prioritizes:
 - optional student-reader and activity-book materials;
 - ELD supports;
 - human review of unresolved issues;
-- downstream lesson rendering through Chalkie.
+- downstream lesson rendering through a presentation renderer.
 
 Version 1 should establish a dependable instructional sequence, transparent adaptation process, practical teacher experience, meaningful student participation, and complete Slide Designer handoff before broader personalization is introduced.
 

@@ -41,7 +41,7 @@ The Curriculum Analyzer must not:
 - add final ELD or accessibility supports;
 - create student-facing or teacher-facing slide content;
 - generate or select images;
-- produce the Chalkie build instructions;
+- produce presentation-renderer build instructions;
 - silently resolve conflicting sources;
 - create replacement assessments for gaps it identifies.
 
@@ -466,7 +466,7 @@ Version 1 prioritizes:
 - the teacher guide as the primary authority;
 - optional student-reader and activity-book materials;
 - human review of low-confidence and unresolved conclusions;
-- analysis supporting lesson generation through Chalkie.
+- analysis supporting lesson generation through a presentation renderer.
 
 Version 1 should establish dependable goal identification, relationship mapping, essentiality classification, demand analysis, fidelity, and handoff before broader automation is introduced. Its focus on a curriculum and grade establishes an initial operating scope without authorizing lesson-specific assumptions.
 

@@ -6,7 +6,7 @@ TeacherOS is a reusable instructional design system that transforms curriculum s
 
 TeacherOS does not replace the curriculum. It interprets, organizes, and presents the curriculum while preserving its required objectives, texts, activities, sequence, assessments, and instructional intent.
 
-Its first use case is CKLA Grade 8 lesson development, with Chalkie used as the presentation-rendering tool.
+Its first use case is CKLA Grade 8 lesson development, with an external presentation renderer used to build the final deck.
 
 ## 2. Core Workflow
 
@@ -21,8 +21,8 @@ TeacherOS follows this workflow:
 7. Write teacher-facing speaker notes.
 8. Add ELD supports and differentiation.
 9. Define visual and image directions.
-10. Produce a precise Chalkie build prompt.
-11. Review Chalkie’s output against the storyboard and fidelity checklist.
+10. Produce a precise Presentation Renderer Prompt.
+11. Review the presentation renderer’s output against the storyboard and fidelity checklist.
 12. Save the final deck and lesson package permanently.
 
 ## 3. Division of Responsibilities
@@ -40,7 +40,7 @@ ChatGPT is responsible for:
 - creating ELD supports
 - creating checks for understanding
 - preserving curriculum fidelity
-- reviewing Chalkie output
+- reviewing presentation-renderer output
 
 ### Codex
 Codex acts as the project engineer.
@@ -56,10 +56,10 @@ Codex is responsible for:
 
 Codex must not invent curriculum content unless explicitly instructed.
 
-### Chalkie
-Chalkie acts as the presentation renderer.
+### Presentation Renderer
+The external presentation tool acts as the presentation renderer.
 
-Chalkie is responsible for:
+The presentation renderer is responsible for:
 
 - turning the storyboard into slides
 - applying visual design
@@ -67,7 +67,7 @@ Chalkie is responsible for:
 - following image and design directions
 - placing teacher notes where supported
 
-Chalkie must not independently change lesson objectives, sequence, required activities, texts, or assessments.
+The presentation renderer must not independently change lesson objectives, sequence, required activities, texts, or assessments.
 
 ### Teacher
 The teacher acts as the final decision-maker.
@@ -92,7 +92,7 @@ Every lesson must:
 - preserve assigned homework
 - avoid inventing quotations, page references, standards, or curriculum directions
 - identify any uncertainty rather than guessing
-- include a fidelity checklist before the Chalkie prompt is finalized
+- include a fidelity checklist before the renderer prompt is finalized
 
 TeacherOS may improve clarity, pacing, engagement, accessibility, and differentiation, but it must not silently rewrite the curriculum.
 
@@ -225,9 +225,9 @@ Images should be:
 
 TeacherOS should specify exact visual direction rather than requesting a generic “relevant image.”
 
-## 11. Chalkie Build Rules
+## 11. Presentation Renderer Build Rules
 
-The Chalkie build prompt must:
+The Presentation Renderer Prompt must:
 
 - provide the exact slide sequence
 - distinguish visible slide text from speaker notes
@@ -238,10 +238,10 @@ The Chalkie build prompt must:
 - prohibit combining or deleting required activities without permission
 - request editable slides
 - request consistent formatting
-- instruct Chalkie to keep student-facing text concise
+- instruct the presentation renderer to keep student-facing text concise
 - require a final slide-count and content check
 
-Chalkie should function as a builder, not as the primary instructional designer.
+The presentation renderer should function as a builder, not as the primary instructional designer.
 
 ## 12. Quality Assurance
 
@@ -257,7 +257,7 @@ Before a lesson is considered complete, confirm:
 - checks for understanding are included
 - assessment matches the objective
 - homework is accurate
-- Chalkie did not invent or omit required content
+- the presentation renderer did not invent or omit required content
 - the final presentation is readable and classroom-ready
 
 ## 13. Permanent Lesson Storage
@@ -271,7 +271,7 @@ Each lesson folder should ultimately contain:
 - lesson blueprint
 - curriculum fidelity checklist
 - slide storyboard
-- Chalkie build prompt
+- Presentation Renderer Prompt
 - speaker notes
 - image directions
 - ELD supports
@@ -291,7 +291,7 @@ After each lesson, the teacher may record:
 - successful discussion questions
 - useful ELD supports
 - slides that should be revised
-- Chalkie errors
+- presentation-renderer errors
 - reusable routines or visuals
 
 Successful patterns should be moved into the shared Design_System or Templates folders for future reuse.

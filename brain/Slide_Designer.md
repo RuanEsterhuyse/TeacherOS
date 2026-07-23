@@ -41,7 +41,7 @@ The Slide Designer must not:
 - make unresolved instructional decisions on behalf of the teacher;
 - generate final images;
 - build or render Google Slides;
-- send incomplete instructional content directly to Chalkie;
+- send incomplete instructional content directly to a presentation renderer;
 - prioritize visual novelty over learning, clarity, fidelity, or accessibility;
 - hide adaptations made by upstream modules.
 
@@ -389,7 +389,7 @@ The Slide Designer succeeds when:
 - accessibility and age appropriateness are built into the specification;
 - curriculum traceability and adaptation status are preserved;
 - unresolved issues are visible;
-- another rendering engine, such as Chalkie, can build the entire presentation without making instructional decisions.
+- a presentation renderer can build the entire presentation without making instructional decisions.
 
 ## Version 1 Scope
 
@@ -398,7 +398,7 @@ Version 1 targets:
 - CKLA Grade 8;
 - one lesson at a time;
 - Google Slides as the intended presentation format;
-- Chalkie as the downstream rendering system;
+- an external presentation tool as the downstream rendering system;
 - middle-school classroom instruction.
 
 Version 1 prioritizes complete, reliable slide specifications, consistent visual communication, accurate speaker notes, and transparent handoff over automated rendering or broad theme customization.

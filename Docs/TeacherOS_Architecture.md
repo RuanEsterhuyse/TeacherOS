@@ -58,7 +58,7 @@ Production users manage visual assets, presentation builds, templates, file orga
 5. **Design instruction:** The lesson is organized into a coherent sequence with explicit teacher actions, student actions, checks for understanding, and transitions.
 6. **Plan presentation:** The approved lesson sequence becomes a slide-by-slide storyboard with visible content, notes, supports, visuals, and timing.
 7. **Prepare supporting artifacts:** TeacherOS develops speaker notes, ELD supports, image directions, and assessment guidance.
-8. **Build the deck:** Chalkie renders the approved storyboard as an editable presentation without changing the lesson design.
+8. **Build the deck:** The presentation renderer renders the approved storyboard as an editable presentation without changing the lesson design.
 9. **Assure quality:** The finished deck is checked against the source requirements, blueprint, storyboard, and accessibility expectations.
 10. **Approve and teach:** The teacher reviews the complete package, makes classroom-specific adjustments, and uses it for instruction.
 11. **Capture feedback:** Classroom evidence and revisions are stored with the lesson and may inform shared templates or design standards.
@@ -101,11 +101,11 @@ The Image Direction Engine converts instructional needs into precise visual spec
 
 The module prioritizes accurate, respectful, uncluttered visuals suitable for a 16:9 classroom presentation. It does not request generic imagery when a more specific instructional visual is needed.
 
-### Chalkie Build Engine
+### Presentation Renderer Handoff
 
-The Chalkie Build Engine packages the approved storyboard and supporting directions into a precise presentation-build request. It defines the exact slide sequence, visible text, speaker notes, design requirements, visual directions, timing expectations, editability requirements, and final validation criteria.
+The renderer handoff packages the approved storyboard and supporting directions into a precise presentation-build request. It defines the exact slide sequence, visible text, speaker notes, design requirements, visual directions, timing expectations, editability requirements, and final validation criteria.
 
-This module constrains Chalkie to the role of presentation renderer. Required activities may not be combined, deleted, reordered, or rewritten without explicit approval, and unsupported curriculum content may not be introduced.
+This module constrains the external presentation tool to the role of presentation renderer. Required activities may not be combined, deleted, reordered, or rewritten without explicit approval, and unsupported curriculum content may not be introduced.
 
 ### Quality Assurance Engine
 
@@ -129,8 +129,8 @@ Information moves through TeacherOS as a controlled sequence of transformations:
 4. **Lesson blueprint:** Curriculum requirements are organized into a teachable sequence. Required content, optional enhancements, timing, interactions, and checks for understanding are made explicit.
 5. **Slide storyboard:** The blueprint is decomposed into presentation-sized instructional moments, with separate fields for student-visible content and teacher guidance.
 6. **Supporting artifacts:** Speaker notes, ELD supports, image directions, and assessment details are derived from the same approved blueprint and attached to the relevant lesson moments.
-7. **Chalkie build prompt:** The complete storyboard and presentation constraints are assembled into a rendering specification.
-8. **Editable slide deck:** Chalkie produces the presentation while preserving the approved content and sequence.
+7. **Presentation Renderer Prompt:** The complete storyboard and presentation constraints are assembled into a rendering specification.
+8. **Editable slide deck:** The presentation renderer produces the presentation while preserving the approved content and sequence.
 9. **Quality review:** The deck is compared with the storyboard, blueprint, and fidelity checklist. Findings lead to revision or teacher review.
 10. **Approved lesson package:** The teacher approves the classroom-ready package, which is stored permanently in the Lesson Library.
 11. **Feedback loop:** Post-lesson observations and revisions are associated with the lesson. Reusable findings may update shared templates and design standards through a separate review process.
@@ -175,9 +175,9 @@ Lists every required objective, text, activity, question, material, assessment, 
 
 Specifies the presentation slide by slide. Each entry includes the required storyboard fields and serves as the authoritative plan for presentation rendering.
 
-### `04_Chalkie_Build_Prompt.md`
+### `04_Presentation_Renderer_Prompt.md`
 
-Contains the complete, approved instructions used to build the slide deck in Chalkie. It separates visible content from speaker notes and defines sequence, layout, visuals, formatting, editability, and validation requirements.
+Contains the complete, approved instructions used to build the slide deck in an external presentation renderer. It separates visible content from speaker notes and defines sequence, layout, visuals, formatting, editability, and validation requirements.
 
 ### `05_Speaker_Notes.md`
 
@@ -209,7 +209,7 @@ Additional source files or generated artifacts may be included when needed, but 
 
 ### ChatGPT
 
-ChatGPT is the instructional designer. It interprets provided curriculum materials, identifies instructional requirements, designs the lesson flow, drafts student-facing content, writes speaker notes, proposes ELD supports, creates checks for understanding, defines visual directions, prepares Chalkie build instructions, and reviews outputs for fidelity and instructional quality.
+ChatGPT is the instructional designer. It interprets provided curriculum materials, identifies instructional requirements, designs the lesson flow, drafts student-facing content, writes speaker notes, proposes ELD supports, creates checks for understanding, defines visual directions, prepares renderer instructions, and reviews outputs for fidelity and instructional quality.
 
 ChatGPT must distinguish source-grounded content from recommendations, identify uncertainty, and avoid inventing quotations, references, standards, or curriculum directions. It may improve clarity, pacing, engagement, accessibility, and differentiation without silently rewriting required curriculum.
 
@@ -219,11 +219,11 @@ Codex is the project engineer and repository steward. It creates and organizes f
 
 Codex does not independently author curriculum content unless explicitly instructed. It must scope changes to the requested files, protect prior lesson packages, and keep repository artifacts internally consistent.
 
-### Chalkie
+### Presentation Renderer
 
-Chalkie is the presentation renderer. It converts the approved storyboard and build prompt into an editable, visually coherent slide deck, follows image and design directions, and places speaker notes where supported.
+The external presentation tool is the presentation renderer. It converts the approved storyboard and renderer prompt into an editable, visually coherent slide deck, follows image and design directions, and places speaker notes where supported.
 
-Chalkie does not act as the primary instructional designer. It may not independently change objectives, sequence, required activities, texts, assessments, or homework, and it must not invent missing curriculum content.
+The presentation renderer does not act as the primary instructional designer. It may not independently change objectives, sequence, required activities, texts, assessments, or homework, and it must not invent missing curriculum content.
 
 ### Teacher
 
@@ -263,7 +263,7 @@ _[Placeholder for specialized agents, orchestration, handoffs, shared context, h
 
 ### Version 1 — Structured Repository Workflow
 
-Version 1 establishes TeacherOS as a reliable, file-based instructional-design system for CKLA Grade 8. It standardizes the repository structure, lesson package, role boundaries, fidelity workflow, storyboard requirements, Chalkie handoff, quality checks, and permanent storage model. Human review remains explicit at critical decisions and final approval.
+Version 1 establishes TeacherOS as a reliable, file-based instructional-design system for CKLA Grade 8. It standardizes the repository structure, lesson package, role boundaries, fidelity workflow, storyboard requirements, renderer handoff, quality checks, and permanent storage model. Human review remains explicit at critical decisions and final approval.
 
 ### Version 2 — Assisted Production and Integrations
 

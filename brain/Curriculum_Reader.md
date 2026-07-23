@@ -38,7 +38,7 @@ The Curriculum Reader must not:
 - create new assessments, questions, rubrics, or answer guidance;
 - decide which activities should be changed, combined, reordered, or removed;
 - resolve instructional ambiguity through unsupported assumptions;
-- send content directly to Chalkie.
+- send content directly to a presentation renderer.
 
 Instructional interpretation and design belong to downstream modules. The Reader’s role ends with a faithful, structured, and qualified representation of the available sources.
 
