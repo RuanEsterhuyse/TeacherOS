@@ -329,7 +329,10 @@ class TeacherOS:
         from brain.lesson_package_parser import parse_lesson_package
         from renderer.prompt_bundle import RendererType
         from renderer.prompt_generator import generate_prompt_bundle
-        from renderer.gamma_prompt import write_gamma_deck_prompt
+        from renderer.gamma_prompt import (
+            build_gamma_authoritative_facts,
+            write_gamma_deck_prompt,
+        )
         from config.settings import get_settings
         from schemas.reader_output_schema import CurriculumReaderOutput
         from schemas.analyzer_output_schema import CurriculumAnalyzerOutput
@@ -404,7 +407,18 @@ class TeacherOS:
                 warnings=preparation.warnings, errors=[str(error)], usage=usage,
                 validation_result=report.status, slide_count=report.slide_count)
         try:
-            write_gamma_deck_prompt(presentation, run_dir)
+            curriculum = preparation.lesson_source.curriculum
+            authoritative_facts = build_gamma_authoritative_facts(
+                presentation,
+                curriculum,
+                activity_page_references=pipeline_input.activity_book_references,
+                assigned_reading_pages=pipeline_input.reader_page_references,
+            )
+            write_gamma_deck_prompt(
+                presentation,
+                run_dir,
+                authoritative_facts=authoritative_facts,
+            )
             completed.append("gamma_handoff_prompt_generator")
         except Exception as error:
             return GenerationResult(request_id=preparation.request_id, status="failed",

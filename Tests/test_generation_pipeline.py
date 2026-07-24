@@ -181,6 +181,11 @@ def test_orchestration_order_and_resume_avoid_repeat_calls(tmp_path) -> None:
     assert (run / "RendererPromptBundle.json").is_file()
     assert (run / "RendererPromptBundle.md").is_file()
     assert (run / "GammaDeckPrompt.md").is_file()
+    gamma_prompt = (run / "GammaDeckPrompt.md").read_text(encoding="utf-8")
+    assert "AUTHORITATIVE FACTS — DO NOT REWRITE" in gamma_prompt
+    assert '"curriculum_name": "CKLA"' in gamma_prompt
+    assert '"exact_activity_page_references"' in gamma_prompt
+    assert "neutral, editable placeholder clearly labeled for later replacement" in gamma_prompt
     prompt_bundle = json.loads((run / "RendererPromptBundle.json").read_text(encoding="utf-8"))
     assert prompt_bundle["metadata"]["request_id"] == "ckla-grade-8-unit-1-lesson-1"
     assert prompt_bundle["metadata"]["slide_ids"] == ["S01"]
