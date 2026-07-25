@@ -142,6 +142,87 @@ class CurriculumIntelligenceRepository:
             ).fetchone()
         return str(row["checksum"]) if row else None
 
+    def load_lesson(self, lesson_id: str) -> CurriculumLesson:
+        return self._load_one(
+            "SELECT payload FROM ci_lessons WHERE id=?",
+            (lesson_id,),
+            CurriculumLesson,
+            f"Curriculum lesson not found: {lesson_id}",
+        )
+
+    def load_resources(
+        self, resource_ids: Iterable[str]
+    ) -> list[InstructionalResource]:
+        identifiers = sorted(set(resource_ids))
+        if not identifiers:
+            return []
+        placeholders = ", ".join("?" for _ in identifiers)
+        return self._load_many(
+            (
+                "SELECT payload FROM ci_resources "
+                f"WHERE id IN ({placeholders}) ORDER BY id"
+            ),
+            tuple(identifiers),
+            InstructionalResource,
+        )
+
+    def load_assignments(
+        self, lesson_id: str
+    ) -> list[ResourceAssignment]:
+        return self._load_many(
+            (
+                "SELECT payload FROM ci_assignments "
+                "WHERE lesson_id=? ORDER BY rowid"
+            ),
+            (lesson_id,),
+            ResourceAssignment,
+        )
+
+    def load_segments(self, segment_ids: Iterable[str]) -> list[TextSegment]:
+        identifiers = sorted(set(segment_ids))
+        if not identifiers:
+            return []
+        placeholders = ", ".join("?" for _ in identifiers)
+        return self._load_many(
+            (
+                "SELECT payload FROM ci_text_segments "
+                f"WHERE id IN ({placeholders}) ORDER BY id"
+            ),
+            tuple(identifiers),
+            TextSegment,
+        )
+
+    def load_coordinate_mappings(
+        self, lesson_id: str
+    ) -> list[SourceCoordinateMapping]:
+        return self._load_many(
+            (
+                "SELECT payload FROM ci_coordinate_mappings "
+                "WHERE lesson_id=? ORDER BY id"
+            ),
+            (lesson_id,),
+            SourceCoordinateMapping,
+        )
+
+    def load_readiness(self, lesson_id: str) -> ReadinessReport:
+        return self._load_one(
+            "SELECT payload FROM ci_readiness WHERE lesson_id=?",
+            (lesson_id,),
+            ReadinessReport,
+            f"Readiness report not found: {lesson_id}",
+        )
+
+    def load_latest_build_manifest(self, lesson_id: str) -> BuildManifest:
+        return self._load_one(
+            (
+                "SELECT payload FROM ci_build_manifests "
+                "WHERE lesson_id=? ORDER BY rowid DESC LIMIT 1"
+            ),
+            (lesson_id,),
+            BuildManifest,
+            f"Build manifest not found: {lesson_id}",
+        )
+
     def save_curriculum(self, value: Curriculum) -> None:
         self._save("ci_curricula", value, (value.id,))
 
@@ -297,6 +378,29 @@ class CurriculumIntelligenceRepository:
                 f"INSERT OR REPLACE INTO {table} VALUES ({placeholders})",
                 (*columns, value.model_dump_json()),
             )
+
+    def _load_one(
+        self,
+        query: str,
+        parameters: tuple,
+        model: type[T],
+        missing_message: str,
+    ) -> T:
+        with self._connect() as connection:
+            row = connection.execute(query, parameters).fetchone()
+        if row is None:
+            raise LookupError(missing_message)
+        return model.model_validate_json(row["payload"])
+
+    def _load_many(
+        self,
+        query: str,
+        parameters: tuple,
+        model: type[T],
+    ) -> list[T]:
+        with self._connect() as connection:
+            rows = connection.execute(query, parameters).fetchall()
+        return [model.model_validate_json(row["payload"]) for row in rows]
 
     def count(self, table: str) -> int:
         if table not in self.TABLES:

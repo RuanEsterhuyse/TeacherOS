@@ -13,6 +13,10 @@ from curriculum.intelligence.extractor import (
     EXTRACTION_VERSION,
     ResourceExtractor,
 )
+from curriculum.intelligence.bundle import (
+    PreparedBundleResult,
+    PreparedCurriculumSourceBundleBuilder,
+)
 from curriculum.intelligence.ids import content_digest, stable_id
 from curriculum.intelligence.mappings import apply_coordinate_mappings
 from curriculum.intelligence.readiness import evaluate_readiness
@@ -54,6 +58,22 @@ class CurriculumIntelligenceService:
         self.output_directory = Path(output_directory)
         self.extractor = extractor or ResourceExtractor()
         self.adapter = adapter or CKLACurriculumIntelligenceAdapter()
+
+    def prepare_lesson_source_bundle(
+        self,
+        lesson_id: str,
+        *,
+        output_path: str | Path | None = None,
+    ) -> PreparedBundleResult:
+        """Prepare one deterministic bundle from persisted intelligence."""
+        target = (
+            Path(output_path)
+            if output_path is not None
+            else self.output_directory / "prepared_source_bundle.json"
+        )
+        return PreparedCurriculumSourceBundleBuilder(
+            self.repository
+        ).build(lesson_id, target)
 
     def build_lesson_one(
         self,

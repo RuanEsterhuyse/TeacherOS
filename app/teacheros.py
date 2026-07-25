@@ -20,6 +20,9 @@ from schemas.curriculum_schema import CurriculumIndex, LessonIndexEntry, LessonS
 from schemas.generation_result_schema import GenerationResult, LessonValidationReport
 from schemas.teacher_companion_schema import TeacherCompanionGenerationResult
 from schemas.student_reader_source_schema import StudentReaderSource
+from schemas.prepared_curriculum_source_schema import (
+    PreparedSourceBundleReference,
+)
 
 
 PreparationStatus = Literal["completed", "completed_with_warnings", "failed"]
@@ -77,6 +80,9 @@ class LessonPipelineInput(BaseModel):
     pdf_page_references: list[int] = Field(default_factory=list)
     source_references: list[str] = Field(default_factory=list)
     extraction_warnings: list[str] = Field(default_factory=list)
+    prepared_source_bundle_reference: Optional[
+        PreparedSourceBundleReference
+    ] = Field(default=None, exclude_if=lambda value: value is None)
 
 
 class LessonPreparationResult(BaseModel):
