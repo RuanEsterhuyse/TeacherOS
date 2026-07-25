@@ -8,7 +8,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from app.teacheros import TeacherOS
+from app.teacheros import LessonPipelineInput, TeacherOS
 from renderer.google_slides_renderer import GoogleSlidesRenderer
 from schemas.lesson_schema import Lesson
 from schemas.presentation_design_schema import PresentationDesignOutput
@@ -36,6 +36,19 @@ def _parser() -> argparse.ArgumentParser:
     generate.add_argument("--index-directory", default="data/indexes", help=argparse.SUPPRESS)
     generate.add_argument("--output-directory", default="output/pipeline_inputs", help=argparse.SUPPRESS)
     generate.add_argument("--generation-output-directory", default="output/generation_runs", help=argparse.SUPPRESS)
+    companion = commands.add_parser(
+        "generate-teacher-companion",
+        help="Generate an optional Teacher Companion Guide for one prepared lesson",
+    )
+    companion.add_argument("--curriculum", default="CKLA")
+    companion.add_argument("--grade", required=True)
+    companion.add_argument("--unit", required=True)
+    companion.add_argument("--lesson", required=True, type=int)
+    companion.add_argument("--no-resume", action="store_true")
+    companion.add_argument("--database", default="data/curriculum/library.sqlite3", help=argparse.SUPPRESS)
+    companion.add_argument("--index-directory", default="data/indexes", help=argparse.SUPPRESS)
+    companion.add_argument("--output-directory", default="output/pipeline_inputs", help=argparse.SUPPRESS)
+    companion.add_argument("--generation-output-directory", default="output/generation_runs", help=argparse.SUPPRESS)
     slides = commands.add_parser("create-slides", help="Render an existing validated lesson in Google Slides")
     slides.add_argument("--curriculum", default="CKLA")
     slides.add_argument("--grade", required=True)
@@ -110,6 +123,35 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Slide count: {result.slide_count}")
             if result.usage:
                 print(f"Usage: {result.usage}")
+        print(f"Output directory: {result.output_directory}")
+        for warning in result.warnings:
+            print(f"Warning: {warning}", file=sys.stderr)
+        for error in result.errors:
+            print(f"Error: {error}", file=sys.stderr)
+        return 2 if result.status == "failed" else 0
+    if args.command == "generate-teacher-companion":
+        preparation = teacheros.prepare_lesson(
+            curriculum_name=args.curriculum,
+            grade=args.grade,
+            unit=args.unit,
+            lesson_number=args.lesson,
+        )
+        if preparation.status == "failed":
+            for error in preparation.errors:
+                print(f"Error: {error}", file=sys.stderr)
+            return 2
+        pipeline_input = LessonPipelineInput.model_validate_json(
+            Path(preparation.output_files[0]).read_text(encoding="utf-8")
+        )
+        result = teacheros.generate_teacher_companion(
+            pipeline_input,
+            resume=not args.no_resume,
+        )
+        print(f"Request ID: {result.request_id}")
+        for stage in result.completed_stages:
+            print(f"Completed: {stage}")
+        print(f"Validation result: {result.validation_result or 'not reached'}")
+        print(f"Resumed: {'yes' if result.resumed else 'no'}")
         print(f"Output directory: {result.output_directory}")
         for warning in result.warnings:
             print(f"Warning: {warning}", file=sys.stderr)

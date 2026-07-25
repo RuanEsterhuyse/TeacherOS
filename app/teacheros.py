@@ -13,6 +13,7 @@ from curriculum.lesson_locator import CKLALessonLocator
 from curriculum.library import CurriculumLibrary
 from schemas.curriculum_schema import CurriculumIndex, LessonIndexEntry, LessonSource
 from schemas.generation_result_schema import GenerationResult, LessonValidationReport
+from schemas.teacher_companion_schema import TeacherCompanionGenerationResult
 
 
 PreparationStatus = Literal["completed", "completed_with_warnings", "failed"]
@@ -299,6 +300,159 @@ class TeacherOS:
     @staticmethod
     def _read_model(path: Path, schema):
         return schema.model_validate_json(path.read_text(encoding="utf-8"))
+
+    def generate_teacher_companion(
+        self,
+        pipeline_input: LessonPipelineInput | dict,
+        *,
+        resume: bool = True,
+        output_directory: str | Path | None = None,
+    ) -> TeacherCompanionGenerationResult:
+        """Generate an optional guide from one already prepared lesson input."""
+        try:
+            prepared = self.validate_pipeline_input(pipeline_input)
+        except (ValidationError, TypeError, ValueError) as error:
+            return TeacherCompanionGenerationResult(
+                request_id="invalid-teacher-companion-request",
+                status="failed",
+                output_directory=str(output_directory or self.generation_output_directory),
+                failed_stage="validate_pipeline_input",
+                errors=[f"prepared lesson input is invalid: {error}"],
+            )
+
+        request_id = prepared.request.request_id
+        target_directory = (
+            Path(output_directory)
+            if output_directory is not None
+            else self.generation_output_directory / request_id
+        )
+        if not target_directory.is_absolute():
+            target_directory = self.project_root / target_directory
+        guide_path = target_directory / "teacher_companion.json"
+        markdown_path = target_directory / "teacher_companion.md"
+        validation_path = target_directory / "teacher_companion_validation.json"
+        base = {
+            "request_id": request_id,
+            "output_directory": str(target_directory),
+        }
+
+        missing_sources = []
+        if not (prepared.lesson_title or "").strip():
+            missing_sources.append("lesson title")
+        if not prepared.teacher_guide_lesson_text.strip():
+            missing_sources.append("prepared Teacher Guide lesson text")
+        if not prepared.source_references:
+            missing_sources.append("source references")
+        if missing_sources:
+            return TeacherCompanionGenerationResult(
+                **base,
+                status="failed",
+                failed_stage="source_validation",
+                errors=[
+                    "required prepared source material is missing: "
+                    + ", ".join(missing_sources)
+                ],
+            )
+
+        from brain.teacher_companion_generator import TeacherCompanionGenerator
+        from brain.teacher_companion_validator import TeacherCompanionValidator
+        from config.settings import get_settings
+        from renderer.teacher_companion_markdown import (
+            render_teacher_companion_markdown,
+        )
+        from schemas.teacher_companion_schema import TeacherCompanionGuide
+        from services.openai_client import OpenAIClient
+
+        validator = TeacherCompanionValidator()
+        if resume and guide_path.is_file():
+            try:
+                saved_guide = self._read_model(guide_path, TeacherCompanionGuide)
+                saved_report = validator.validate(saved_guide, prepared)
+                if saved_report.status != "fail":
+                    target_directory.mkdir(parents=True, exist_ok=True)
+                    markdown_path.write_text(
+                        render_teacher_companion_markdown(saved_guide),
+                        encoding="utf-8",
+                    )
+                    self._write_json(validation_path, saved_report)
+                    return TeacherCompanionGenerationResult(
+                        **base,
+                        status=(
+                            "completed_with_warnings"
+                            if saved_report.status == "pass_with_warnings"
+                            else "completed"
+                        ),
+                        completed_stages=[
+                            "teacher_companion_resume",
+                            "teacher_companion_validator",
+                            "teacher_companion_markdown",
+                        ],
+                        output_files=[
+                            str(guide_path),
+                            str(markdown_path),
+                            str(validation_path),
+                        ],
+                        validation_result=saved_report.status,
+                        resumed=True,
+                    )
+            except (OSError, ValidationError, ValueError):
+                pass
+
+        try:
+            client = self.openai_client or OpenAIClient(settings=get_settings())
+            guide = TeacherCompanionGenerator(client).run(prepared)
+            target_directory.mkdir(parents=True, exist_ok=True)
+            self._write_json(guide_path, guide)
+        except Exception as error:
+            return TeacherCompanionGenerationResult(
+                **base,
+                status="failed",
+                failed_stage="teacher_companion_generator",
+                errors=[f"teacher companion generation failed: {error}"],
+            )
+
+        report = validator.validate(guide, prepared)
+        self._write_json(validation_path, report)
+        completed = ["teacher_companion_generator", "teacher_companion_validator"]
+        if report.status == "fail":
+            return TeacherCompanionGenerationResult(
+                **base,
+                status="failed",
+                completed_stages=completed,
+                failed_stage="teacher_companion_validator",
+                errors=[
+                    f"{finding.code}: {finding.message}"
+                    for finding in report.findings
+                    if finding.severity == "error"
+                ],
+                output_files=[str(guide_path), str(validation_path)],
+                validation_result=report.status,
+                usage=getattr(client, "last_usage", {}),
+            )
+
+        markdown_path.write_text(
+            render_teacher_companion_markdown(guide),
+            encoding="utf-8",
+        )
+        completed.append("teacher_companion_markdown")
+        warnings = [
+            finding.message
+            for finding in report.findings
+            if finding.severity == "warning"
+        ]
+        return TeacherCompanionGenerationResult(
+            **base,
+            status="completed_with_warnings" if warnings else "completed",
+            completed_stages=completed,
+            warnings=warnings,
+            output_files=[
+                str(guide_path),
+                str(markdown_path),
+                str(validation_path),
+            ],
+            validation_result=report.status,
+            usage=getattr(client, "last_usage", {}),
+        )
 
     def generate_lesson(self, *, curriculum_name: str = "CKLA", grade: Union[str, int] = 8,
                         unit: Union[str, int] = 1, lesson_number: int = 1,
