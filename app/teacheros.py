@@ -9,11 +9,17 @@ from typing import Any, Literal, Optional, Union
 
 from pydantic import BaseModel, Field, ValidationError
 
-from curriculum.lesson_locator import CKLALessonLocator
+from curriculum.adapters import (
+    CKLAAdapter,
+    CurriculumAdapter,
+    CurriculumAdapterRegistry,
+    default_adapter_registry,
+)
 from curriculum.library import CurriculumLibrary
 from schemas.curriculum_schema import CurriculumIndex, LessonIndexEntry, LessonSource
 from schemas.generation_result_schema import GenerationResult, LessonValidationReport
 from schemas.teacher_companion_schema import TeacherCompanionGenerationResult
+from schemas.student_reader_source_schema import StudentReaderSource
 
 
 PreparationStatus = Literal["completed", "completed_with_warnings", "failed"]
@@ -106,7 +112,9 @@ class TeacherOS:
         index_directory: Union[str, Path] = "data/indexes",
         output_directory: Union[str, Path] = "output/pipeline_inputs",
         library: Optional[CurriculumLibrary] = None,
-        locator: Optional[CKLALessonLocator] = None,
+        curriculum_adapter: Optional[CurriculumAdapter] = None,
+        adapter_registry: Optional[CurriculumAdapterRegistry] = None,
+        locator: Any = None,
         generation_output_directory: Union[str, Path] = "output/generation_runs",
         openai_client: Any = None,
     ) -> None:
@@ -115,12 +123,46 @@ class TeacherOS:
         index_path = Path(index_directory)
         if not index_path.is_absolute():
             index_path = self.project_root / index_path
-        self.locator = locator or CKLALessonLocator(index_directory=index_path)
+        self.index_directory = index_path
+        if locator is not None:
+            if curriculum_adapter is not None:
+                raise ValueError(
+                    "Pass curriculum_adapter or legacy locator, not both"
+                )
+            curriculum_adapter = CKLAAdapter(locator=locator)
+        self.adapter_registry = adapter_registry or default_adapter_registry()
+        self._fixed_curriculum_adapter = curriculum_adapter
+        self._curriculum_adapters: dict[str, CurriculumAdapter] = {}
+        # Compatibility only: external callers may still inspect ``locator``.
+        # TeacherOS orchestration itself uses ``curriculum_adapter()``.
+        default_adapter = curriculum_adapter
+        if default_adapter is None:
+            default_adapter = self.adapter_registry.create(
+                "CKLA",
+                index_directory=self.index_directory,
+            )
+            self._curriculum_adapters["ckla"] = default_adapter
+        self.locator = getattr(default_adapter, "locator", None)
         output_path = Path(output_directory)
         self.output_directory = output_path if output_path.is_absolute() else self.project_root / output_path
         generation_path = Path(generation_output_directory)
         self.generation_output_directory = generation_path if generation_path.is_absolute() else self.project_root / generation_path
         self.openai_client = openai_client
+
+    def curriculum_adapter(self, curriculum_name: str) -> CurriculumAdapter:
+        """Return provider behavior without coupling orchestration to CKLA."""
+        if (
+            self._fixed_curriculum_adapter is not None
+            and self._fixed_curriculum_adapter.supports(curriculum_name)
+        ):
+            return self._fixed_curriculum_adapter
+        key = curriculum_name.strip().casefold()
+        if key not in self._curriculum_adapters:
+            self._curriculum_adapters[key] = self.adapter_registry.create(
+                curriculum_name,
+                index_directory=self.index_directory,
+            )
+        return self._curriculum_adapters[key]
 
     @staticmethod
     def _slug(value: str | int) -> str:
@@ -135,11 +177,16 @@ class TeacherOS:
         return LessonRequest(request_id=request_id, curriculum_name=curriculum, grade=str(grade),
                              unit=str(unit), lesson_number=lesson_number)
 
-    def _load_index(self, request: LessonRequest, curriculum) -> CurriculumIndex:
-        path = self.locator.default_index_path(curriculum)
+    def _load_index(
+        self,
+        request: LessonRequest,
+        curriculum,
+        adapter: CurriculumAdapter,
+    ) -> CurriculumIndex:
+        path = adapter.default_index_path(curriculum)
         if not path.is_file():
             raise FileNotFoundError(f"Curriculum index not found: {path}")
-        index = self.locator.load_index(path)
+        index = adapter.load_index(path)
         identity = index.curriculum
         if (identity.curriculum_name, identity.grade, identity.unit) != (
             request.curriculum_name, request.grade, request.unit
@@ -148,9 +195,20 @@ class TeacherOS:
         return index
 
     def prepare_lesson_source(
-        self, request: LessonRequest, index: CurriculumIndex, teacher_guide_path: Union[str, Path],
+        self,
+        request: LessonRequest,
+        index: CurriculumIndex,
+        teacher_guide_path: Union[str, Path],
+        adapter: Optional[CurriculumAdapter] = None,
     ) -> LessonSource:
-        return self.locator.extract_lesson_source(index, request.lesson_number, teacher_guide_path)
+        selected = adapter or self.curriculum_adapter(
+            request.curriculum_name
+        )
+        return selected.prepare_lesson(
+            index,
+            request.lesson_number,
+            teacher_guide_path,
+        )
 
     @staticmethod
     def _metadata(entry: LessonIndexEntry) -> LessonMetadata:
@@ -196,6 +254,50 @@ class TeacherOS:
         )
         return self.output_directory / filename
 
+    def _student_reader_output_path(self, request: LessonRequest) -> Path:
+        filename = (
+            f"{self._slug(request.curriculum_name)}_grade_"
+            f"{self._slug(request.grade)}_unit_{self._slug(request.unit)}_"
+            f"lesson_{request.lesson_number}_student_reader_source.json"
+        )
+        return self.output_directory / filename
+
+    def retrieve_student_reader_source(
+        self,
+        *,
+        curriculum_name: str = "CKLA",
+        grade: Union[str, int] = 8,
+        unit: Union[str, int] = 1,
+        lesson_number: int = 1,
+    ) -> StudentReaderSource:
+        """Retrieve and persist optional Reader pages without changing inputs."""
+        request = self.create_lesson_request(
+            curriculum_name=curriculum_name,
+            grade=grade,
+            unit=unit,
+            lesson_number=lesson_number,
+        )
+        curriculum = self.library.get_unit(
+            request.curriculum_name,
+            request.grade,
+            request.unit,
+        )
+        adapter = self.curriculum_adapter(request.curriculum_name)
+        index = self._load_index(request, curriculum, adapter)
+        entry = adapter.get_lesson_entry(index, request.lesson_number)
+        reader_path = (
+            self.library.resolve_path(curriculum.student_reader_path)
+            if curriculum.student_reader_path
+            else None
+        )
+        source = adapter.retrieve_student_reader(
+            curriculum,
+            entry,
+            reader_path,
+        )
+        self._write_json(self._student_reader_output_path(request), source)
+        return source
+
     def prepare_lesson(
         self, *, curriculum_name: str = "CKLA", grade: Union[str, int] = 8,
         unit: Union[str, int] = 1, lesson_number: int = 1,
@@ -218,13 +320,26 @@ class TeacherOS:
             return LessonPreparationResult(**base, status="failed",
                 errors=[f"curriculum lookup failed: {error}"], next_required_stage="register_curriculum")
 
+        try:
+            adapter = self.curriculum_adapter(request.curriculum_name)
+        except (KeyError, ValueError) as error:
+            return LessonPreparationResult(
+                **base,
+                status="failed",
+                errors=[f"curriculum adapter selection failed: {error}"],
+                next_required_stage="install_curriculum_adapter",
+            )
         guide = self.library.resolve_path(curriculum.teacher_guide_path)
-        if not guide.is_file():
+        resource_errors = adapter.validate_required_resources(
+            curriculum,
+            self.library.resolve_path,
+        )
+        if resource_errors:
             return LessonPreparationResult(**base, status="failed",
-                errors=[f"source file validation failed: Teacher Guide PDF not found: {guide}"],
+                errors=[f"source file validation failed: {resource_errors[0]}"],
                 next_required_stage="restore_curriculum_files")
         try:
-            index = self._load_index(request, curriculum)
+            index = self._load_index(request, curriculum, adapter)
         except FileNotFoundError as error:
             return LessonPreparationResult(**base, status="failed", errors=[f"index loading failed: {error}"],
                                            next_required_stage="build_curriculum_index")
@@ -232,12 +347,17 @@ class TeacherOS:
             return LessonPreparationResult(**base, status="failed", errors=[f"index loading failed: {error}"],
                                            next_required_stage="rebuild_curriculum_index")
         try:
-            entry = self.locator.get_lesson_entry(index, request.lesson_number)
+            entry = adapter.get_lesson_entry(index, request.lesson_number)
         except KeyError as error:
             return LessonPreparationResult(**base, status="failed", errors=[f"lesson selection failed: {error}"],
                                            next_required_stage="select_valid_lesson")
         try:
-            source = self.prepare_lesson_source(request, index, guide)
+            source = self.prepare_lesson_source(
+                request,
+                index,
+                guide,
+                adapter,
+            )
         except (FileNotFoundError, ValueError) as error:
             return LessonPreparationResult(**base, lesson_title=entry.lesson_title, status="failed",
                 errors=[f"lesson text extraction failed: {error}"], next_required_stage="repair_source_or_index")
@@ -257,8 +377,10 @@ class TeacherOS:
                 missing.append(field)
         if missing:
             warnings.append(f"Incomplete indexed metadata; unavailable fields: {', '.join(missing)}.")
-        for label, stored_path in (("Student Reader", curriculum.student_reader_path),
-                                   ("Activity Book", curriculum.activity_book_path)):
+        for label, stored_path in (
+            (adapter.terminology.student_reader, curriculum.student_reader_path),
+            (adapter.terminology.activity_book, curriculum.activity_book_path),
+        ):
             if stored_path and not self.library.resolve_path(stored_path).is_file():
                 warnings.append(f"{label} file not found: {self.library.resolve_path(stored_path)}")
 
@@ -463,6 +585,8 @@ class TeacherOS:
         run_dir = self.generation_output_directory / preparation.request_id
         stages = ["curriculum_reader", "curriculum_analyzer", "instruction_designer",
                   "presentation_designer", "lesson_assembler", "lesson_validator",
+                  "canonical_lesson_builder", "canonical_lesson_validator",
+                  "canonical_lesson_renderers",
                   "presentation_renderer_prompt_generator", "gamma_handoff_prompt_generator",
                   "lesson_package_parser"]
         if preparation.status == "failed":
@@ -548,6 +672,95 @@ class TeacherOS:
                 warnings=preparation.warnings, errors=[str(error)], usage=usage,
                 validation_result=getattr(locals().get("report"), "status", None))
         try:
+            from brain.canonical_lesson_generator import build_canonical_lesson
+            from brain.canonical_lesson_validator import CanonicalLessonValidator
+            from renderer.canonical_slides import CanonicalSlidesRenderer
+            from renderer.canonical_teacher_companion import (
+                CanonicalTeacherCompanionRenderer,
+            )
+            from renderer.lesson_metadata import LessonMetadataRenderer
+            from renderer.teacher_companion_pdf import (
+                TeacherCompanionPdfRenderer,
+            )
+            from schemas.canonical_lesson_schema import CanonicalLesson
+
+            curriculum = preparation.lesson_source.curriculum
+            try:
+                student_resource_source = self.retrieve_student_reader_source(
+                    curriculum_name=curriculum_name,
+                    grade=grade,
+                    unit=unit,
+                    lesson_number=lesson_number,
+                )
+            except Exception:
+                # Optional source enrichment cannot break existing generation.
+                student_resource_source = None
+            candidate = build_canonical_lesson(
+                pipeline_input=pipeline_input,
+                reader=reader,
+                analyzer=analyzer,
+                instruction_design=design,
+                presentation=presentation,
+                package=package,
+                curriculum=curriculum,
+                student_resource_source=student_resource_source,
+            )
+            canonical_path = run_dir / "lesson.json"
+            canonical_validator = CanonicalLessonValidator()
+            if resume and canonical_path.is_file():
+                saved = self._read_model(canonical_path, CanonicalLesson)
+                canonical_lesson = (
+                    saved
+                    if (
+                        saved.source_digest == candidate.source_digest
+                        and canonical_validator.validate(saved).status != "fail"
+                    )
+                    else candidate
+                )
+            else:
+                canonical_lesson = candidate
+            self._write_json(canonical_path, canonical_lesson)
+            completed.append("canonical_lesson_builder")
+            canonical_report = canonical_validator.validate(canonical_lesson)
+            if canonical_report.status == "fail":
+                return GenerationResult(
+                    request_id=preparation.request_id,
+                    status="failed",
+                    output_directory=str(run_dir),
+                    completed_stages=completed,
+                    failed_stage="canonical_lesson_validator",
+                    warnings=preparation.warnings,
+                    errors=[
+                        f"{finding.code}: {finding.message}"
+                        for finding in canonical_report.findings
+                        if finding.severity == "error"
+                    ],
+                    usage=usage,
+                    validation_result="fail",
+                    slide_count=canonical_report.slide_count,
+                )
+            completed.append("canonical_lesson_validator")
+            CanonicalTeacherCompanionRenderer().write(
+                canonical_lesson, run_dir
+            )
+            TeacherCompanionPdfRenderer().write(canonical_lesson, run_dir)
+            CanonicalSlidesRenderer().write(canonical_lesson, run_dir)
+            LessonMetadataRenderer().write(canonical_lesson, run_dir)
+            completed.append("canonical_lesson_renderers")
+        except Exception as error:
+            return GenerationResult(
+                request_id=preparation.request_id,
+                status="failed",
+                output_directory=str(run_dir),
+                completed_stages=completed,
+                failed_stage="canonical_lesson_builder",
+                warnings=preparation.warnings,
+                errors=[f"canonical lesson generation failed: {error}"],
+                usage=usage,
+                validation_result=report.status,
+                slide_count=report.slide_count,
+            )
+        try:
             prompt_bundle = generate_prompt_bundle(
                 presentation,
                 renderer_type=RendererType.GENERIC,
@@ -561,7 +774,6 @@ class TeacherOS:
                 warnings=preparation.warnings, errors=[str(error)], usage=usage,
                 validation_result=report.status, slide_count=report.slide_count)
         try:
-            curriculum = preparation.lesson_source.curriculum
             authoritative_facts = build_gamma_authoritative_facts(
                 presentation,
                 curriculum,

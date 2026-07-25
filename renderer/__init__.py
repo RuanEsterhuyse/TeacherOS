@@ -10,6 +10,13 @@ from renderer.gamma_prompt import (
 )
 from renderer.prompt_bundle import PromptBundle, RendererType
 from renderer.prompt_generator import generate_prompt_bundle
+from renderer.canonical_slides import CanonicalSlidesRenderer
+from renderer.canonical_teacher_companion import (
+    CanonicalTeacherCompanionRenderer,
+)
+from renderer.lesson_metadata import LessonMetadataRenderer
+from renderer.lesson_renderer import LessonRenderer
+from renderer.teacher_companion_pdf import TeacherCompanionPdfRenderer
 
 __all__ = [
     "GoogleSlidesRenderer",
@@ -21,4 +28,9 @@ __all__ = [
     "PromptBundle",
     "RendererType",
     "generate_prompt_bundle",
+    "CanonicalSlidesRenderer",
+    "CanonicalTeacherCompanionRenderer",
+    "LessonMetadataRenderer",
+    "LessonRenderer",
+    "TeacherCompanionPdfRenderer",
 ]

@@ -18,6 +18,7 @@ from schemas.lesson_schema import Lesson, Slide
 from schemas.presentation_design_schema import PresentationDesignOutput, PresentationSlide
 from renderer.presentation_theme import load_presentation_theme, load_visual_theme
 from schemas.lesson_package_schema import CKLA_ATTRIBUTION
+from schemas.canonical_lesson_schema import CanonicalLesson
 from brain.presentation_expander import expand_presentation
 from brain.visual_storyboard import build_visual_storyboard, evaluate_visual_quality
 
@@ -91,8 +92,19 @@ class GoogleSlidesRenderer:
             self.drive_service = self._service_builder("drive", "v3", credentials=credentials, cache_discovery=False)
         return credentials
 
-    def create_presentation(self, lesson: Lesson | PresentationDesignOutput) -> dict[str, Any]:
+    def create_presentation(
+        self,
+        lesson: Lesson | PresentationDesignOutput | CanonicalLesson,
+    ) -> dict[str, Any]:
         """Create and fully render one widescreen presentation in lesson order."""
+        if isinstance(lesson, CanonicalLesson):
+            from renderer.canonical_slides import (
+                canonical_to_presentation_design,
+            )
+
+            return self.create_rich_presentation(
+                canonical_to_presentation_design(lesson)
+            )
         if isinstance(lesson, PresentationDesignOutput):
             return self.create_rich_presentation(lesson)
         self._validate_lesson(lesson)

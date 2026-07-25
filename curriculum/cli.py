@@ -6,7 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from curriculum.lesson_locator import CKLALessonLocator
+from curriculum.adapters import default_adapter_registry
 from curriculum.library import CurriculumLibrary
 
 
@@ -59,19 +59,32 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         record = library.get_unit(args.curriculum, args.grade, args.unit)
-        locator = CKLALessonLocator()
-        index_path = Path(args.index_file) if args.index_file else locator.default_index_path(record)
+        adapter = default_adapter_registry().create(
+            record.curriculum_name,
+            index_directory="data/indexes",
+        )
+        index_path = Path(args.index_file) if args.index_file else adapter.default_index_path(record)
         if args.command == "index":
             guide = library.resolve_path(record.teacher_guide_path)
-            index = locator.build_index(record, guide, args.override)
-            saved = locator.save_index(index, index_path)
+            resource_errors = adapter.validate_required_resources(
+                record,
+                library.resolve_path,
+            )
+            if resource_errors:
+                raise FileNotFoundError(resource_errors[0])
+            index = adapter.detect_lesson_boundaries(
+                record,
+                guide,
+                args.override,
+            )
+            saved = adapter.save_index(index, index_path)
             print(f"Indexed {len(index.lessons)} lessons across {index.total_pdf_pages} PDF pages: {saved}")
             for warning in index.extraction_warnings:
                 print(f"Warning: {warning}", file=sys.stderr)
             return 0
 
 
-        index = locator.load_index(index_path)
+        index = adapter.load_index(index_path)
         if args.command == "list-lessons":
             for lesson in index.lessons:
                 title = f" — {lesson.lesson_title}" if lesson.lesson_title else ""
@@ -79,7 +92,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         guide = library.resolve_path(record.teacher_guide_path)
-        source = locator.extract_lesson_source(index, args.lesson, guide)
+        source = adapter.prepare_lesson(index, args.lesson, guide)
         output = Path(args.output)
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(source.extracted_text, encoding="utf-8")

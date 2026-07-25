@@ -78,8 +78,11 @@ class TeacherOSInterface:
     def catalog(self) -> dict[str, Any]:
         curricula: dict[str, dict[str, Any]] = {}
         for unit in self.teacheros.library.list_units():
-            index_path = self.teacheros.locator.default_index_path(unit)
-            index = self.teacheros.locator.load_index(index_path)
+            adapter = self.teacheros.curriculum_adapter(
+                unit.curriculum_name
+            )
+            index_path = adapter.default_index_path(unit)
+            index = adapter.load_index(index_path)
             file_status = self.teacheros.library.verify_files_exist(unit)
             curriculum = curricula.setdefault(
                 unit.curriculum_name,

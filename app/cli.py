@@ -12,6 +12,7 @@ from app.teacheros import LessonPipelineInput, TeacherOS
 from renderer.google_slides_renderer import GoogleSlidesRenderer
 from schemas.lesson_schema import Lesson
 from schemas.presentation_design_schema import PresentationDesignOutput
+from schemas.canonical_lesson_schema import CanonicalLesson
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -70,10 +71,32 @@ def main(argv: list[str] | None = None) -> int:
         request = teacheros.create_lesson_request(curriculum_name=args.curriculum, grade=args.grade,
                                                   unit=args.unit, lesson_number=args.lesson)
         run_directory = teacheros.generation_output_directory / request.request_id
+        canonical_path = run_directory / "lesson.json"
         rich_path = run_directory / "04_presentation_design.json"
         lesson_path = run_directory / "07_validated_lesson.json"
         try:
-            if rich_path.is_file():
+            if canonical_path.is_file():
+                lesson = CanonicalLesson.model_validate_json(
+                    canonical_path.read_text(encoding="utf-8")
+                )
+                info = lesson.lesson_information
+                expected = (
+                    request.curriculum_name,
+                    request.grade,
+                    request.unit,
+                    request.lesson_number,
+                )
+                actual = (
+                    info.curriculum,
+                    info.grade,
+                    info.unit,
+                    info.lesson_number,
+                )
+                if actual != expected:
+                    raise ValueError(
+                        "Canonical lesson identity does not match the request"
+                    )
+            elif rich_path.is_file():
                 lesson = PresentationDesignOutput.model_validate_json(rich_path.read_text(encoding="utf-8"))
                 if lesson.request_id != request.request_id:
                     raise ValueError("Presentation design identity does not match the request")
