@@ -17,6 +17,7 @@ class ProposalStatus(str, Enum):
     HUMAN_REVIEWED_OVERRIDE = "human_reviewed_override"
     PROPOSED_FOR_REVIEW = "proposed_for_review"
     UNRESOLVED = "unresolved"
+    UNAVAILABLE_IN_REGISTERED_SOURCES = "unavailable_in_registered_sources"
     NOT_APPLICABLE = "not_applicable"
 
 
@@ -48,6 +49,9 @@ class ResourceAssignmentProposal(StrictModel):
     evidence: list[MappingEvidence] = Field(min_length=1)
     ambiguity_notes: list[str] = Field(default_factory=list)
     human_review_required: bool
+    required_status: str = Field(
+        default="required", pattern="^(required|optional)$"
+    )
     reviewer_note: Optional[str] = None
 
     @model_validator(mode="after")
