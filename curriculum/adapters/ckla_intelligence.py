@@ -722,6 +722,11 @@ class CKLACurriculumIntelligenceAdapter(CurriculumIntelligenceAdapter):
         role_types = {
             "defines_lesson": "defines_lesson",
             "assigned_reading": "assigned_reading",
+            "assessment_reading": "assigned_reading",
+            "activity_resource": "activity",
+            "assessment_resource": "assessment",
+            "shared_review_activity": "activity",
+            "shared_review_answer_key": "teacher_reference",
             "prior_lesson_homework_review": "background_reading",
             "prior_lesson_activity_review": "activity",
             "vocabulary_resource": "vocabulary_reference",
@@ -736,17 +741,26 @@ class CKLACurriculumIntelligenceAdapter(CurriculumIntelligenceAdapter):
             "story_notes": "teacher_reference",
             "online_teacher_resources": "teacher_reference",
             "embedded_teacher_chart": "teacher_reference",
+            "teacher_chart": "teacher_reference",
             "classroom_map": "visual_resource",
         }
+        if manifest.lesson_number >= 3:
+            role_types["story_notes"] = "background_reading"
         optional_roles = {
             "prior_lesson_activity_answer_key",
             "publisher_answer_key",
+            "shared_review_answer_key",
             "online_teacher_resources",
             "classroom_map",
         }
         purposes = {
             "defines_lesson": "Define the indexed lesson source boundary and requirements.",
             "assigned_reading": "Provide the assigned instructional reading.",
+            "assessment_reading": "Provide the assigned assessment reading.",
+            "activity_resource": "Provide the assigned student activity resource.",
+            "assessment_resource": "Provide the assigned assessment resource.",
+            "shared_review_activity": "Provide the explicitly referenced prior activity for review.",
+            "shared_review_answer_key": "Provide the explicitly referenced prior activity answer key.",
             "prior_lesson_homework_review": "Provide the prior homework text required for Lesson 2 review.",
             "prior_lesson_activity_review": "Provide the prior activity required for Lesson 2 review.",
             "vocabulary_resource": "Provide the assigned vocabulary activity.",
@@ -761,13 +775,49 @@ class CKLACurriculumIntelligenceAdapter(CurriculumIntelligenceAdapter):
             "story_notes": "Provide the assigned story notes.",
             "online_teacher_resources": "Record the Lesson 2 online-resource index.",
             "embedded_teacher_chart": "Provide the assigned Teacher Guide chart.",
+            "teacher_chart": "Provide the assigned Teacher Guide chart.",
             "classroom_map": "Record the required teacher-supplied classroom map.",
         }
+        guided_roles = {
+            "guided_reading_range",
+            "guided_reading_continuation",
+        }
+        guided_by_story: dict[str, list] = {}
+        for configured in manifest.assignments:
+            if configured.resource_role not in guided_roles:
+                continue
+            parent = next(
+                (
+                    assignment.title_or_label
+                    for assignment in manifest.assignments
+                    if (
+                        assignment.resource_role == "assigned_reading"
+                        and configured.title_or_label.startswith(
+                            f"{assignment.title_or_label} guided"
+                        )
+                    )
+                ),
+                None,
+            )
+            if parent is None:
+                raise ValueError(
+                    "Guided-reading reference is not tied to an approved "
+                    f"parent story: {configured.title_or_label}."
+                )
+            guided_by_story.setdefault(parent, []).append(configured)
+
         segments: list[TextSegment] = []
         assignments: list[ResourceAssignment] = []
         mappings: list[SourceCoordinateMapping] = []
         sequence = 1
         for configured in manifest.assignments:
+            if configured.resource_role in guided_roles:
+                continue
+            if configured.resource_role not in role_types:
+                raise ValueError(
+                    "Unsupported configured assignment role: "
+                    f"{configured.resource_role}."
+                )
             resource = (
                 resource_by_id.get(configured.resolved_resource_id)
                 if configured.resolved_resource_id
@@ -787,7 +837,6 @@ class CKLACurriculumIntelligenceAdapter(CurriculumIntelligenceAdapter):
                     if configured.proposed_pdf_start_page
                     <= page.pdf_page_number
                     <= configured.proposed_pdf_end_page
-                    and page.normalized_text.strip()
                 ]
                 expected = set(range(
                     configured.proposed_pdf_start_page,
@@ -829,11 +878,26 @@ class CKLACurriculumIntelligenceAdapter(CurriculumIntelligenceAdapter):
                     for note in evidence.evidence_notes
                 ]
             ))
+            guided = guided_by_story.get(configured.title_or_label, [])
+            if guided:
+                warnings.append(
+                    "Publisher guided-reading references are attached to "
+                    "this approved parent story without inferred PDF "
+                    "subranges."
+                )
             if configured.resource_role == "classroom_map":
                 warnings.append(
-                    "Required teacher-supplied material is unavailable in "
-                    "registered sources; supply or display an appropriate map "
-                    "of North and Central America."
+                    (
+                        "Required teacher-supplied material is unavailable "
+                        "in registered sources; supply or display an "
+                        "appropriate map of North and Central America."
+                    )
+                    if manifest.lesson_number == 2
+                    else (
+                        "Required teacher-supplied map is unavailable in "
+                        "registered sources; supply the publisher-referenced "
+                        "map before teaching."
+                    )
                 )
             assignment = ResourceAssignment(
                 id=configured.assignment_id,
@@ -842,7 +906,14 @@ class CKLACurriculumIntelligenceAdapter(CurriculumIntelligenceAdapter):
                 assignment_type=role_types[configured.resource_role],
                 title=configured.title_or_label,
                 instructional_purpose=purposes[configured.resource_role],
-                printed_page_references=configured.referenced_printed_pages,
+                printed_page_references=list(dict.fromkeys(
+                    configured.referenced_printed_pages
+                    + [
+                        reference
+                        for item in guided
+                        for reference in item.referenced_printed_pages
+                    ]
+                )),
                 pdf_page_numbers=[
                     page.pdf_page_number for page in selected
                 ],
@@ -851,7 +922,8 @@ class CKLACurriculumIntelligenceAdapter(CurriculumIntelligenceAdapter):
                 ],
                 section_references=[
                     evidence.source_heading
-                    for evidence in configured.evidence
+                    for item in [configured] + guided
+                    for evidence in item.evidence
                     if evidence.source_heading
                 ],
                 document_labels=(
@@ -860,7 +932,12 @@ class CKLACurriculumIntelligenceAdapter(CurriculumIntelligenceAdapter):
                     else []
                 ),
                 story_relative_page_references=(
-                    configured.referenced_printed_pages
+                    list(dict.fromkeys(
+                        configured.referenced_printed_pages
+                        + [
+                            item.curriculum_reference for item in guided
+                        ]
+                    ))
                     if configured.resource_type == "instructional_text"
                     else []
                 ),
@@ -868,7 +945,7 @@ class CKLACurriculumIntelligenceAdapter(CurriculumIntelligenceAdapter):
                 required_status=(
                     "optional"
                     if configured.resource_role in optional_roles
-                    else "required"
+                    else configured.required_status
                 ),
                 resolution_status=(
                     ResolutionStatus.PARTIAL
@@ -933,6 +1010,15 @@ class CKLACurriculumIntelligenceAdapter(CurriculumIntelligenceAdapter):
             value for value in assignments
             if value.assignment_type == "defines_lesson"
         )
+        objectives = [
+            value for value in lesson_entry.lesson_objective
+            if not re.fullmatch(
+                r"Core Knowledge Language Arts\s*\|\s*Grade 8\s+"
+                r"Lesson \d+\s*\|\s*Unit 1\s+\d+",
+                value,
+                re.IGNORECASE,
+            )
+        ]
         lesson = CurriculumLesson(
             id=lesson_id,
             curriculum_id=curriculum_id,
@@ -942,7 +1028,7 @@ class CKLACurriculumIntelligenceAdapter(CurriculumIntelligenceAdapter):
             title=lesson_entry.lesson_title or f"Lesson {lesson_entry.lesson_number}",
             assignment_ids=[value.id for value in assignments],
             standards=list(lesson_entry.standards),
-            objectives=list(lesson_entry.lesson_objective),
+            objectives=objectives,
             materials=list(lesson_entry.materials),
             homework=list(lesson_entry.homework),
             assessment_references=list(lesson_entry.assessment_references),

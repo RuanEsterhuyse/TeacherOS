@@ -19,6 +19,9 @@ from curriculum.intelligence.bundle import (
 )
 from curriculum.intelligence.ids import content_digest, stable_id
 from curriculum.intelligence.mappings import apply_coordinate_mappings
+from curriculum.intelligence.lesson_resource_mapping import (
+    validate_production_lesson_manifest,
+)
 from curriculum.intelligence.readiness import evaluate_readiness
 from curriculum.intelligence.repository import (
     CurriculumIntelligenceRepository,
@@ -373,6 +376,14 @@ class CurriculumIntelligenceService:
             key: self.repository.load_resource_pages(resource.id)
             for key, resource in resources.items()
         }
+        validate_production_lesson_manifest(
+            manifest,
+            entry=lesson_entry,
+            resources=list(resources.values()),
+            pages_by_resource={
+                resources[key].id: value for key, value in pages.items()
+            },
+        )
         translation = self.adapter.build_source_lesson_from_manifest(
             curriculum_id=curriculum_id,
             curriculum_title=index.curriculum.curriculum_name,

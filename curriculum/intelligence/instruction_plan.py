@@ -192,7 +192,7 @@ def _extract_questions(
     parse_text = FOOTER_RE.sub("", phase_text)
     candidates: list[tuple[int, str, str | None, str | None]] = []
     labeled = re.compile(
-        r"(?ms)^(?P<type>Literal|Inferential|Evaluative)"
+        r"(?ms)^(?:[A-Z]+/)*(?P<type>Literal|Inferential|Evaluative)"
         r"[ \t\u2002]+(?P<question>.+?)(?=\n\s*\n)"
     )
     for match in labeled.finditer(parse_text):
@@ -236,6 +236,9 @@ def _extract_questions(
             )
         elif flat.startswith(("Could ", "How ")) and "?" in flat:
             question = flat.split("?", 1)[0] + "?"
+        if question:
+            if not re.search(r"\b[\w’'-]{2,}\b", question):
+                question = None
         if question:
             answer = (
                 _answer_text(paragraphs[index + 1][0])

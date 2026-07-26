@@ -39,9 +39,9 @@ def prepare_configured_lesson_cache(
     mapping_directory: str | Path = "curriculum/mappings",
 ) -> Path:
     """Build deterministic downstream cache artifacts from reviewed config."""
-    if lesson != 2:
+    if lesson not in range(2, 10):
         raise ValueError(
-            "Only Lesson 2 has an approved configured production manifest."
+            "Configured production manifests support indexed Lessons 2–9."
         )
     cache = (
         Path(cache_root)
@@ -65,6 +65,14 @@ def prepare_configured_lesson_cache(
         output_path=cache / "prepared_source_bundle.json",
     )
     bundle = bundle_result.bundle
+    if bundle.blockers:
+        raise ValueError(
+            f"Lesson {lesson} prepared source bundle is not source_ready: "
+            + "; ".join(
+                f"{finding.code}: {finding.message}"
+                for finding in bundle.blockers
+            )
+        )
     canonical = BundleCanonicalBridge().build(bundle)
     write_json(cache / "bundle_derived_canonical_lesson.json", canonical)
     plan = SourceGroundedInstructionPlanBuilder().build(bundle)
@@ -95,9 +103,9 @@ def generate_lesson_intelligence(
     cache_root: str | Path = "output/curriculum_intelligence",
     database_path: str | Path = "data/curriculum/library.sqlite3",
 ) -> tuple[Path, Path]:
-    if lesson not in {1, 2}:
+    if lesson not in range(1, 10):
         raise ValueError(
-            "Only cached indexed Lessons 1 and 2 are supported by this command."
+            "Only indexed Unit 1 Lessons 1–9 are supported by this command."
         )
     cache = (
         Path(cache_root) / f"ckla-grade-8-unit-1-lesson-{lesson}"
@@ -108,7 +116,7 @@ def generate_lesson_intelligence(
         "plan": cache / "source_grounded_instruction_plan.json",
         "graph": cache / "instructional_relationship_graph.json",
     }
-    if lesson == 2 and any(
+    if lesson >= 2 and any(
         not path.is_file() for path in required.values()
     ):
         cache = prepare_configured_lesson_cache(

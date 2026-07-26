@@ -1660,9 +1660,176 @@ def validate_lesson_two_manifest(
             raise ValueError("A Lesson 1 assignment leaked into Lesson 2.")
 
 
+def validate_production_lesson_manifest(
+    manifest: LessonResourceMappingManifest,
+    *,
+    entry,
+    resources: list[InstructionalResource],
+    pages_by_resource: dict[str, list[ResourcePage]],
+) -> None:
+    """Validate an approved Unit 1 manifest without resolving ambiguity."""
+    if manifest.lesson_number == 2:
+        validate_lesson_two_manifest(
+            manifest,
+            entry=entry,
+            resources=resources,
+            pages_by_resource=pages_by_resource,
+        )
+        return
+    if manifest.lesson_number not in range(3, 10):
+        raise ValueError(
+            "Configured production manifests currently support Lessons 2–9."
+        )
+    if manifest.lesson_number != entry.lesson_number:
+        raise ValueError("Manifest lesson does not match the saved index.")
+    if (
+        manifest.teacher_guide_pdf_start_page != entry.start_pdf_page
+        or manifest.teacher_guide_pdf_end_page != entry.end_pdf_page
+    ):
+        raise ValueError("Teacher Guide boundaries do not match the index.")
+    resource_by_id = {resource.id: resource for resource in resources}
+    assignment_ids: set[str] = set()
+    approved_story_titles = {
+        assignment.title_or_label
+        for assignment in manifest.assignments
+        if (
+            assignment.resource_role == "assigned_reading"
+            and assignment.verification_status
+            == ProposalStatus.HUMAN_REVIEWED_OVERRIDE
+        )
+    }
+    for assignment in manifest.assignments:
+        if assignment.assignment_id in assignment_ids:
+            raise ValueError("Duplicate configured assignment identifier.")
+        assignment_ids.add(assignment.assignment_id)
+        if assignment.lesson_number != manifest.lesson_number:
+            raise ValueError("Assignment belongs to a different lesson.")
+        if any(
+            not entry.start_pdf_page
+            <= evidence.teacher_guide_pdf_page
+            <= entry.end_pdf_page
+            for evidence in assignment.evidence
+        ):
+            raise ValueError(
+                "Assignment evidence leaks outside indexed boundaries."
+            )
+        if (
+            assignment.verification_status
+            == ProposalStatus.PROPOSED_FOR_REVIEW
+        ):
+            raise ValueError(
+                "Production configuration contains an unapproved proposal: "
+                f"{assignment.title_or_label}."
+            )
+        if (
+            assignment.verification_status
+            == ProposalStatus.HUMAN_REVIEWED_OVERRIDE
+        ):
+            if assignment.resolution_method not in {
+                "exact_story_heading_to_next_story_heading",
+                "exact_section_and_story_labels",
+            }:
+                raise ValueError(
+                    "Human review is limited to approved Reader or "
+                    "supporting-text mappings."
+                )
+            if assignment.proposed_pdf_start_page is None:
+                raise ValueError(
+                    "Approved mapping has no registered PDF range."
+                )
+        if assignment.resource_role in {
+            "guided_reading_range",
+            "guided_reading_continuation",
+        }:
+            parent = next(
+                (
+                    title for title in approved_story_titles
+                    if assignment.title_or_label.startswith(
+                        f"{title} guided"
+                    )
+                ),
+                None,
+            )
+            if parent is None:
+                raise ValueError(
+                    "Guided-reading reference has no approved parent story."
+                )
+            if assignment.proposed_pdf_start_page is not None:
+                raise ValueError(
+                    "Guided-reading subranges must not invent PDF coordinates."
+                )
+        elif (
+            assignment.verification_status == ProposalStatus.UNRESOLVED
+            and not (
+                manifest.lesson_number == 9
+                and assignment.resource_role == "assessment_reading"
+            )
+        ):
+            raise ValueError(
+                "Required production assignment remains unresolved: "
+                f"{assignment.title_or_label}."
+            )
+        if (
+            assignment.verification_status
+            == ProposalStatus.UNAVAILABLE_IN_REGISTERED_SOURCES
+            and assignment.resource_role != "classroom_map"
+        ):
+            raise ValueError(
+                "Only explicitly teacher-supplied maps may remain "
+                "unavailable in this production configuration."
+            )
+        if assignment.resolved_resource_id:
+            resource = resource_by_id.get(assignment.resolved_resource_id)
+            if resource is None:
+                raise ValueError(
+                    "Configured assignment references an unregistered "
+                    "resource."
+                )
+            if assignment.proposed_pdf_start_page is not None:
+                available_pages = {
+                    page.pdf_page_number
+                    for page in pages_by_resource[resource.id]
+                }
+                approved_pages = set(range(
+                    assignment.proposed_pdf_start_page,
+                    assignment.proposed_pdf_end_page + 1,
+                ))
+                if not approved_pages <= available_pages:
+                    raise ValueError(
+                        "Approved PDF range exceeds registered bounds."
+                    )
+                selected_text = "\n".join(
+                    page.normalized_text
+                    for page in pages_by_resource[resource.id]
+                    if page.pdf_page_number in approved_pages
+                ).casefold()
+                if (
+                    assignment.verification_status
+                    == ProposalStatus.HUMAN_REVIEWED_OVERRIDE
+                    and assignment.resource_role == "assigned_reading"
+                ):
+                    headings = {
+                        evidence.source_heading.casefold()
+                        for evidence in assignment.evidence
+                        if evidence.source_heading
+                    }
+                    if headings and not any(
+                        heading in selected_text for heading in headings
+                    ):
+                        raise ValueError(
+                            "Approved range does not contain the expected "
+                            f"heading for {assignment.title_or_label}."
+                        )
+        if "answer_key" in assignment.resource_role:
+            label = assignment.title_or_label.rsplit(" ", 1)[-1]
+            if label not in assignment.curriculum_reference:
+                raise ValueError("Answer-key activity label mismatch.")
+
+
 __all__ = [
     "IndexedLessonResourceMappingBuilder",
     "LessonTwoResourceMappingBuilder",
     "validate_indexed_lesson_manifest",
     "validate_lesson_two_manifest",
+    "validate_production_lesson_manifest",
 ]
