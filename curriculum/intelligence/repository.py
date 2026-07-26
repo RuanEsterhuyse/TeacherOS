@@ -166,6 +166,17 @@ class CurriculumIntelligenceRepository:
             InstructionalResource,
         )
 
+    def load_resource_pages(self, resource_id: str) -> list[ResourcePage]:
+        """Load already-extracted pages without touching the source document."""
+        return self._load_many(
+            (
+                "SELECT payload FROM ci_resource_pages "
+                "WHERE resource_id=? ORDER BY pdf_page_number"
+            ),
+            (resource_id,),
+            ResourcePage,
+        )
+
     def load_assignments(
         self, lesson_id: str
     ) -> list[ResourceAssignment]:
