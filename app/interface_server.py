@@ -16,6 +16,15 @@ from urllib.parse import urlparse
 
 from app.teacheros import TeacherOS
 from schemas.reader_output_schema import CurriculumReaderOutput
+from curriculum.intelligence.generate_teaching_package import (
+    generate_teaching_package,
+)
+from curriculum.intelligence.publishing import write_publishing_metadata
+from renderer.google_docs_publisher import GoogleDocsPublisher
+from renderer.teaching_package_slides import (
+    TeachingPackageGoogleSlidesPublisher,
+)
+from schemas.teaching_package_schema import StructuredTeachingPackage
 
 
 PROJECT_ROOT = Path(__file__).parents[1].resolve()
@@ -53,6 +62,7 @@ class GenerationJob:
     state: str = "running"
     result: dict[str, Any] | None = None
     errors: list[str] = field(default_factory=list)
+    job_kind: str = "lesson"
 
 
 class TeacherOSInterface:
@@ -163,6 +173,88 @@ class TeacherOSInterface:
         threading.Thread(target=self._run_generation, args=(job,), daemon=True).start()
         return job
 
+    def start_teaching_package(
+        self, curriculum_name: str, grade: str, unit: str, lesson_number: int
+    ) -> GenerationJob:
+        if (
+            curriculum_name.casefold() != "ckla"
+            or str(grade) != "8"
+            or str(unit) != "1"
+        ):
+            raise ValueError(
+                "Teaching packages currently support indexed CKLA Grade 8 "
+                "Unit 1 lessons."
+            )
+        request = self.teacheros.create_lesson_request(
+            curriculum_name=curriculum_name,
+            grade=grade,
+            unit=unit,
+            lesson_number=lesson_number,
+        )
+        job = GenerationJob(
+            job_id=uuid.uuid4().hex,
+            request_id=request.request_id,
+            curriculum_name=curriculum_name,
+            grade=grade,
+            unit=unit,
+            lesson_number=lesson_number,
+            job_kind="teaching_package",
+        )
+        with self._lock:
+            self.jobs[job.job_id] = job
+        threading.Thread(
+            target=self._run_teaching_package,
+            args=(job,),
+            daemon=True,
+        ).start()
+        return job
+
+    def _run_teaching_package(self, job: GenerationJob) -> None:
+        output = PROJECT_ROOT / "output" / f"lesson_{job.lesson_number:03d}"
+        try:
+            package, paths, resumed = generate_teaching_package(
+                lesson=job.lesson_number,
+                output_directory=output,
+            )
+            job.result = {
+                "validation_result": package.validation.status,
+                "output_directory": str(output),
+                "resumed": resumed,
+                "artifacts": {
+                    key: str(value) for key, value in paths.items()
+                },
+                "agenda": [
+                    {
+                        "order": value.official_order,
+                        "official": value.official_title.text,
+                        "student_friendly":
+                            value.student_friendly_title.text,
+                        "duration": value.duration_minutes,
+                    }
+                    for value in package.agenda
+                ],
+                "objectives": [
+                    {
+                        "official": value.official.text,
+                        "student_friendly": value.student_friendly.text,
+                        "meaning_preserved": value.meaning_preserved,
+                    }
+                    for value in package.objectives
+                ],
+                "teaching_steps": len(package.teaching_steps),
+                "questions": len(package.questions),
+                "student_slides": len(package.student_slides),
+                "warnings": package.warnings + [
+                    finding.message
+                    for finding in package.validation.findings
+                    if finding.severity.value == "warning"
+                ],
+            }
+            job.state = "complete"
+        except Exception as error:
+            job.errors = [str(error)]
+            job.state = "failed"
+
     def _run_generation(self, job: GenerationJob) -> None:
         try:
             result = self.teacheros.generate_lesson(
@@ -186,6 +278,25 @@ class TeacherOSInterface:
             job = self.jobs.get(job_id)
         if job is None:
             raise KeyError(job_id)
+        if job.job_kind == "teaching_package":
+            return {
+                "job_id": job.job_id,
+                "request_id": job.request_id,
+                "kind": job.job_kind,
+                "state": job.state,
+                "progress": 100 if job.state in {"complete", "failed"} else 50,
+                "current_stage": (
+                    "Teaching package ready"
+                    if job.state == "complete"
+                    else (
+                        "Teaching package failed"
+                        if job.state == "failed"
+                        else "Building synchronized teaching package"
+                    )
+                ),
+                "errors": job.errors,
+                **(job.result or {}),
+            }
         run_dir = PROJECT_ROOT / "output" / "generation_runs" / job.request_id
         completed_stages = (
             job.result.get("completed_stages", []) if job.result else []
@@ -297,6 +408,53 @@ class TeacherOSInterface:
             check=True,
         )
 
+    @staticmethod
+    def teaching_package_path(
+        lesson_number: int, filename: str | None = None
+    ) -> Path:
+        root = (PROJECT_ROOT / "output" / f"lesson_{lesson_number:03d}").resolve()
+        output_root = (PROJECT_ROOT / "output").resolve()
+        if root.parent != output_root:
+            raise ValueError("invalid teaching-package path")
+        return root / filename if filename else root
+
+    def read_teaching_artifact(
+        self, lesson_number: int, artifact: str
+    ) -> str:
+        allowed = {
+            "teacher_companion.md",
+            "student_slides.md",
+            "teaching_package_validation.md",
+            "teaching_package.json",
+            "teacher_companion.json",
+            "student_slides.json",
+        }
+        if artifact not in allowed:
+            raise ValueError("unsupported teaching-package artifact")
+        path = self.teaching_package_path(lesson_number, artifact)
+        if not path.is_file():
+            raise FileNotFoundError(path)
+        return path.read_text(encoding="utf-8")
+
+    def publish_teaching_package(
+        self, lesson_number: int, target: str
+    ) -> dict[str, Any]:
+        path = self.teaching_package_path(
+            lesson_number, "teaching_package.json"
+        )
+        package = StructuredTeachingPackage.model_validate_json(
+            path.read_text(encoding="utf-8")
+        )
+        if target == "google-doc":
+            result = GoogleDocsPublisher().publish(package)
+            write_publishing_metadata(path.parent, google_doc=result)
+        elif target == "google-slides":
+            result = TeachingPackageGoogleSlidesPublisher().publish(package)
+            write_publishing_metadata(path.parent, google_slides=result)
+        else:
+            raise ValueError("unsupported publishing target")
+        return result
+
 
 INTERFACE = TeacherOSInterface()
 
@@ -358,6 +516,19 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
             if path.startswith("/api/jobs/"):
                 self._json(INTERFACE.job_status(path.rsplit("/", 1)[-1]))
                 return
+            if path.startswith("/api/teaching-package/artifacts/"):
+                parts = path.strip("/").split("/")
+                if len(parts) != 5:
+                    raise KeyError(path)
+                content = INTERFACE.read_teaching_artifact(
+                    int(parts[3]), parts[4]
+                )
+                download = urlparse(self.path).query == "download=1"
+                self._text(
+                    content,
+                    filename=parts[4] if download else None,
+                )
+                return
             if path.startswith("/api/artifacts/") and path.endswith("/gamma"):
                 parts = path.strip("/").split("/")
                 if len(parts) != 4:
@@ -390,6 +561,25 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
                     {"job_id": job.job_id, "request_id": job.request_id},
                     HTTPStatus.ACCEPTED,
                 )
+                return
+            if path == "/api/teaching-package/generate":
+                job = INTERFACE.start_teaching_package(
+                    curriculum_name=str(payload["curriculum_name"]),
+                    grade=str(payload["grade"]),
+                    unit=str(payload["unit"]),
+                    lesson_number=int(payload["lesson_number"]),
+                )
+                self._json(
+                    {"job_id": job.job_id, "request_id": job.request_id},
+                    HTTPStatus.ACCEPTED,
+                )
+                return
+            if path == "/api/teaching-package/publish":
+                result = INTERFACE.publish_teaching_package(
+                    int(payload["lesson_number"]),
+                    str(payload["target"]),
+                )
+                self._json(result)
                 return
             if path == "/api/open":
                 INTERFACE.open_output(

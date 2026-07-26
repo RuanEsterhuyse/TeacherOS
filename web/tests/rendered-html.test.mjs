@@ -43,6 +43,10 @@ test("interface preserves the v0.2 generation workflow", async () => {
   ]);
 
   assert.match(page, /Generate Lesson/);
+  assert.match(page, /Generate Teaching Package/);
+  assert.match(page, /Download Teacher Companion/);
+  assert.match(page, /Publish to Google Docs/);
+  assert.match(page, /Publish to Google Slides/);
   assert.match(page, /Lesson Generated Successfully/);
   assert.match(page, /Copy Gamma Prompt/);
   assert.match(page, /Download Gamma Prompt/);

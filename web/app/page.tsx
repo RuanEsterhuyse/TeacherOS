@@ -56,6 +56,21 @@ type JobStatus = {
     message: string;
     slide_id: string | null;
   }[];
+  kind?: "lesson" | "teaching_package";
+  agenda?: {
+    order: number;
+    official: string;
+    student_friendly: string;
+    duration: number | null;
+  }[];
+  objectives?: {
+    official: string;
+    student_friendly: string;
+    meaning_preserved: boolean;
+  }[];
+  teaching_steps?: number;
+  questions?: number;
+  student_slides?: number;
 };
 
 const API_BASE =
@@ -214,6 +229,68 @@ export default function Home() {
       return;
     }
     setJobId(payload.job_id);
+  }
+
+  async function generateTeachingPackage() {
+    if (!curriculum || !selectedUnit || !lesson) return;
+    setView("generation");
+    setJob(null);
+    const response = await fetch(
+      `${API_BASE}/api/teaching-package/generate`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          curriculum_name: curriculum.name,
+          grade: selectedUnit.grade,
+          unit: selectedUnit.number,
+          lesson_number: lesson.number,
+        }),
+      },
+    );
+    const payload = await response.json();
+    if (!response.ok) {
+      setJob({
+        job_id: "",
+        request_id: "",
+        state: "failed",
+        progress: 0,
+        current_stage: "Unable to start",
+        failed_stage: "teaching_package_start",
+        stages: [],
+        validation_result: null,
+        slide_count: 0,
+        warnings: [],
+        errors: [payload.error || "Unable to start teaching package."],
+        blocking_findings: [],
+        kind: "teaching_package",
+      });
+      return;
+    }
+    setJobId(payload.job_id);
+  }
+
+  async function publishTeachingPackage(
+    target: "google-doc" | "google-slides",
+  ) {
+    if (!lesson) return;
+    const response = await fetch(
+      `${API_BASE}/api/teaching-package/publish`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lesson_number: lesson.number,
+          target,
+        }),
+      },
+    );
+    const payload = await response.json();
+    if (response.ok && payload.url) {
+      window.open(payload.url, "_blank", "noopener,noreferrer");
+    } else {
+      setCopyStatus(payload.error || "Google publishing is unavailable.");
+    }
   }
 
   async function openOutput(target: "folder" | "bundle") {
@@ -494,6 +571,17 @@ export default function Home() {
                     <p className="button-note">
                       Runs the complete TeacherOS lesson pipeline.
                     </p>
+                    <button
+                      className="secondary-button"
+                      onClick={generateTeachingPackage}
+                      data-testid="generate-teaching-package"
+                    >
+                      Generate Teaching Package
+                    </button>
+                    <p className="button-note">
+                      Creates a validated Teacher Companion and synchronized
+                      student slides from existing Lesson Intelligence.
+                    </p>
                   </aside>
                 )}
               </div>
@@ -503,11 +591,15 @@ export default function Home() {
           {view === "generation" && (
             <div className="generation-view" data-testid="generation-view">
               <div className="generation-copy">
-                <span className="eyebrow">Generating lesson</span>
+                <span className="eyebrow">
+                  {job?.kind === "teaching_package"
+                    ? "Generating teaching package"
+                    : "Generating lesson"}
+                </span>
                 <h1>{lesson?.title}</h1>
                 <p>
-                  TeacherOS is building the lesson package from the imported
-                  curriculum. You can leave this screen open while it works.
+                  TeacherOS is building from the imported curriculum. You can
+                  leave this screen open while it works.
                 </p>
               </div>
               <div className="progress-card">
@@ -570,7 +662,105 @@ export default function Home() {
                 ✓
               </div>
               <span className="eyebrow">TeacherOS complete</span>
-              <h1>Lesson Generated Successfully</h1>
+              <h1>
+                {job.kind === "teaching_package"
+                  ? "Teaching Package Generated Successfully"
+                  : "Lesson Generated Successfully"}
+              </h1>
+              {job.kind === "teaching_package" ? (
+                <>
+                  <p>
+                    {job.student_slides || 0} student slides ·{" "}
+                    {job.questions || 0} required questions ·{" "}
+                    {job.validation_result === "pass_with_warnings"
+                      ? "Validated with review notes"
+                      : "Validation passed"}
+                  </p>
+                  <div className="gamma-handoff">
+                    <span className="eyebrow">Lesson at a glance</span>
+                    <ol>
+                      {(job.agenda || []).map((item) => (
+                        <li key={item.order}>
+                          {item.official}
+                          {item.duration !== null
+                            ? ` · ${item.duration} min`
+                            : ""}
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                  <div className="gamma-handoff">
+                    <span className="eyebrow">Objectives</span>
+                    <ol>
+                      {(job.objectives || []).map((item, index) => (
+                        <li key={`${index}-${item.official}`}>
+                          <strong>{item.official}</strong>
+                          <br />
+                          Student-friendly: {item.student_friendly}
+                        </li>
+                      ))}
+                    </ol>
+                    <p>
+                      {job.teaching_steps || 0} teaching steps ·{" "}
+                      {job.questions || 0} discussion questions ·{" "}
+                      {job.student_slides || 0} synchronized slides
+                    </p>
+                  </div>
+                  <div className="complete-actions">
+                    <a
+                      className="secondary-button action-link"
+                      href={`${API_BASE}/api/teaching-package/artifacts/${lesson?.number}/teacher_companion.md`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Review Teacher Companion
+                    </a>
+                    <a
+                      className="secondary-button action-link"
+                      href={`${API_BASE}/api/teaching-package/artifacts/${lesson?.number}/student_slides.md`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Review Student Slides
+                    </a>
+                    <a
+                      className="primary-button action-link"
+                      href={`${API_BASE}/api/teaching-package/artifacts/${lesson?.number}/teacher_companion.md?download=1`}
+                      download="teacher_companion.md"
+                    >
+                      Download Teacher Companion
+                    </a>
+                    <a
+                      className="secondary-button action-link"
+                      href={`${API_BASE}/api/teaching-package/artifacts/${lesson?.number}/student_slides.md?download=1`}
+                      download="student_slides.md"
+                    >
+                      Download Student Slides
+                    </a>
+                    <button
+                      className="secondary-button"
+                      onClick={() => publishTeachingPackage("google-doc")}
+                    >
+                      Publish to Google Docs
+                    </button>
+                    <button
+                      className="secondary-button"
+                      onClick={() => publishTeachingPackage("google-slides")}
+                    >
+                      Publish to Google Slides
+                    </button>
+                    <button className="text-button" onClick={generateAnother}>
+                      Generate Again
+                    </button>
+                  </div>
+                  {copyStatus && (
+                    <span className="copy-status" role="status">
+                      {copyStatus}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <>
               <p>
                 {job.slide_count} slides prepared ·{" "}
                 {job.validation_result === "pass_with_warnings"
@@ -636,6 +826,8 @@ export default function Home() {
                   {job.warnings.length} review notes are included with the
                   generated lesson.
                 </p>
+              )}
+                </>
               )}
             </div>
           )}

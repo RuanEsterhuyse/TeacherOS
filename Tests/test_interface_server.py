@@ -5,6 +5,8 @@ import os
 import time
 from types import SimpleNamespace
 
+import pytest
+
 from app.interface_server import GenerationJob, TeacherOSInterface
 from app import interface_server
 from Tests.test_teacheros import prepared_fixture
@@ -211,3 +213,48 @@ def test_validation_failure_returns_current_blocking_findings_only(
     assert status["blocking_findings"] == [report["findings"][0]]
     assert status["stages"][6]["complete"] is True
     assert status["stages"][7]["complete"] is False
+
+
+def test_teaching_package_job_status_and_artifact_access(
+    tmp_path, monkeypatch
+) -> None:
+    monkeypatch.setattr(interface_server, "PROJECT_ROOT", tmp_path)
+    output = tmp_path / "output" / "lesson_001"
+    output.mkdir(parents=True)
+    (output / "teacher_companion.md").write_text(
+        "# Teacher Companion", encoding="utf-8"
+    )
+    interface = TeacherOSInterface.__new__(TeacherOSInterface)
+    interface.jobs = {}
+    interface._lock = interface_server.threading.Lock()
+    job = GenerationJob(
+        job_id="teaching-1",
+        request_id="ckla-grade-8-unit-1-lesson-1",
+        curriculum_name="CKLA",
+        grade="8",
+        unit="1",
+        lesson_number=1,
+        state="complete",
+        result={
+            "validation_result": "pass_with_warnings",
+            "agenda": [{"order": 1, "official": "Opening"}],
+            "objectives": [],
+            "teaching_steps": 1,
+            "questions": 2,
+            "student_slides": 3,
+            "warnings": ["Review optional analysis."],
+        },
+        job_kind="teaching_package",
+    )
+    interface.jobs[job.job_id] = job
+
+    status = interface.job_status(job.job_id)
+
+    assert status["kind"] == "teaching_package"
+    assert status["progress"] == 100
+    assert status["student_slides"] == 3
+    assert interface.read_teaching_artifact(
+        1, "teacher_companion.md"
+    ) == "# Teacher Companion"
+    with pytest.raises(ValueError, match="unsupported"):
+        interface.read_teaching_artifact(1, "../token.json")
