@@ -3,23 +3,32 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Iterable
 
 from curriculum.adapters.intelligence import CurriculumIntelligenceAdapter
 from curriculum.intelligence.ids import stable_id
+from curriculum.intelligence.mappings import coordinate_mapping_id
 from schemas.curriculum_intelligence_schema import (
     Curriculum,
     CurriculumLesson,
     CurriculumUnit,
     ExtractionStatus,
     InstructionalResource,
+    MappingMethod,
+    MappingReviewStatus,
     ReadinessState,
     ResolutionStatus,
     ResourceAssignment,
     ResourcePage,
     SourceProvenance,
+    SourceCoordinateMapping,
     TextSegment,
+)
+from schemas.curriculum_mapping_proposal_schema import (
+    LessonResourceMappingManifest,
+    ProposalStatus,
 )
 from schemas.curriculum_schema import LessonIndexEntry
 
@@ -39,6 +48,9 @@ class SourceLessonTranslation:
     pages: dict[str, list[ResourcePage]]
     assignments: list[ResourceAssignment]
     segments: list[TextSegment]
+    coordinate_mappings: list[SourceCoordinateMapping] = field(
+        default_factory=list
+    )
 
 
 class CKLACurriculumIntelligenceAdapter(CurriculumIntelligenceAdapter):
@@ -664,6 +676,298 @@ class CKLACurriculumIntelligenceAdapter(CurriculumIntelligenceAdapter):
             pages=pages,
             assignments=assignments,
             segments=segments,
+        )
+
+    def build_source_lesson_from_manifest(
+        self,
+        *,
+        curriculum_id: str,
+        curriculum_title: str,
+        unit_title: str,
+        lesson_entry: LessonIndexEntry,
+        manifest: LessonResourceMappingManifest,
+        resources: dict[str, InstructionalResource],
+        pages: dict[str, list[ResourcePage]],
+    ) -> SourceLessonTranslation:
+        """Translate reviewed assignment configuration into source records."""
+        if manifest.lesson_number != lesson_entry.lesson_number:
+            raise ValueError("Mapping manifest lesson does not match the index.")
+        if manifest.grade != "8" or manifest.unit_number != 1:
+            raise ValueError("Mapping manifest does not match the registered unit.")
+
+        curriculum = Curriculum(
+            id=curriculum_id,
+            title=curriculum_title,
+            publisher="Core Knowledge Foundation",
+            grade_or_course=manifest.grade,
+            subject="Language Arts",
+            adapter_id=self.adapter_id,
+            resource_ids=[value.id for value in resources.values()],
+        )
+        unit_id = stable_id(
+            "unit", curriculum_id, manifest.unit_number, unit_title
+        )
+        lesson_id = stable_id(
+            "lesson",
+            unit_id,
+            lesson_entry.lesson_number,
+            lesson_entry.lesson_title,
+        )
+        resource_by_id = {value.id: value for value in resources.values()}
+        pages_by_id = {
+            resources[key].id: value for key, value in pages.items()
+        }
+        guide = resources["teacher_guide"]
+        online = resources["online_resources"]
+        role_types = {
+            "defines_lesson": "defines_lesson",
+            "assigned_reading": "assigned_reading",
+            "prior_lesson_homework_review": "background_reading",
+            "prior_lesson_activity_review": "activity",
+            "vocabulary_resource": "vocabulary_reference",
+            "homework_writing": "homework",
+            "grammar_practice_and_homework": "activity",
+            "writing_plan": "activity",
+            "homework_writing_plan": "homework",
+            "prior_lesson_activity_answer_key": "teacher_reference",
+            "publisher_answer_key": "teacher_reference",
+            "translation_reference": "teacher_reference",
+            "refrane_reference": "teacher_reference",
+            "story_notes": "teacher_reference",
+            "online_teacher_resources": "teacher_reference",
+            "embedded_teacher_chart": "teacher_reference",
+            "classroom_map": "visual_resource",
+        }
+        optional_roles = {
+            "prior_lesson_activity_answer_key",
+            "publisher_answer_key",
+            "online_teacher_resources",
+            "classroom_map",
+        }
+        purposes = {
+            "defines_lesson": "Define the indexed lesson source boundary and requirements.",
+            "assigned_reading": "Provide the assigned instructional reading.",
+            "prior_lesson_homework_review": "Provide the prior homework text required for Lesson 2 review.",
+            "prior_lesson_activity_review": "Provide the prior activity required for Lesson 2 review.",
+            "vocabulary_resource": "Provide the assigned vocabulary activity.",
+            "homework_writing": "Provide the assigned writing homework.",
+            "grammar_practice_and_homework": "Provide the assigned grammar practice and homework.",
+            "writing_plan": "Provide the assigned narrative planning activity.",
+            "homework_writing_plan": "Provide the assigned narrative-planning homework.",
+            "prior_lesson_activity_answer_key": "Provide the explicitly labeled publisher answer key.",
+            "publisher_answer_key": "Provide the explicitly labeled publisher answer key.",
+            "translation_reference": "Provide the assigned translation reference.",
+            "refrane_reference": "Provide the assigned refrane translation reference.",
+            "story_notes": "Provide the assigned story notes.",
+            "online_teacher_resources": "Record the Lesson 2 online-resource index.",
+            "embedded_teacher_chart": "Provide the assigned Teacher Guide chart.",
+            "classroom_map": "Record the required teacher-supplied classroom map.",
+        }
+        segments: list[TextSegment] = []
+        assignments: list[ResourceAssignment] = []
+        mappings: list[SourceCoordinateMapping] = []
+        sequence = 1
+        for configured in manifest.assignments:
+            resource = (
+                resource_by_id.get(configured.resolved_resource_id)
+                if configured.resolved_resource_id
+                else online
+            )
+            if resource is None:
+                raise ValueError(
+                    f"Configured resource is not registered: "
+                    f"{configured.resolved_resource_id}"
+                )
+            selected: list[ResourcePage] = []
+            segment = None
+            if configured.proposed_pdf_start_page is not None:
+                selected = [
+                    page
+                    for page in pages_by_id.get(resource.id, [])
+                    if configured.proposed_pdf_start_page
+                    <= page.pdf_page_number
+                    <= configured.proposed_pdf_end_page
+                    and page.normalized_text.strip()
+                ]
+                expected = set(range(
+                    configured.proposed_pdf_start_page,
+                    configured.proposed_pdf_end_page + 1,
+                ))
+                if {page.pdf_page_number for page in selected} != expected:
+                    raise ValueError(
+                        f"Approved range for {configured.title_or_label} is "
+                        "missing registered page text."
+                    )
+                segment = self._segment(
+                    resource,
+                    selected,
+                    title=configured.title_or_label,
+                    segment_type=configured.resource_role,
+                    sequence=sequence,
+                    confidence=configured.confidence,
+                )
+                segments.append(segment)
+                sequence += 1
+
+            reviewed = (
+                configured.verification_status
+                == ProposalStatus.HUMAN_REVIEWED_OVERRIDE
+            )
+            resolved = (
+                segment is not None
+                and configured.verification_status
+                in {
+                    ProposalStatus.DETERMINISTICALLY_VERIFIED,
+                    ProposalStatus.HUMAN_REVIEWED_OVERRIDE,
+                }
+            )
+            warnings = list(dict.fromkeys(
+                configured.ambiguity_notes
+                + [
+                    note
+                    for evidence in configured.evidence
+                    for note in evidence.evidence_notes
+                ]
+            ))
+            if configured.resource_role == "classroom_map":
+                warnings.append(
+                    "Required teacher-supplied material is unavailable in "
+                    "registered sources; supply or display an appropriate map "
+                    "of North and Central America."
+                )
+            assignment = ResourceAssignment(
+                id=configured.assignment_id,
+                lesson_id=lesson_id,
+                resource_id=resource.id,
+                assignment_type=role_types[configured.resource_role],
+                title=configured.title_or_label,
+                instructional_purpose=purposes[configured.resource_role],
+                printed_page_references=configured.referenced_printed_pages,
+                pdf_page_numbers=[
+                    page.pdf_page_number for page in selected
+                ],
+                display_page_numbers=[
+                    page.display_page_number for page in selected
+                ],
+                section_references=[
+                    evidence.source_heading
+                    for evidence in configured.evidence
+                    if evidence.source_heading
+                ],
+                document_labels=(
+                    [configured.title_or_label.rsplit(" ", 1)[-1]]
+                    if configured.title_or_label.startswith("Activity Page ")
+                    else []
+                ),
+                story_relative_page_references=(
+                    configured.referenced_printed_pages
+                    if configured.resource_type == "instructional_text"
+                    else []
+                ),
+                segment_ids=[segment.id] if segment else [],
+                required_status=(
+                    "optional"
+                    if configured.resource_role in optional_roles
+                    else "required"
+                ),
+                resolution_status=(
+                    ResolutionStatus.PARTIAL
+                    if reviewed
+                    else (
+                        ResolutionStatus.RESOLVED
+                        if resolved
+                        else ResolutionStatus.UNRESOLVED
+                    )
+                ),
+                extraction_status=(
+                    resource.extraction_status
+                    if segment
+                    else ExtractionStatus.UNAVAILABLE
+                ),
+                confidence=configured.confidence,
+                source_provenance=(
+                    segment.source_provenance if segment else []
+                ),
+                warnings=warnings,
+            )
+            assignments.append(assignment)
+            if reviewed and segment:
+                reference_value = (
+                    configured.referenced_printed_pages[0]
+                    if configured.referenced_printed_pages
+                    else configured.curriculum_reference
+                )
+                mapping = SourceCoordinateMapping(
+                    id=coordinate_mapping_id(
+                        assignment.id,
+                        "curriculum_reference",
+                        reference_value,
+                        "pdf_page_range",
+                    ),
+                    lesson_id=lesson_id,
+                    assignment_id=assignment.id,
+                    resource_id=resource.id,
+                    source_version=resource.resource_version,
+                    resource_checksum=resource.checksum,
+                    extraction_version=resource.extraction_version,
+                    reference_system="curriculum_reference",
+                    reference_value=reference_value,
+                    target_coordinate_system="pdf_page_range",
+                    target_pdf_start_page=selected[0].pdf_page_number,
+                    target_pdf_end_page=selected[-1].pdf_page_number,
+                    target_display_start_page=selected[0].display_page_number,
+                    target_display_end_page=selected[-1].display_page_number,
+                    target_segment_ids=[segment.id],
+                    mapping_method=MappingMethod.HUMAN_REVIEWED_OVERRIDE,
+                    confidence=1,
+                    review_status=MappingReviewStatus.VERIFIED,
+                    reviewer_type="human",
+                    reviewer_note=configured.reviewer_note or "",
+                    created_at=datetime(2026, 7, 25, tzinfo=timezone.utc),
+                    mapping_version="1.0",
+                    warnings=warnings,
+                )
+                mappings.append(mapping)
+
+        guide_assignment = next(
+            value for value in assignments
+            if value.assignment_type == "defines_lesson"
+        )
+        lesson = CurriculumLesson(
+            id=lesson_id,
+            curriculum_id=curriculum_id,
+            unit_id=unit_id,
+            grade_or_course=manifest.grade,
+            sequence=lesson_entry.lesson_number,
+            title=lesson_entry.lesson_title or f"Lesson {lesson_entry.lesson_number}",
+            assignment_ids=[value.id for value in assignments],
+            standards=list(lesson_entry.standards),
+            objectives=list(lesson_entry.lesson_objective),
+            materials=list(lesson_entry.materials),
+            homework=list(lesson_entry.homework),
+            assessment_references=list(lesson_entry.assessment_references),
+            source_provenance=guide_assignment.source_provenance,
+            readiness_state=ReadinessState.MAPPED,
+        )
+        unit = CurriculumUnit(
+            id=unit_id,
+            curriculum_id=curriculum_id,
+            title=unit_title,
+            sequence=manifest.unit_number,
+            lesson_ids=[lesson_id],
+            linked_resource_ids=[value.id for value in resources.values()],
+            source_provenance=guide_assignment.source_provenance,
+        )
+        curriculum = curriculum.model_copy(update={"unit_ids": [unit_id]})
+        return SourceLessonTranslation(
+            curriculum=curriculum,
+            unit=unit,
+            lesson=lesson,
+            resources=list(resources.values()),
+            pages=pages,
+            assignments=assignments,
+            segments=segments,
+            coordinate_mappings=mappings,
         )
 
 

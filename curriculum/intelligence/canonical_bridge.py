@@ -240,25 +240,30 @@ def validate_canonical_bridge_input(
         for value in bundle.required_assignments
         if value.assignment_type == "assigned_reading"
     ]
-    homework_readings = [
+    supporting_readings = [
         value
         for value in bundle.required_assignments
-        if value.assignment_type == "homework"
-        and any(
-            resource.resource_id == value.resource_id
-            and resource.resource_type == "instructional_text"
-            for resource in bundle.resource_summaries
+        if (
+            value.assignment_type == "background_reading"
+            or (
+                value.assignment_type == "homework"
+                and any(
+                    resource.resource_id == value.resource_id
+                    and resource.resource_type == "instructional_text"
+                    for resource in bundle.resource_summaries
+                )
+            )
         )
     ]
-    if not readings or not homework_readings:
+    if not readings or not supporting_readings:
         raise ValueError(
-            "Main reading and homework reading must both be present."
+            "Main reading and supporting reading must both be present."
         )
     if set(readings[0].text_segment_ids) & set(
-        homework_readings[0].text_segment_ids
+        supporting_readings[0].text_segment_ids
     ):
         raise ValueError(
-            "Main reading and homework reading must remain separate."
+            "Main reading and supporting reading must remain separate."
         )
 
 

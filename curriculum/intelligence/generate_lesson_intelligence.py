@@ -5,17 +5,87 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from curriculum.intelligence.canonical_bridge import BundleCanonicalBridge
+from curriculum.intelligence.instruction_plan import (
+    SourceGroundedInstructionPlanBuilder,
+    instruction_plan_markdown,
+)
 from curriculum.intelligence.lesson_intelligence import (
     LessonIntelligenceCompiler,
     load_cached_support,
 )
 from curriculum.intelligence.repository import CurriculumIntelligenceRepository
+from curriculum.intelligence.relationship_graph import (
+    InstructionalRelationshipGraphBuilder,
+    relationship_graph_audit_markdown,
+    relationship_graph_markdown,
+)
+from curriculum.intelligence.service import CurriculumIntelligenceService
+from curriculum.intelligence.snapshot import write_json
 from renderer.lesson_intelligence_markdown import LessonIntelligenceMarkdownRenderer
 from renderer.lesson_slide_prompt import LessonSlidePromptRenderer
 from schemas.canonical_lesson_schema import CanonicalLesson
 from schemas.instructional_relationship_graph_schema import InstructionalRelationshipGraph
 from schemas.prepared_curriculum_source_schema import PreparedCurriculumSourceBundle
 from schemas.source_grounded_instruction_schema import SourceGroundedInstructionPlan
+
+
+def prepare_configured_lesson_cache(
+    *,
+    lesson: int,
+    cache_root: str | Path,
+    database_path: str | Path,
+    index_path: str | Path = "data/indexes/ckla_grade_8_unit_1_index.json",
+    mapping_directory: str | Path = "curriculum/mappings",
+) -> Path:
+    """Build deterministic downstream cache artifacts from reviewed config."""
+    if lesson != 2:
+        raise ValueError(
+            "Only Lesson 2 has an approved configured production manifest."
+        )
+    cache = (
+        Path(cache_root)
+        / f"ckla-grade-8-unit-1-lesson-{lesson}"
+    )
+    manifest = (
+        Path(mapping_directory)
+        / f"ckla_grade_8_unit_1_lesson_{lesson}_resource_manifest.json"
+    )
+    service = CurriculumIntelligenceService(
+        database_path=database_path,
+        output_directory=cache,
+    )
+    built = service.build_configured_lesson(
+        lesson_number=lesson,
+        index_path=index_path,
+        mapping_manifest_path=manifest,
+    )
+    bundle_result = service.prepare_lesson_source_bundle(
+        built.lesson.id,
+        output_path=cache / "prepared_source_bundle.json",
+    )
+    bundle = bundle_result.bundle
+    canonical = BundleCanonicalBridge().build(bundle)
+    write_json(cache / "bundle_derived_canonical_lesson.json", canonical)
+    plan = SourceGroundedInstructionPlanBuilder().build(bundle)
+    write_json(cache / "source_grounded_instruction_plan.json", plan)
+    (cache / "source_grounded_instruction_plan.md").write_text(
+        instruction_plan_markdown(plan), encoding="utf-8"
+    )
+    graph, audit = InstructionalRelationshipGraphBuilder().build(
+        bundle, plan
+    )
+    write_json(cache / "instructional_relationship_graph.json", graph)
+    write_json(
+        cache / "instructional_relationship_graph_audit.json", audit
+    )
+    (cache / "instructional_relationship_graph.md").write_text(
+        relationship_graph_markdown(graph, audit), encoding="utf-8"
+    )
+    (cache / "instructional_relationship_graph_audit.md").write_text(
+        relationship_graph_audit_markdown(audit), encoding="utf-8"
+    )
+    return cache
 
 
 def generate_lesson_intelligence(
@@ -25,15 +95,33 @@ def generate_lesson_intelligence(
     cache_root: str | Path = "output/curriculum_intelligence",
     database_path: str | Path = "data/curriculum/library.sqlite3",
 ) -> tuple[Path, Path]:
-    if lesson != 1:
-        raise ValueError("Only cached indexed Lesson 1 is supported by this command.")
-    cache = Path(cache_root) / "ckla-grade-8-unit-1-lesson-1"
+    if lesson not in {1, 2}:
+        raise ValueError(
+            "Only cached indexed Lessons 1 and 2 are supported by this command."
+        )
+    cache = (
+        Path(cache_root) / f"ckla-grade-8-unit-1-lesson-{lesson}"
+    )
     required = {
         "bundle": cache / "prepared_source_bundle.json",
         "canonical": cache / "bundle_derived_canonical_lesson.json",
         "plan": cache / "source_grounded_instruction_plan.json",
         "graph": cache / "instructional_relationship_graph.json",
     }
+    if lesson == 2 and any(
+        not path.is_file() for path in required.values()
+    ):
+        cache = prepare_configured_lesson_cache(
+            lesson=lesson,
+            cache_root=cache_root,
+            database_path=database_path,
+        )
+        required = {
+            "bundle": cache / "prepared_source_bundle.json",
+            "canonical": cache / "bundle_derived_canonical_lesson.json",
+            "plan": cache / "source_grounded_instruction_plan.json",
+            "graph": cache / "instructional_relationship_graph.json",
+        }
     missing = [str(path) for path in required.values() if not path.is_file()]
     if missing:
         raise FileNotFoundError("Required cached lesson artifacts are missing: " + ", ".join(missing))

@@ -235,9 +235,22 @@ class LessonIntelligenceCompiler:
 
         activities = []
         activity_questions: list[QuestionGuideItem] = []
-        answer_pages = teacher_pages
+        all_assignments = (
+            bundle.required_assignments + bundle.optional_assignments
+        )
+        answer_assignments = {
+            assignment.title.rsplit(" ", 1)[-1]: assignment
+            for assignment in all_assignments
+            if assignment.title.startswith("Answer Key ")
+        }
         for assignment in bundle.required_assignments:
-            if assignment.assignment_type not in {"activity", "vocabulary_reference", "homework"} or "Activity Resource" not in assignment.title:
+            if (
+                assignment.assignment_type
+                not in {"activity", "vocabulary_reference", "homework"}
+                or not assignment.title.startswith(
+                    ("Activity Resource ", "Activity Page ")
+                )
+            ):
                 continue
             label = assignment.title.rsplit(" ", 1)[-1]
             resource_pages = pages[assignment.resource_id]
@@ -255,29 +268,46 @@ class LessonIntelligenceCompiler:
                 completion_check="Confirm every numbered item has a response.",
                 citations=citations,
             ))
-            if label == "1.3":
-                prompts = _activity_questions(selected, label)
-                answer_matches = locate_activity_answer_key(answer_pages, activity_label=label, questions=[q for q, _ in prompts])
-                for prompt, pcite in prompts:
-                    q_index += 1
-                    match = answer_matches.get(_clean(prompt))
-                    answer = _publisher(match[0], [match[1]]) if match else None
-                    activity_questions.append(QuestionGuideItem(
-                        question_id=f"activity-{label}-{q_index}", sequence=q_index,
-                        phase_id=plan.instructional_phases[-1].id,
-                        question=_publisher(prompt, [pcite]),
-                        interaction_format="independent homework",
-                        publisher_answer=answer,
-                        answer_provenance_status=AnswerProvenanceStatus.ELSEWHERE if answer else AnswerProvenanceStatus.NOT_LOCATED,
-                        teacher_explanation=_interpretation("Review the linked answer-key guidance after students complete the assigned reading."),
-                        support_rationale=_interpretation("The answer-key match requires the same activity label, question number, and exact question text."),
-                        likely_incomplete_responses=["A response without a complete sentence."],
-                        misconception="Students may answer without returning to the assigned story.",
-                        follow_up="Which event or detail supports that answer?",
-                        check_for_understanding="Verify the response addresses every clause.",
-                        sentence_frame="In the story, ___; this shows ___.",
-                        differentiation_or_extension="Provide the question in clauses or request a second supporting detail.",
-                    ))
+            prompts = _activity_questions(selected, label)
+            if bundle.curriculum_lesson.sequence == 1:
+                if label != "1.3":
+                    continue
+                answer_pages = teacher_pages
+            else:
+                answer_assignment = answer_assignments.get(label)
+                if answer_assignment is None:
+                    continue
+                answer_pages = [
+                    page
+                    for segment in answer_assignment.source_segments
+                    for page in pages[answer_assignment.resource_id]
+                    if page.id in segment.resource_page_ids
+                ]
+            answer_matches = locate_activity_answer_key(
+                answer_pages,
+                activity_label=label,
+                questions=[question for question, _ in prompts],
+            )
+            for prompt, pcite in prompts:
+                q_index += 1
+                match = answer_matches.get(_clean(prompt))
+                answer = _publisher(match[0], [match[1]]) if match else None
+                activity_questions.append(QuestionGuideItem(
+                    question_id=f"activity-{label}-{q_index}", sequence=q_index,
+                    phase_id=plan.instructional_phases[-1].id,
+                    question=_publisher(prompt, [pcite]),
+                    interaction_format="independent homework",
+                    publisher_answer=answer,
+                    answer_provenance_status=AnswerProvenanceStatus.ELSEWHERE if answer else AnswerProvenanceStatus.NOT_LOCATED,
+                    teacher_explanation=_interpretation("Review the linked answer-key guidance after students complete the assigned reading."),
+                    support_rationale=_interpretation("The answer-key match requires the same activity label, question number, and exact question text."),
+                    likely_incomplete_responses=["A response without a complete sentence."],
+                    misconception="Students may answer without returning to the assigned story.",
+                    follow_up="Which event or detail supports that answer?",
+                    check_for_understanding="Verify the response addresses every clause.",
+                    sentence_frame="In the story, ___; this shows ___.",
+                    differentiation_or_extension="Provide the question in clauses or request a second supporting detail.",
+                ))
         questions.extend(activity_questions)
 
         assigned_readings = [a for a in bundle.required_assignments if a.assignment_type in {"assigned_reading", "background_reading"}]
@@ -319,7 +349,10 @@ class LessonIntelligenceCompiler:
             # are recovered from objective source pages for teacher traceability.
             standards.append(_publisher(text, objectives[0].publisher_objective.citations))
 
-        slides = self._slides(plan, questions, phase_guides)
+        slides = self._slides(
+            plan, questions, phase_guides,
+            bundle.curriculum_lesson.sequence,
+        )
         all_citations = {}
         for item in objectives:
             for cite in item.publisher_objective.citations:
@@ -394,9 +427,9 @@ class LessonIntelligenceCompiler:
         )
 
     @staticmethod
-    def _slides(plan, questions, phases):
+    def _slides(plan, questions, phases, lesson_number):
         slides = [
-            SlidePromptSpecification(slide_number=1, title=plan.lesson_title, student_facing_content=["Lesson 1"], teacher_notes=["Introduce the lesson without adding curriculum facts."], purpose="Opening", question_ids=[], answer_guidance=[], visual_recommendation="Neutral editable title treatment; do not fabricate a book cover.", interaction_format="whole group", provenance_references=[plan.lesson_id]),
+            SlidePromptSpecification(slide_number=1, title=plan.lesson_title, student_facing_content=[f"Lesson {lesson_number}"], teacher_notes=["Introduce the lesson without adding curriculum facts."], purpose="Opening", question_ids=[], answer_guidance=[], visual_recommendation="Neutral editable title treatment; do not fabricate a book cover.", interaction_format="whole group", provenance_references=[plan.lesson_id]),
             SlidePromptSpecification(slide_number=2, title="Learning Objectives", student_facing_content=[o.exact_text for o in plan.objectives], teacher_notes=["Review the objectives."], purpose="Orient students", question_ids=[], answer_guidance=[], visual_recommendation="Simple objective icons.", interaction_format="whole group", provenance_references=[o.id for o in plan.objectives]),
         ]
         grouped = {p.id: [] for p in plan.instructional_phases}

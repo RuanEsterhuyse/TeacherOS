@@ -166,6 +166,14 @@ class CurriculumIntelligenceRepository:
             InstructionalResource,
         )
 
+    def load_all_resources(self) -> list[InstructionalResource]:
+        """Load the registered resource inventory in stable identifier order."""
+        return self._load_many(
+            "SELECT payload FROM ci_resources ORDER BY id",
+            (),
+            InstructionalResource,
+        )
+
     def load_resource_pages(self, resource_id: str) -> list[ResourcePage]:
         """Load already-extracted pages without touching the source document."""
         return self._load_many(
@@ -326,6 +334,24 @@ class CurriculumIntelligenceRepository:
                 )
             connection.executemany(
                 "INSERT INTO ci_text_segments VALUES (?, ?, ?, ?, ?)",
+                [
+                    (
+                        value.id,
+                        value.resource_id,
+                        value.title,
+                        value.segment_type,
+                        value.model_dump_json(),
+                    )
+                    for value in values
+                ],
+            )
+
+    def save_segments(self, values: Iterable[TextSegment]) -> None:
+        """Upsert lesson segments without deleting another lesson's segments."""
+        values = list(values)
+        with self._connect() as connection:
+            connection.executemany(
+                "INSERT OR REPLACE INTO ci_text_segments VALUES (?, ?, ?, ?, ?)",
                 [
                     (
                         value.id,
