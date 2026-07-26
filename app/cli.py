@@ -13,6 +13,15 @@ from renderer.google_slides_renderer import GoogleSlidesRenderer
 from schemas.lesson_schema import Lesson
 from schemas.presentation_design_schema import PresentationDesignOutput
 from schemas.canonical_lesson_schema import CanonicalLesson
+from curriculum.intelligence.generate_teaching_package import (
+    generate_teaching_package,
+)
+from curriculum.intelligence.publishing import write_publishing_metadata
+from renderer.google_docs_publisher import GoogleDocsPublisher
+from renderer.teaching_package_slides import (
+    TeachingPackageGoogleSlidesPublisher,
+)
+from schemas.teaching_package_schema import StructuredTeachingPackage
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -58,6 +67,42 @@ def _parser() -> argparse.ArgumentParser:
     slides.add_argument("--generation-output-directory", default="output/generation_runs", help=argparse.SUPPRESS)
     slides.add_argument("--credentials", default="credentials.json", help=argparse.SUPPRESS)
     slides.add_argument("--token", default="token.json", help=argparse.SUPPRESS)
+    package = commands.add_parser(
+        "generate-teaching-package",
+        help="Generate a validated Teacher Companion and student slides",
+    )
+    package.add_argument("--lesson", required=True, type=int)
+    package.add_argument("--output", required=True)
+    package.add_argument(
+        "--cache-root",
+        default="output/curriculum_intelligence",
+        help=argparse.SUPPRESS,
+    )
+    package.add_argument(
+        "--database",
+        default="data/curriculum/library.sqlite3",
+        help=argparse.SUPPRESS,
+    )
+    package.add_argument("--no-resume", action="store_true")
+    for name, help_text in (
+        (
+            "publish-teacher-companion",
+            "Publish a validated Teacher Companion to Google Docs",
+        ),
+        (
+            "publish-student-slides",
+            "Publish validated student slides to Google Slides",
+        ),
+    ):
+        publish = commands.add_parser(name, help=help_text)
+        publish.add_argument("--input", required=True)
+        publish.add_argument(
+            "--credentials", default="credentials.json",
+            help=argparse.SUPPRESS,
+        )
+        publish.add_argument(
+            "--token", default="token.json", help=argparse.SUPPRESS
+        )
     return parser
 
 
@@ -67,6 +112,52 @@ def main(argv: list[str] | None = None) -> int:
                           index_directory=getattr(args, "index_directory", "data/indexes"),
                           output_directory=getattr(args, "output_directory", "output/pipeline_inputs"),
                           generation_output_directory=getattr(args, "generation_output_directory", "output/generation_runs"))
+    if args.command == "generate-teaching-package":
+        try:
+            package, paths, resumed = generate_teaching_package(
+                lesson=args.lesson,
+                output_directory=args.output,
+                cache_root=args.cache_root,
+                database_path=args.database,
+                resume=not args.no_resume,
+            )
+        except (OSError, ValidationError, ValueError) as error:
+            print(f"Error: {error}", file=sys.stderr)
+            return 2
+        print(f"Validation result: {package.validation.status}")
+        print(f"Resumed: {'yes' if resumed else 'no'}")
+        print(f"Teacher Companion: {paths['teacher_markdown']}")
+        print(f"Student slides: {paths['slides_markdown']}")
+        return 0
+    if args.command in {
+        "publish-teacher-companion", "publish-student-slides"
+    }:
+        path = Path(args.input)
+        try:
+            package = StructuredTeachingPackage.model_validate_json(
+                path.read_text(encoding="utf-8")
+            )
+            if args.command == "publish-teacher-companion":
+                result = GoogleDocsPublisher(
+                    credentials_path=args.credentials,
+                    token_path=args.token,
+                ).publish(package)
+                write_publishing_metadata(
+                    path.parent, google_doc=result
+                )
+            else:
+                result = TeachingPackageGoogleSlidesPublisher(
+                    credentials_path=args.credentials,
+                    token_path=args.token,
+                ).publish(package)
+                write_publishing_metadata(
+                    path.parent, google_slides=result
+                )
+        except (OSError, ValidationError, ValueError) as error:
+            print(f"Error: {error}", file=sys.stderr)
+            return 2
+        print(result["url"])
+        return 0
     if args.command == "create-slides":
         request = teacheros.create_lesson_request(curriculum_name=args.curriculum, grade=args.grade,
                                                   unit=args.unit, lesson_number=args.lesson)

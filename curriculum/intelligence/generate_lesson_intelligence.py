@@ -26,8 +26,76 @@ from renderer.lesson_intelligence_markdown import LessonIntelligenceMarkdownRend
 from renderer.lesson_slide_prompt import LessonSlidePromptRenderer
 from schemas.canonical_lesson_schema import CanonicalLesson
 from schemas.instructional_relationship_graph_schema import InstructionalRelationshipGraph
+from schemas.lesson_intelligence_package_schema import LessonIntelligencePackage
 from schemas.prepared_curriculum_source_schema import PreparedCurriculumSourceBundle
 from schemas.source_grounded_instruction_schema import SourceGroundedInstructionPlan
+
+
+def build_lesson_intelligence(
+    *,
+    lesson: int,
+    cache_root: str | Path = "output/curriculum_intelligence",
+    database_path: str | Path = "data/curriculum/library.sqlite3",
+) -> tuple[PreparedCurriculumSourceBundle, LessonIntelligencePackage, Path]:
+    """Load the verified cache and compile the existing structured package."""
+    if lesson not in range(1, 10):
+        raise ValueError(
+            "Only indexed Unit 1 Lessons 1–9 are supported by this command."
+        )
+    cache = Path(cache_root) / f"ckla-grade-8-unit-1-lesson-{lesson}"
+    required = {
+        "bundle": cache / "prepared_source_bundle.json",
+        "canonical": cache / "bundle_derived_canonical_lesson.json",
+        "plan": cache / "source_grounded_instruction_plan.json",
+        "graph": cache / "instructional_relationship_graph.json",
+    }
+    if lesson >= 2 and any(
+        not path.is_file() for path in required.values()
+    ):
+        cache = prepare_configured_lesson_cache(
+            lesson=lesson,
+            cache_root=cache_root,
+            database_path=database_path,
+        )
+        required = {
+            "bundle": cache / "prepared_source_bundle.json",
+            "canonical": cache / "bundle_derived_canonical_lesson.json",
+            "plan": cache / "source_grounded_instruction_plan.json",
+            "graph": cache / "instructional_relationship_graph.json",
+        }
+    missing = [str(path) for path in required.values() if not path.is_file()]
+    if missing:
+        raise FileNotFoundError(
+            "Required cached lesson artifacts are missing: "
+            + ", ".join(missing)
+        )
+    bundle = PreparedCurriculumSourceBundle.model_validate_json(
+        required["bundle"].read_text()
+    )
+    canonical = CanonicalLesson.model_validate_json(
+        required["canonical"].read_text()
+    )
+    plan = SourceGroundedInstructionPlan.model_validate_json(
+        required["plan"].read_text()
+    )
+    graph = InstructionalRelationshipGraph.model_validate_json(
+        required["graph"].read_text()
+    )
+    support = load_cached_support(
+        cache / "phase_teacher_support",
+        bundle_digest=bundle.bundle_digest,
+        plan_digest=plan.digest,
+        graph_digest=graph.graph_digest,
+    )
+    package = LessonIntelligenceCompiler().compile(
+        bundle=bundle,
+        canonical=canonical,
+        plan=plan,
+        graph=graph,
+        repository=CurriculumIntelligenceRepository(database_path),
+        cached_support=support,
+    )
+    return bundle, package, cache
 
 
 def prepare_configured_lesson_cache(
@@ -103,50 +171,10 @@ def generate_lesson_intelligence(
     cache_root: str | Path = "output/curriculum_intelligence",
     database_path: str | Path = "data/curriculum/library.sqlite3",
 ) -> tuple[Path, Path]:
-    if lesson not in range(1, 10):
-        raise ValueError(
-            "Only indexed Unit 1 Lessons 1–9 are supported by this command."
-        )
-    cache = (
-        Path(cache_root) / f"ckla-grade-8-unit-1-lesson-{lesson}"
-    )
-    required = {
-        "bundle": cache / "prepared_source_bundle.json",
-        "canonical": cache / "bundle_derived_canonical_lesson.json",
-        "plan": cache / "source_grounded_instruction_plan.json",
-        "graph": cache / "instructional_relationship_graph.json",
-    }
-    if lesson >= 2 and any(
-        not path.is_file() for path in required.values()
-    ):
-        cache = prepare_configured_lesson_cache(
-            lesson=lesson,
-            cache_root=cache_root,
-            database_path=database_path,
-        )
-        required = {
-            "bundle": cache / "prepared_source_bundle.json",
-            "canonical": cache / "bundle_derived_canonical_lesson.json",
-            "plan": cache / "source_grounded_instruction_plan.json",
-            "graph": cache / "instructional_relationship_graph.json",
-        }
-    missing = [str(path) for path in required.values() if not path.is_file()]
-    if missing:
-        raise FileNotFoundError("Required cached lesson artifacts are missing: " + ", ".join(missing))
-    bundle = PreparedCurriculumSourceBundle.model_validate_json(required["bundle"].read_text())
-    canonical = CanonicalLesson.model_validate_json(required["canonical"].read_text())
-    plan = SourceGroundedInstructionPlan.model_validate_json(required["plan"].read_text())
-    graph = InstructionalRelationshipGraph.model_validate_json(required["graph"].read_text())
-    support = load_cached_support(
-        cache / "phase_teacher_support",
-        bundle_digest=bundle.bundle_digest,
-        plan_digest=plan.digest,
-        graph_digest=graph.graph_digest,
-    )
-    package = LessonIntelligenceCompiler().compile(
-        bundle=bundle, canonical=canonical, plan=plan, graph=graph,
-        repository=CurriculumIntelligenceRepository(database_path),
-        cached_support=support,
+    _, package, _ = build_lesson_intelligence(
+        lesson=lesson,
+        cache_root=cache_root,
+        database_path=database_path,
     )
     output = Path(output_directory)
     output.mkdir(parents=True, exist_ok=True)

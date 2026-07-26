@@ -267,3 +267,55 @@ Required visuals without an approved Google-accessible asset render as neutral n
 Run renderer tests with `PYTHONPATH=. .venv/bin/pytest -q Tests/test_google_slides_renderer.py Tests/test_create_slides_cli.py`. A seven-layout offline Lesson 1 sample is available at `Tests/fixtures/sample_lesson_1_presentation_design.json`. With Google OAuth configured, render a generated lesson using `python -m app.cli create-slides --grade 8 --unit 1 --lesson 1`.
 
 Run all tests with `PYTHONPATH=. .venv/bin/pytest`. Run one generation with `python -m app.cli generate-lesson --grade 8 --unit 1 --lesson 1` (an API key and registered curriculum files are required).
+
+## Structured teaching packages
+
+TeacherOS can now build an optional, deterministic teaching package from the
+existing prepared curriculum bundle and `LessonIntelligencePackage`. It does
+not change CanonicalLesson, the existing generation pipeline, Gamma artifacts,
+or the existing Google Slides prompt.
+
+```mermaid
+flowchart TD
+  TG["Teacher Guide"] --> B["Prepared Curriculum Bundle"]
+  SR["Student Reader"] --> B
+  AB["Activity Book"] --> B
+  B --> LI["Lesson Intelligence"]
+  LI --> TP["Structured Teaching Package"]
+  TP --> TC["Teacher Companion"]
+  TP --> SS["Student Slides"]
+  TC --> GD["Optional Google Docs"]
+  SS --> GS["Optional Google Slides"]
+```
+
+Generate Lesson 1 locally without Google credentials:
+
+```bash
+PYTHONPATH=. python -m curriculum.intelligence.generate_teaching_package \
+  --lesson 1 \
+  --output output/lesson_001
+```
+
+The command writes `teaching_package.json`, Teacher Companion JSON/Markdown,
+student-slide JSON/Markdown, and validation JSON/Markdown. It reuses a valid
+saved package when source, Lesson Intelligence, schema, builder, adaptation,
+and deterministic-model identities are unchanged. Use `--no-resume` to rebuild.
+Critical fidelity errors write validation diagnostics and block final companion
+and slide artifacts.
+
+Optional Google publishing uses the existing desktop OAuth approach. Enable
+Google Docs, Google Slides, and Google Drive APIs, then run:
+
+```bash
+PYTHONPATH=. python -m curriculum.intelligence.publish_teacher_companion \
+  --input output/lesson_001/teacher_companion.json
+
+PYTHONPATH=. python -m curriculum.intelligence.publish_student_slides \
+  --input output/lesson_001/teaching_package.json
+```
+
+Publishing saves only document or presentation IDs and URLs in
+`publishing_metadata.json`. Credentials and tokens remain outside generated
+metadata and version control. The curriculum constitution, fidelity contract,
+source hierarchy, validation behavior, cache rules, and current limitations
+are documented in `Docs/teacher_companion_spec.md`.
