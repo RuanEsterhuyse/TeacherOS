@@ -19,12 +19,33 @@ from schemas.reader_output_schema import CurriculumReaderOutput
 from curriculum.intelligence.generate_teaching_package import (
     generate_teaching_package,
 )
+from curriculum.intelligence.pasted_lesson_analyzer import (
+    analyze_pasted_lesson,
+)
+from curriculum.intelligence.pasted_lesson_repository import (
+    PastedLessonRepository,
+    create_pasted_lesson_source,
+)
+from curriculum.intelligence.playbook_enrichment import (
+    enrich_teacher_playbook,
+)
+from curriculum.intelligence.playbook_enrichment_provider import (
+    PlaybookEnrichmentProvider,
+)
 from curriculum.intelligence.publishing import write_publishing_metadata
 from renderer.google_docs_publisher import GoogleDocsPublisher
 from renderer.teaching_package_slides import (
     TeachingPackageGoogleSlidesPublisher,
 )
 from schemas.teaching_package_schema import StructuredTeachingPackage
+from schemas.playbook_enrichment_schema import (
+    ApprovedPlaybookEnrichment,
+    EnrichmentStatus,
+    PlaybookEnrichmentOptions,
+    PlaybookEnrichmentResult,
+    TeacherApprovalStatus,
+)
+from schemas.pasted_lesson_schema import utc_now
 
 
 PROJECT_ROOT = Path(__file__).parents[1].resolve()
@@ -68,8 +89,21 @@ class GenerationJob:
 class TeacherOSInterface:
     """Read-only catalog plus asynchronous access to the existing pipeline."""
 
-    def __init__(self, teacheros: TeacherOS | None = None) -> None:
+    def __init__(
+        self,
+        teacheros: TeacherOS | None = None,
+        pasted_repository: PastedLessonRepository | None = None,
+        playbook_enrichment_provider: PlaybookEnrichmentProvider | None = None,
+    ) -> None:
         self.teacheros = teacheros or TeacherOS(project_root=PROJECT_ROOT)
+        self.pasted_repository = (
+            pasted_repository
+            or PastedLessonRepository(
+                PROJECT_ROOT / "output" / "pasted_lesson_intake"
+            )
+        )
+        self.playbook_enrichment_provider = playbook_enrichment_provider
+        self.enrichment_previews: dict[str, PlaybookEnrichmentResult] = {}
         self.jobs: dict[str, GenerationJob] = {}
         self._lock = threading.Lock()
 
@@ -455,6 +489,142 @@ class TeacherOSInterface:
             raise ValueError("unsupported publishing target")
         return result
 
+    def save_pasted_lesson_source(
+        self, payload: dict[str, Any]
+    ) -> dict[str, Any]:
+        source = create_pasted_lesson_source(
+            grade=str(payload["grade"]),
+            unit=str(payload["unit"]),
+            lesson_number=int(payload["lesson_number"]),
+            lesson_title=str(payload["lesson_title"]),
+            teacher_guide_page_start=(
+                int(payload["teacher_guide_page_start"])
+                if payload.get("teacher_guide_page_start") not in {
+                    None, ""
+                } else None
+            ),
+            teacher_guide_page_end=(
+                int(payload["teacher_guide_page_end"])
+                if payload.get("teacher_guide_page_end") not in {
+                    None, ""
+                } else None
+            ),
+            teacher_guide_text=str(payload["teacher_guide_text"]),
+            student_reader_text=(
+                str(payload["student_reader_text"])
+                if payload.get("student_reader_text") not in {None, ""}
+                else None
+            ),
+            activity_book_text=(
+                str(payload["activity_book_text"])
+                if payload.get("activity_book_text") not in {None, ""}
+                else None
+            ),
+            source_notes=(
+                str(payload["source_notes"])
+                if payload.get("source_notes") not in {None, ""}
+                else None
+            ),
+        )
+        return self.pasted_repository.save_source(source).model_dump(
+            mode="json"
+        )
+
+    def list_pasted_lesson_sources(self) -> list[dict[str, Any]]:
+        return [
+            value.model_dump(mode="json")
+            for value in self.pasted_repository.list_sources()
+        ]
+
+    def load_pasted_lesson_source(
+        self, source_id: str
+    ) -> dict[str, Any]:
+        return self.pasted_repository.load_source(source_id).model_dump(
+            mode="json"
+        )
+
+    def analyze_pasted_lesson_source(
+        self, source_id: str
+    ) -> dict[str, Any]:
+        source = self.pasted_repository.load_source(source_id)
+        return analyze_pasted_lesson(source).model_dump(mode="json")
+
+    def save_preliminary_playbook(
+        self, source_id: str
+    ) -> dict[str, Any]:
+        source = self.pasted_repository.load_source(source_id)
+        result = analyze_pasted_lesson(source)
+        return self.pasted_repository.save_playbook(
+            result.playbook
+        ).model_dump(mode="json")
+
+    def list_teacher_playbooks(self) -> list[dict[str, Any]]:
+        return [
+            value.model_dump(mode="json")
+            for value in self.pasted_repository.list_playbooks()
+        ]
+
+    def load_teacher_playbook(
+        self, playbook_id: str
+    ) -> dict[str, Any]:
+        return self.pasted_repository.load_playbook(
+            playbook_id
+        ).model_dump(mode="json")
+
+    def enrich_pasted_lesson_source(
+        self, source_id: str, payload: dict[str, Any]
+    ) -> dict[str, Any]:
+        source = self.pasted_repository.load_source(source_id)
+        baseline = analyze_pasted_lesson(source)
+        options = PlaybookEnrichmentOptions.model_validate(payload or {})
+        result = enrich_teacher_playbook(
+            source,
+            baseline,
+            options,
+            provider=self.playbook_enrichment_provider,
+        )
+        if result.status != EnrichmentStatus.failed:
+            self.enrichment_previews[result.enrichment_id] = result
+        return result.model_dump(mode="json")
+
+    def approve_playbook_enrichment(
+        self, enrichment_id: str
+    ) -> dict[str, Any]:
+        result = self.enrichment_previews.get(enrichment_id)
+        if result is None:
+            raise KeyError(enrichment_id)
+        if (
+            result.status == EnrichmentStatus.failed
+            or result.provider_metadata is None
+        ):
+            raise ValueError("A failed enrichment cannot be approved.")
+        source = self.pasted_repository.load_source(
+            result.enriched_playbook.source_id
+        )
+        baseline = analyze_pasted_lesson(source)
+        approved = ApprovedPlaybookEnrichment(
+            enrichment_id=result.enrichment_id,
+            source_id=source.source_id,
+            baseline_analyzer_version=baseline.analyzer_version,
+            enrichment_version=result.enrichment_version,
+            enriched_playbook=result.enriched_playbook,
+            provider_metadata=result.provider_metadata,
+            grounding_summary=result.grounding_report,
+            teacher_approval_status=TeacherApprovalStatus.approved,
+            approved_at=utc_now(),
+        )
+        saved = self.pasted_repository.save_approved_enrichment(approved)
+        self.enrichment_previews.pop(enrichment_id, None)
+        return saved.model_dump(mode="json")
+
+    def list_approved_playbook_enrichments(
+        self,
+    ) -> list[dict[str, Any]]:
+        return [
+            value.model_dump(mode="json")
+            for value in self.pasted_repository.list_approved_enrichments()
+        ]
+
 
 INTERFACE = TeacherOSInterface()
 
@@ -513,6 +683,38 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
             if path == "/api/catalog":
                 self._json(INTERFACE.catalog())
                 return
+            if path == "/api/pasted-lessons":
+                self._json({
+                    "sources": INTERFACE.list_pasted_lesson_sources()
+                })
+                return
+            if path.startswith("/api/pasted-lessons/"):
+                parts = path.strip("/").split("/")
+                if len(parts) != 3:
+                    raise KeyError(path)
+                self._json(
+                    INTERFACE.load_pasted_lesson_source(parts[2])
+                )
+                return
+            if path == "/api/teacher-playbooks":
+                self._json({
+                    "playbooks": INTERFACE.list_teacher_playbooks()
+                })
+                return
+            if path == "/api/playbook-enrichments":
+                self._json({
+                    "enrichments":
+                        INTERFACE.list_approved_playbook_enrichments()
+                })
+                return
+            if path.startswith("/api/teacher-playbooks/"):
+                parts = path.strip("/").split("/")
+                if len(parts) != 3:
+                    raise KeyError(path)
+                self._json(
+                    INTERFACE.load_teacher_playbook(parts[2])
+                )
+                return
             if path.startswith("/api/jobs/"):
                 self._json(INTERFACE.job_status(path.rsplit("/", 1)[-1]))
                 return
@@ -550,6 +752,58 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         try:
             payload = self._body()
+            if path == "/api/pasted-lessons":
+                self._json(
+                    INTERFACE.save_pasted_lesson_source(payload),
+                    HTTPStatus.CREATED,
+                )
+                return
+            if (
+                path.startswith("/api/pasted-lessons/")
+                and path.endswith("/analyze")
+            ):
+                parts = path.strip("/").split("/")
+                if len(parts) != 4:
+                    raise KeyError(path)
+                self._json(
+                    INTERFACE.analyze_pasted_lesson_source(parts[2])
+                )
+                return
+            if (
+                path.startswith("/api/pasted-lessons/")
+                and path.endswith("/playbook")
+            ):
+                parts = path.strip("/").split("/")
+                if len(parts) != 4:
+                    raise KeyError(path)
+                self._json(
+                    INTERFACE.save_preliminary_playbook(parts[2]),
+                    HTTPStatus.CREATED,
+                )
+                return
+            if (
+                path.startswith("/api/pasted-lessons/")
+                and path.endswith("/enrich")
+            ):
+                parts = path.strip("/").split("/")
+                if len(parts) != 4:
+                    raise KeyError(path)
+                self._json(
+                    INTERFACE.enrich_pasted_lesson_source(parts[2], payload)
+                )
+                return
+            if (
+                path.startswith("/api/playbook-enrichments/")
+                and path.endswith("/approve")
+            ):
+                parts = path.strip("/").split("/")
+                if len(parts) != 4:
+                    raise KeyError(path)
+                self._json(
+                    INTERFACE.approve_playbook_enrichment(parts[2]),
+                    HTTPStatus.CREATED,
+                )
+                return
             if path == "/api/generate":
                 job = INTERFACE.start_generation(
                     curriculum_name=str(payload["curriculum_name"]),

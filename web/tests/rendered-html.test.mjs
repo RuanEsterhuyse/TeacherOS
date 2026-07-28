@@ -44,6 +44,22 @@ test("interface preserves the v0.2 generation workflow", async () => {
 
   assert.match(page, /Generate Lesson/);
   assert.match(page, /Generate Teaching Package/);
+  assert.match(page, /Paste a lesson/);
+  assert.match(page, /Build a preliminary Teacher Playbook/);
+  assert.match(page, /Save Source/);
+  assert.match(page, /Run Baseline Analysis/);
+  assert.match(page, /Save Preliminary Playbook/);
+  assert.match(page, /Enrich Playbook/);
+  assert.match(page, /Enrichment options/);
+  assert.match(page, /Baseline and enriched playbook/);
+  assert.match(page, /Approve and Save Enriched Playbook/);
+  assert.match(page, /\/api\/playbook-enrichments/);
+  assert.match(page, /Original source text/);
+  assert.match(page, /Extracted structured information/);
+  assert.match(page, /Warnings and missing information/);
+  assert.match(page, /Unclassified source text/);
+  assert.match(page, /\/api\/pasted-lessons/);
+  assert.match(page, /data-testid="pasted-lesson-view"/);
   assert.match(page, /Download Teacher Companion/);
   assert.match(page, /Publish to Google Docs/);
   assert.match(page, /Publish to Google Slides/);

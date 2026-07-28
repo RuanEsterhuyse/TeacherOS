@@ -73,6 +73,101 @@ type JobStatus = {
   student_slides?: number;
 };
 
+type PastedLessonSource = {
+  source_id: string;
+  grade: string;
+  unit: string;
+  lesson_number: number;
+  lesson_title: string;
+  teacher_guide_page_start: number | null;
+  teacher_guide_page_end: number | null;
+  teacher_guide_text: string;
+  student_reader_text: string | null;
+  activity_book_text: string | null;
+  source_notes: string | null;
+};
+
+type PastedLessonAnalysis = {
+  playbook: {
+    playbook_id: string;
+    source_id: string;
+    lesson_metadata: {
+      grade: string;
+      unit: string;
+      lesson_number: number;
+      lesson_title: string;
+      teacher_guide_page_start: number | null;
+      teacher_guide_page_end: number | null;
+    };
+    lesson_summary: string | null;
+    instructional_days: number[];
+    objectives: string[];
+    essential_question: string | null;
+    success_criteria: string[];
+    materials: string[];
+    vocabulary: { term: string }[];
+    activities: {
+      activity_id: string;
+      title: string;
+      instructional_day: number | null;
+      duration_minutes: number | null;
+      purpose: string | null;
+      teacher_script: string[];
+      questions: { prompt: string }[];
+      source_references: {
+        source_type: string;
+        page_start: number | null;
+        page_end: number | null;
+        activity_reference: string | null;
+      }[];
+    }[];
+    homework: string[];
+    assessment: string[];
+    source_references: {
+      source_type: string;
+      page_start: number | null;
+      page_end: number | null;
+      activity_reference: string | null;
+    }[];
+  };
+  warnings: { code: string; message: string; field: string | null }[];
+  unclassified_sections: string[];
+  extraction_summary: {
+    detected_activity_count: number;
+    detected_day_count: number;
+    detected_reference_count: number;
+    confidence_by_field: Record<string, number>;
+  };
+};
+
+type PlaybookEnrichment = {
+  enrichment_id: string;
+  status: "success" | "partial" | "failed";
+  enriched_playbook: PastedLessonAnalysis["playbook"];
+  grounding_report: {
+    source_backed_fields: string[];
+    inferred_fields: string[];
+    omitted_unsupported_fields: string[];
+    added_teacher_guidance: string[];
+    source_coverage_by_activity: {
+      activity_id: string;
+      fully_retained: boolean;
+    }[];
+  };
+  warnings: { code: string; message: string; field: string | null }[];
+  unsupported_claims: {
+    field_path: string;
+    claim: string;
+    reason: string;
+  }[];
+  provider_metadata: {
+    provider_name: string;
+    model_name: string;
+  } | null;
+  baseline_preserved: boolean;
+  failure_reason: string | null;
+};
+
 const API_BASE =
   process.env.NEXT_PUBLIC_TEACHEROS_API_URL || "http://127.0.0.1:8765";
 const GAMMA_URL =
@@ -103,9 +198,41 @@ export default function Home() {
   const [jobId, setJobId] = useState("");
   const [job, setJob] = useState<JobStatus | null>(null);
   const [copyStatus, setCopyStatus] = useState("");
-  const [view, setView] = useState<"catalog" | "generation" | "complete">(
-    "catalog",
-  );
+  const [view, setView] = useState<
+    "catalog" | "generation" | "complete" | "pasted"
+  >("catalog");
+  const [pastedForm, setPastedForm] = useState({
+    grade: "8",
+    unit: "1",
+    lesson_number: "1",
+    lesson_title: "",
+    teacher_guide_page_start: "",
+    teacher_guide_page_end: "",
+    teacher_guide_text: "",
+    student_reader_text: "",
+    activity_book_text: "",
+    source_notes: "",
+  });
+  const [pastedSource, setPastedSource] =
+    useState<PastedLessonSource | null>(null);
+  const [pastedAnalysis, setPastedAnalysis] =
+    useState<PastedLessonAnalysis | null>(null);
+  const [pastedStatus, setPastedStatus] = useState("");
+  const [enrichment, setEnrichment] =
+    useState<PlaybookEnrichment | null>(null);
+  const [enrichmentLoading, setEnrichmentLoading] = useState(false);
+  const [enrichmentOptions, setEnrichmentOptions] = useState({
+    detail_level: "comprehensive",
+    include_teacher_scripts: true,
+    include_possible_student_responses: true,
+    include_misconceptions: true,
+    include_eld_supports: true,
+    include_checks_for_understanding: true,
+    include_transition_language: true,
+    include_teacher_reflection: true,
+    preserve_original_wording: true,
+    strict_grounding: true,
+  });
 
   useEffect(() => {
     const savedMode = localStorage.getItem("teacheros-theme");
@@ -270,6 +397,133 @@ export default function Home() {
     setJobId(payload.job_id);
   }
 
+  function updatePastedField(field: string, value: string) {
+    setPastedForm((current) => ({ ...current, [field]: value }));
+    setPastedSource(null);
+    setPastedAnalysis(null);
+    setEnrichment(null);
+    setPastedStatus("");
+  }
+
+  async function savePastedSource() {
+    setPastedStatus("Saving source…");
+    setPastedAnalysis(null);
+    try {
+      const response = await fetch(`${API_BASE}/api/pasted-lessons`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...pastedForm,
+          lesson_number: Number(pastedForm.lesson_number),
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || "Unable to save pasted lesson.");
+      }
+      setPastedSource(payload);
+      setPastedStatus("Source saved exactly as provided.");
+    } catch (error) {
+      setPastedStatus(
+        error instanceof Error ? error.message : "Unable to save source.",
+      );
+    }
+  }
+
+  async function analyzePastedSource() {
+    if (!pastedSource) return;
+    setPastedStatus("Running deterministic baseline analysis…");
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/pasted-lessons/${pastedSource.source_id}/analyze`,
+        { method: "POST", headers: { "Content-Type": "application/json" } },
+      );
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || "Unable to analyze pasted lesson.");
+      }
+      setPastedAnalysis(payload);
+      setEnrichment(null);
+      setPastedStatus("Analysis ready for review. Nothing has been invented.");
+    } catch (error) {
+      setPastedStatus(
+        error instanceof Error ? error.message : "Analysis failed.",
+      );
+    }
+  }
+
+  async function savePastedPlaybook() {
+    if (!pastedSource || !pastedAnalysis) return;
+    setPastedStatus("Saving preliminary Teacher Playbook…");
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/pasted-lessons/${pastedSource.source_id}/playbook`,
+        { method: "POST", headers: { "Content-Type": "application/json" } },
+      );
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || "Unable to save Teacher Playbook.");
+      }
+      setPastedStatus(`Teacher Playbook saved: ${payload.playbook_id}`);
+    } catch (error) {
+      setPastedStatus(
+        error instanceof Error ? error.message : "Unable to save playbook.",
+      );
+    }
+  }
+
+  async function enrichPastedPlaybook() {
+    if (!pastedSource || !pastedAnalysis) return;
+    setEnrichmentLoading(true);
+    setPastedStatus("Creating a source-grounded enrichment preview…");
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/pasted-lessons/${pastedSource.source_id}/enrich`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(enrichmentOptions),
+        },
+      );
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || "Unable to enrich playbook.");
+      }
+      setEnrichment(payload);
+      setPastedStatus(
+        payload.status === "failed"
+          ? "Enrichment failed. The baseline remains available."
+          : "Enrichment preview ready. Review it before approval.",
+      );
+    } catch (error) {
+      setPastedStatus(
+        error instanceof Error ? error.message : "Enrichment failed.",
+      );
+    } finally {
+      setEnrichmentLoading(false);
+    }
+  }
+
+  async function approveEnrichment() {
+    if (!enrichment || enrichment.status === "failed") return;
+    setPastedStatus("Saving teacher-approved enrichment…");
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/playbook-enrichments/${enrichment.enrichment_id}/approve`,
+        { method: "POST", headers: { "Content-Type": "application/json" } },
+      );
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || "Unable to approve enrichment.");
+      }
+      setPastedStatus(`Approved enrichment saved: ${payload.enrichment_id}`);
+    } catch (error) {
+      setPastedStatus(
+        error instanceof Error ? error.message : "Approval failed.",
+      );
+    }
+  }
+
   async function publishTeachingPackage(
     target: "google-doc" | "google-slides",
   ) {
@@ -387,6 +641,22 @@ export default function Home() {
               </span>
             </button>
           ))}
+          <button
+            className={`curriculum-item pasted-workspace-link ${
+              view === "pasted" ? "active" : ""
+            }`}
+            onClick={() => {
+              setView("pasted");
+              setPastedStatus("");
+            }}
+            data-testid="pasted-lesson-workspace"
+          >
+            <span className="curriculum-monogram">+</span>
+            <span>
+              <strong>Paste a lesson</strong>
+              <small>Build a preliminary playbook</small>
+            </span>
+          </button>
           <div className="sidebar-note">
             <span>Local curriculum library</span>
             <p>Source files stay on this computer.</p>
@@ -586,6 +856,545 @@ export default function Home() {
                 )}
               </div>
             </>
+          )}
+
+          {!loading && !connectionError && view === "pasted" && (
+            <div
+              className="pasted-lesson-workspace"
+              data-testid="pasted-lesson-view"
+            >
+              <div className="page-heading">
+                <div>
+                  <span className="eyebrow">Pasted lesson intake</span>
+                  <h1>Build a preliminary Teacher Playbook</h1>
+                  <p>
+                    Paste one lesson exactly as provided. TeacherOS saves the
+                    original source separately from deterministic extracted
+                    information and flags anything it cannot classify.
+                  </p>
+                </div>
+              </div>
+
+              <section className="pasted-form-card">
+                <div className="form-grid">
+                  <label>
+                    Grade
+                    <input
+                      value={pastedForm.grade}
+                      onChange={(event) =>
+                        updatePastedField("grade", event.target.value)
+                      }
+                    />
+                  </label>
+                  <label>
+                    Unit
+                    <input
+                      value={pastedForm.unit}
+                      onChange={(event) =>
+                        updatePastedField("unit", event.target.value)
+                      }
+                    />
+                  </label>
+                  <label>
+                    Lesson number
+                    <input
+                      type="number"
+                      min="1"
+                      value={pastedForm.lesson_number}
+                      onChange={(event) =>
+                        updatePastedField(
+                          "lesson_number",
+                          event.target.value,
+                        )
+                      }
+                    />
+                  </label>
+                  <label className="wide-field">
+                    Lesson title
+                    <input
+                      value={pastedForm.lesson_title}
+                      onChange={(event) =>
+                        updatePastedField(
+                          "lesson_title",
+                          event.target.value,
+                        )
+                      }
+                      placeholder="Enter the exact lesson title"
+                    />
+                  </label>
+                  <label>
+                    Teacher Guide start page
+                    <input
+                      type="number"
+                      min="1"
+                      value={pastedForm.teacher_guide_page_start}
+                      onChange={(event) =>
+                        updatePastedField(
+                          "teacher_guide_page_start",
+                          event.target.value,
+                        )
+                      }
+                    />
+                  </label>
+                  <label>
+                    Teacher Guide end page
+                    <input
+                      type="number"
+                      min="1"
+                      value={pastedForm.teacher_guide_page_end}
+                      onChange={(event) =>
+                        updatePastedField(
+                          "teacher_guide_page_end",
+                          event.target.value,
+                        )
+                      }
+                    />
+                  </label>
+                </div>
+
+                <label className="text-source-field">
+                  Teacher Guide text
+                  <span>Required · preserved exactly</span>
+                  <textarea
+                    value={pastedForm.teacher_guide_text}
+                    onChange={(event) =>
+                      updatePastedField(
+                        "teacher_guide_text",
+                        event.target.value,
+                      )
+                    }
+                    placeholder="Paste the complete lesson text here."
+                    rows={16}
+                  />
+                </label>
+                <div className="optional-source-grid">
+                  <label className="text-source-field">
+                    Student Reader text
+                    <span>Optional</span>
+                    <textarea
+                      value={pastedForm.student_reader_text}
+                      onChange={(event) =>
+                        updatePastedField(
+                          "student_reader_text",
+                          event.target.value,
+                        )
+                      }
+                      rows={7}
+                    />
+                  </label>
+                  <label className="text-source-field">
+                    Activity Book text
+                    <span>Optional</span>
+                    <textarea
+                      value={pastedForm.activity_book_text}
+                      onChange={(event) =>
+                        updatePastedField(
+                          "activity_book_text",
+                          event.target.value,
+                        )
+                      }
+                      rows={7}
+                    />
+                  </label>
+                </div>
+                <label className="text-source-field">
+                  Source notes
+                  <span>Optional</span>
+                  <textarea
+                    value={pastedForm.source_notes}
+                    onChange={(event) =>
+                      updatePastedField("source_notes", event.target.value)
+                    }
+                    rows={3}
+                  />
+                </label>
+                <div className="pasted-actions">
+                  <button
+                    className="primary-button"
+                    onClick={savePastedSource}
+                    disabled={
+                      !pastedForm.lesson_title.trim()
+                      || !pastedForm.teacher_guide_text
+                    }
+                    data-testid="save-pasted-source"
+                  >
+                    Save Source
+                  </button>
+                  <button
+                    className="secondary-button"
+                    onClick={analyzePastedSource}
+                    disabled={!pastedSource}
+                    data-testid="analyze-pasted-source"
+                  >
+                    Run Baseline Analysis
+                  </button>
+                  <button
+                    className="secondary-button"
+                    onClick={savePastedPlaybook}
+                    disabled={!pastedAnalysis}
+                    data-testid="save-preliminary-playbook"
+                  >
+                    Save Preliminary Playbook
+                  </button>
+                  <button
+                    className="secondary-button"
+                    onClick={enrichPastedPlaybook}
+                    disabled={!pastedAnalysis || enrichmentLoading}
+                    data-testid="enrich-playbook"
+                  >
+                    {enrichmentLoading ? "Enriching…" : "Enrich Playbook"}
+                  </button>
+                </div>
+                {pastedAnalysis && (
+                  <fieldset className="enrichment-options">
+                    <legend>Enrichment options</legend>
+                    <label>
+                      Detail
+                      <select
+                        value={enrichmentOptions.detail_level}
+                        onChange={(event) => setEnrichmentOptions((current) => ({
+                          ...current,
+                          detail_level: event.target.value,
+                        }))}
+                      >
+                        <option value="comprehensive">Comprehensive</option>
+                        <option value="focused">Focused</option>
+                      </select>
+                    </label>
+                    {[
+                      ["include_teacher_scripts", "Teacher scripts"],
+                      ["include_possible_student_responses", "Student responses"],
+                      ["include_misconceptions", "Misconceptions"],
+                      ["include_eld_supports", "ELD supports"],
+                      ["include_checks_for_understanding", "Checks for understanding"],
+                      ["include_transition_language", "Transitions"],
+                      ["include_teacher_reflection", "Teacher reflection"],
+                    ].map(([key, label]) => (
+                      <label key={key}>
+                        <input
+                          type="checkbox"
+                          checked={
+                            enrichmentOptions[
+                              key as keyof typeof enrichmentOptions
+                            ] as boolean
+                          }
+                          onChange={(event) =>
+                            setEnrichmentOptions((current) => ({
+                              ...current,
+                              [key]: event.target.checked,
+                            }))
+                          }
+                        />
+                        {label}
+                      </label>
+                    ))}
+                    <p>
+                      Original wording and strict source grounding are always
+                      enabled for teacher review.
+                    </p>
+                  </fieldset>
+                )}
+                {pastedStatus && (
+                  <p className="pasted-status" role="status">
+                    {pastedStatus}
+                  </p>
+                )}
+              </section>
+
+              {pastedSource && (
+                <section className="source-review-panel">
+                  <div>
+                    <span className="eyebrow">Original source text</span>
+                    <h2>{pastedSource.lesson_title}</h2>
+                    <p>
+                      Grade {pastedSource.grade} · Unit {pastedSource.unit} ·
+                      Lesson {pastedSource.lesson_number}
+                    </p>
+                  </div>
+                  <pre>{pastedSource.teacher_guide_text}</pre>
+                </section>
+              )}
+
+              {pastedAnalysis && (
+                <section className="analysis-review">
+                  <div className="review-heading">
+                    <div>
+                      <span className="eyebrow">
+                        Extracted structured information
+                      </span>
+                      <h2>Preliminary Teacher Playbook</h2>
+                    </div>
+                    <div className="analysis-stats">
+                      <span>
+                        <strong>
+                          {
+                            pastedAnalysis.extraction_summary
+                              .detected_day_count
+                          }
+                        </strong>
+                        days
+                      </span>
+                      <span>
+                        <strong>
+                          {
+                            pastedAnalysis.extraction_summary
+                              .detected_activity_count
+                          }
+                        </strong>
+                        activities
+                      </span>
+                      <span>
+                        <strong>
+                          {
+                            pastedAnalysis.extraction_summary
+                              .detected_reference_count
+                          }
+                        </strong>
+                        references
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="analysis-grid">
+                    <article>
+                      <h3>Objectives</h3>
+                      {pastedAnalysis.playbook.objectives.length ? (
+                        <ul>
+                          {pastedAnalysis.playbook.objectives.map((value) => (
+                            <li key={value}>{value}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="missing-copy">Not found in source.</p>
+                      )}
+                    </article>
+                    <article>
+                      <h3>Essential question</h3>
+                      <p>
+                        {pastedAnalysis.playbook.essential_question || (
+                          <span className="missing-copy">
+                            Not found in source.
+                          </span>
+                        )}
+                      </p>
+                    </article>
+                    <article>
+                      <h3>Success criteria</h3>
+                      {pastedAnalysis.playbook.success_criteria.length ? (
+                        <ul>
+                          {pastedAnalysis.playbook.success_criteria.map(
+                            (value) => <li key={value}>{value}</li>,
+                          )}
+                        </ul>
+                      ) : (
+                        <p className="missing-copy">Not found in source.</p>
+                      )}
+                    </article>
+                    <article>
+                      <h3>Materials</h3>
+                      <p>
+                        {pastedAnalysis.playbook.materials.join(" · ") || (
+                          <span className="missing-copy">
+                            Not found in source.
+                          </span>
+                        )}
+                      </p>
+                    </article>
+                    <article>
+                      <h3>Vocabulary</h3>
+                      <div className="tag-list">
+                        {pastedAnalysis.playbook.vocabulary.map((value) => (
+                          <span key={value.term}>{value.term}</span>
+                        ))}
+                      </div>
+                      {!pastedAnalysis.playbook.vocabulary.length && (
+                        <p className="missing-copy">Not found in source.</p>
+                      )}
+                    </article>
+                    <article>
+                      <h3>Source references</h3>
+                      <ul>
+                        {pastedAnalysis.playbook.source_references.map(
+                          (reference, index) => (
+                            <li key={`${reference.source_type}-${index}`}>
+                              {reference.source_type.replaceAll("_", " ")}
+                              {reference.page_start !== null
+                                ? ` pp. ${reference.page_start}${
+                                    reference.page_end !== reference.page_start
+                                      ? `–${reference.page_end}`
+                                      : ""
+                                  }`
+                                : ""}
+                              {reference.activity_reference
+                                ? ` · ${reference.activity_reference}`
+                                : ""}
+                            </li>
+                          ),
+                        )}
+                      </ul>
+                    </article>
+                  </div>
+
+                  <div className="activity-review-list">
+                    <h3>Activities</h3>
+                    {pastedAnalysis.playbook.activities.map(
+                      (activity, index) => (
+                        <article key={activity.activity_id}>
+                          <div className="activity-review-header">
+                            <span>{String(index + 1).padStart(2, "0")}</span>
+                            <div>
+                              <h4>{activity.title}</h4>
+                              <p>
+                                {activity.instructional_day
+                                  ? `Day ${activity.instructional_day}`
+                                  : "Day not identified"}
+                                {" · "}
+                                {activity.duration_minutes !== null
+                                  ? `${activity.duration_minutes} minutes`
+                                  : "Timing not identified"}
+                              </p>
+                            </div>
+                          </div>
+                          {activity.purpose && (
+                            <p>
+                              <strong>Purpose:</strong> {activity.purpose}
+                            </p>
+                          )}
+                          {activity.questions.map((question) => (
+                            <p key={question.prompt}>
+                              <strong>Question:</strong> {question.prompt}
+                            </p>
+                          ))}
+                        </article>
+                      ),
+                    )}
+                    {!pastedAnalysis.playbook.activities.length && (
+                      <p className="missing-copy">
+                        No timed activity headings were identified.
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="review-alert-grid">
+                    <article className="warning-panel">
+                      <h3>Warnings and missing information</h3>
+                      {pastedAnalysis.warnings.length ? (
+                        <ul>
+                          {pastedAnalysis.warnings.map((warning) => (
+                            <li key={warning.code}>
+                              <code>{warning.code}</code>
+                              <span>{warning.message}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p>No baseline extraction warnings.</p>
+                      )}
+                    </article>
+                    <article className="unclassified-panel">
+                      <h3>Unclassified source text</h3>
+                      {pastedAnalysis.unclassified_sections.length ? (
+                        <pre>
+                          {pastedAnalysis.unclassified_sections.join("\n")}
+                        </pre>
+                      ) : (
+                        <p>All nonblank source lines were classified.</p>
+                      )}
+                    </article>
+                  </div>
+                </section>
+              )}
+              {pastedAnalysis && enrichment && (
+                <section
+                  className="enrichment-review"
+                  data-testid="enrichment-review"
+                >
+                  <div className="review-heading">
+                    <div>
+                      <span className="eyebrow">Teacher review required</span>
+                      <h2>Baseline and enriched playbook</h2>
+                      <p>
+                        Source-backed facts stay unchanged. Added guidance is
+                        labeled “Generated guidance — review.”
+                      </p>
+                    </div>
+                    <span className={`enrichment-state ${enrichment.status}`}>
+                      {enrichment.status}
+                    </span>
+                  </div>
+                  <div className="enrichment-comparison">
+                    <article>
+                      <h3>Deterministic baseline</h3>
+                      {pastedAnalysis.playbook.activities.map((activity) => (
+                        <div key={activity.activity_id}>
+                          <h4>{activity.title}</h4>
+                          <p>{activity.purpose || "No purpose extracted."}</p>
+                        </div>
+                      ))}
+                    </article>
+                    <article>
+                      <h3>Enriched preview</h3>
+                      {enrichment.enriched_playbook.activities.map((activity) => (
+                        <div key={activity.activity_id}>
+                          <h4>{activity.title}</h4>
+                          <p>{activity.purpose || "No purpose extracted."}</p>
+                          {activity.teacher_script.map((line) => (
+                            <p className="generated-guidance" key={line}>
+                              {line}
+                            </p>
+                          ))}
+                        </div>
+                      ))}
+                    </article>
+                  </div>
+                  <div className="review-alert-grid">
+                    <article className="grounding-panel">
+                      <h3>Grounding report</h3>
+                      <p>
+                        {enrichment.grounding_report.source_backed_fields.length}
+                        {" "}source-backed fields ·{" "}
+                        {enrichment.grounding_report.inferred_fields.length}
+                        {" "}inferred fields
+                      </p>
+                      <p>
+                        {enrichment.grounding_report.source_coverage_by_activity
+                          .filter((value) => value.fully_retained).length}
+                        {" "}activities retain all source references
+                      </p>
+                    </article>
+                    <article className="warning-panel">
+                      <h3>Warnings and rejected claims</h3>
+                      {enrichment.unsupported_claims.map((claim) => (
+                        <p key={`${claim.field_path}-${claim.claim}`}>
+                          <strong>{claim.field_path}</strong>: {claim.reason}
+                        </p>
+                      ))}
+                      {enrichment.warnings.map((warning) => (
+                        <p key={`${warning.code}-${warning.field}`}>
+                          <strong>{warning.code}</strong>: {warning.message}
+                        </p>
+                      ))}
+                      {!enrichment.unsupported_claims.length
+                        && !enrichment.warnings.length && <p>No warnings.</p>}
+                    </article>
+                  </div>
+                  {enrichment.status === "failed" ? (
+                    <p className="fallback-message">
+                      {enrichment.failure_reason} The preliminary playbook above
+                      remains usable and unchanged.
+                    </p>
+                  ) : (
+                    <button
+                      className="primary-button"
+                      onClick={approveEnrichment}
+                      data-testid="approve-enrichment"
+                    >
+                      Approve and Save Enriched Playbook
+                    </button>
+                  )}
+                </section>
+              )}
+            </div>
           )}
 
           {view === "generation" && (

@@ -9,6 +9,12 @@ import pytest
 
 from app.interface_server import GenerationJob, TeacherOSInterface
 from app import interface_server
+from curriculum.intelligence.pasted_lesson_repository import (
+    PastedLessonRepository,
+)
+from curriculum.intelligence.playbook_enrichment_provider import (
+    PlaybookEnrichmentProviderResponse,
+)
 from Tests.test_teacheros import prepared_fixture
 
 
@@ -258,3 +264,99 @@ def test_teaching_package_job_status_and_artifact_access(
     ) == "# Teacher Companion"
     with pytest.raises(ValueError, match="unsupported"):
         interface.read_teaching_artifact(1, "../token.json")
+
+
+def test_pasted_lesson_interface_save_analyze_review_and_save(tmp_path):
+    teacheros, _ = prepared_fixture(tmp_path)
+    interface = TeacherOSInterface(
+        teacheros,
+        pasted_repository=PastedLessonRepository(
+            tmp_path / "output" / "pasted_lesson_intake"
+        ),
+    )
+    payload = {
+        "grade": "8",
+        "unit": "1",
+        "lesson_number": 1,
+        "lesson_title": "Synthetic Review Lesson",
+        "teacher_guide_page_start": 2,
+        "teacher_guide_page_end": 4,
+        "teacher_guide_text": (
+            "Objectives:\n- Analyze a character.\n"
+            "Day 1\nActivity: Evidence Talk — 10 minutes\n"
+            "Question: What evidence supports the claim?\n"
+            "Student Reader pp. 2–3\n"
+            "Unclassified note."
+        ),
+        "student_reader_text": "Short synthetic reader text.",
+        "activity_book_text": None,
+    }
+
+    source = interface.save_pasted_lesson_source(payload)
+    analysis = interface.analyze_pasted_lesson_source(source["source_id"])
+    playbook = interface.save_preliminary_playbook(source["source_id"])
+
+    assert interface.list_pasted_lesson_sources() == [source]
+    assert interface.load_pasted_lesson_source(
+        source["source_id"]
+    ) == source
+    assert analysis["playbook"]["source_id"] == source["source_id"]
+    assert analysis["playbook"]["activities"][0]["duration_minutes"] == 10
+    assert "Unclassified note." in analysis["unclassified_sections"]
+    assert playbook["source_id"] == source["source_id"]
+    assert interface.list_teacher_playbooks() == [playbook]
+    assert interface.load_teacher_playbook(
+        playbook["playbook_id"]
+    ) == playbook
+
+
+def test_pasted_lesson_enrichment_requires_review_before_save(tmp_path):
+    class Provider:
+        provider_name = "fake"
+        model_name = "review-model"
+
+        def enrich(self, context, prompt_contract):
+            playbook = context.baseline.playbook.model_copy(deep=True)
+            playbook.teacher_survival_guide.append(
+                "Keep the evidence chart visible."
+            )
+            return PlaybookEnrichmentProviderResponse(raw_payload={
+                "enriched_playbook": playbook.model_dump(mode="json"),
+                "source_backed_fields": ["objectives"],
+                "inferred_fields": ["teacher_survival_guide.0"],
+                "omitted_unsupported_fields": [],
+            })
+
+    teacheros, _ = prepared_fixture(tmp_path)
+    repository = PastedLessonRepository(tmp_path / "pasted")
+    interface = TeacherOSInterface(
+        teacheros,
+        pasted_repository=repository,
+        playbook_enrichment_provider=Provider(),
+    )
+    source = interface.save_pasted_lesson_source({
+        "grade": "8",
+        "unit": "1",
+        "lesson_number": 1,
+        "lesson_title": "Synthetic Review",
+        "teacher_guide_text": (
+            "Objectives:\n- Analyze evidence.\n"
+            "Activity: Evidence Talk — 10 minutes\n"
+        ),
+    })
+
+    preview = interface.enrich_pasted_lesson_source(
+        source["source_id"], {}
+    )
+    assert preview["status"] == "success"
+    assert repository.list_approved_enrichments() == []
+
+    approved = interface.approve_playbook_enrichment(
+        preview["enrichment_id"]
+    )
+    assert approved["teacher_approval_status"] == "approved"
+    assert len(repository.list_approved_enrichments()) == 1
+    with pytest.raises(KeyError):
+        interface.approve_playbook_enrichment(
+            preview["enrichment_id"]
+        )
