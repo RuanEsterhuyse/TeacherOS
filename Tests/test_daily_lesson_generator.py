@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -10,7 +11,14 @@ from app.interface_server import TeacherOSInterface
 from curriculum.intelligence.daily_lesson_generator import (
     generate_daily_lesson_package,
 )
-from curriculum.intelligence.daily_lesson_provider import DailyProviderResponse
+from curriculum.intelligence.daily_lesson_provider import (
+    DAILY_PROVIDER_CONFIGURATION_ERROR,
+    DEFAULT_GEMINI_MODEL,
+    DailyProviderResponse,
+    GeminiDailyLessonProvider,
+    OpenAIDailyLessonProvider,
+    select_daily_lesson_provider,
+)
 from curriculum.intelligence.daily_lesson_repository import (
     DailyLessonRepository,
 )
@@ -22,7 +30,11 @@ from curriculum.intelligence.pasted_lesson_repository import (
     create_pasted_lesson_source,
 )
 from renderer.daily_lesson_markdown import DESIGN_LANGUAGE, render_slide_prompts
-from schemas.daily_lesson_schema import DailyLessonStatus
+from schemas.daily_lesson_schema import (
+    DailyLessonGenerationOptions,
+    DailyLessonStatus,
+    DailyPlaybookContext,
+)
 
 
 def _source(lesson_number: int = 1):
@@ -388,3 +400,164 @@ def test_interface_one_action_and_artifact_downloads(tmp_path):
     assert "SLIDE 1" in interface.read_daily_lesson_artifact(
         result["package_id"], "gemini_slide_prompts.md"
     )
+
+
+def test_gemini_is_selected_before_openai_and_uses_default_model(
+    monkeypatch,
+):
+    monkeypatch.delenv("TEACHEROS_DAILY_PROVIDER", raising=False)
+    monkeypatch.delenv("TEACHEROS_DAILY_GEMINI_MODEL", raising=False)
+    monkeypatch.setenv("GEMINI_API_KEY", "test-gemini-key")
+    monkeypatch.setenv("OPENAI_API_KEY", "test-openai-key")
+
+    provider = select_daily_lesson_provider()
+
+    assert isinstance(provider, GeminiDailyLessonProvider)
+    assert provider.provider_name == "gemini"
+    assert provider.model_name == DEFAULT_GEMINI_MODEL
+    assert provider.model_name == "gemini-3.6-flash"
+
+
+def test_gemini_model_can_be_configured_without_changing_default(
+    monkeypatch,
+):
+    monkeypatch.setenv("GEMINI_API_KEY", "test-gemini-key")
+    monkeypatch.setenv(
+        "TEACHEROS_DAILY_GEMINI_MODEL", "gemini-test-model"
+    )
+
+    provider = select_daily_lesson_provider()
+
+    assert provider.model_name == "gemini-test-model"
+    assert DEFAULT_GEMINI_MODEL == "gemini-3.6-flash"
+
+
+def test_explicit_provider_override_has_highest_priority(monkeypatch):
+    source = _source()
+    explicit = FakeProvider(source)
+    monkeypatch.setenv("GEMINI_API_KEY", "test-gemini-key")
+    monkeypatch.setenv("OPENAI_API_KEY", "test-openai-key")
+
+    assert select_daily_lesson_provider(explicit) is explicit
+
+
+def test_explicit_configured_openai_and_automatic_openai_fallback(
+    monkeypatch,
+):
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.setenv("OPENAI_API_KEY", "test-openai-key")
+
+    automatic = select_daily_lesson_provider()
+    explicit = select_daily_lesson_provider(configured_provider="openai")
+
+    assert isinstance(automatic, OpenAIDailyLessonProvider)
+    assert isinstance(explicit, OpenAIDailyLessonProvider)
+
+
+def test_missing_provider_keys_raise_neutral_configuration_error(
+    monkeypatch,
+):
+    monkeypatch.delenv("TEACHEROS_DAILY_PROVIDER", raising=False)
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+
+    with pytest.raises(
+        ValueError, match="GEMINI_API_KEY or OPENAI_API_KEY"
+    ) as caught:
+        select_daily_lesson_provider()
+
+    assert str(caught.value) == DAILY_PROVIDER_CONFIGURATION_ERROR
+
+
+def _gemini_playbook_context(source):
+    return DailyPlaybookContext(
+        source=source,
+        deterministic_baseline=analyze_pasted_lesson(source).model_dump(
+            mode="json"
+        ),
+        options=DailyLessonGenerationOptions(),
+    )
+
+
+def test_gemini_structured_response_and_request_contract():
+    source = _source()
+    observed = {}
+
+    def transport(url, payload, timeout, api_key):
+        observed.update({
+            "url": url,
+            "payload": payload,
+            "timeout": timeout,
+            "api_key": api_key,
+        })
+        return {
+            "candidates": [{
+                "content": {
+                    "parts": [{
+                        "text": json.dumps(_playbook_payload(source))
+                    }]
+                }
+            }],
+            "usageMetadata": {"promptTokenCount": 12},
+        }
+
+    provider = GeminiDailyLessonProvider(
+        api_key="test-gemini-key",
+        transport=transport,
+    )
+    response = provider.generate_playbook(
+        _gemini_playbook_context(source),
+        "Never invent source facts.",
+    )
+
+    assert response.raw_payload == _playbook_payload(source)
+    assert response.usage == {"promptTokenCount": 12}
+    assert provider.model_name in observed["url"]
+    assert "test-gemini-key" not in observed["url"]
+    assert observed["api_key"] == "test-gemini-key"
+    assert observed["payload"]["generationConfig"][
+        "responseMimeType"
+    ] == "application/json"
+    assert "responseJsonSchema" in observed["payload"]["generationConfig"]
+
+
+@pytest.mark.parametrize(
+    "response",
+    [
+        {},
+        {"candidates": []},
+        {"candidates": [{"content": {"parts": [{"text": "not-json"}]}}]},
+    ],
+)
+def test_malformed_gemini_response_fails_structured_validation(response):
+    source = _source()
+
+    def transport(url, payload, timeout, api_key):
+        return response
+
+    provider = GeminiDailyLessonProvider(
+        api_key="test-gemini-key",
+        transport=transport,
+    )
+
+    with pytest.raises(ValueError, match="malformed structured response"):
+        provider.generate_playbook(
+            _gemini_playbook_context(source), "Prompt"
+        )
+
+
+def test_gemini_timeout_is_reported_without_live_call():
+    source = _source()
+
+    def transport(url, payload, timeout, api_key):
+        raise TimeoutError("Gemini request timed out.")
+
+    provider = GeminiDailyLessonProvider(
+        api_key="test-gemini-key",
+        transport=transport,
+    )
+
+    with pytest.raises(TimeoutError, match="timed out"):
+        provider.generate_playbook(
+            _gemini_playbook_context(source), "Prompt"
+        )

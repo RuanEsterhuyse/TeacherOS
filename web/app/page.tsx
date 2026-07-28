@@ -1639,6 +1639,10 @@ export default function Home() {
                     ? "Generating…"
                     : "Generate Playbook & Slide Prompts"}
                 </button>
+                <p className="button-note">
+                  Configure GEMINI_API_KEY or OPENAI_API_KEY for live lesson
+                  generation.
+                </p>
                 {dailyStatus && (
                   <p className="pasted-status" role="status">
                     {dailyStatus}

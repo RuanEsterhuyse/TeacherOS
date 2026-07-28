@@ -10,7 +10,7 @@ from pydantic import ValidationError
 
 from curriculum.intelligence.daily_lesson_provider import (
     DailyLessonProvider,
-    OpenAIDailyLessonProvider,
+    select_daily_lesson_provider,
 )
 from curriculum.intelligence.daily_lesson_repository import (
     DailyLessonRepository,
@@ -209,7 +209,7 @@ def generate_daily_lesson_package(
         raise ValueError("Teacher Guide lesson text is required.")
     options = options or DailyLessonGenerationOptions()
     baseline = analyze_pasted_lesson(source)
-    provider = provider or OpenAIDailyLessonProvider()
+    provider = select_daily_lesson_provider(provider)
     package_id = stable_id(
         "daily-lesson-package",
         source.source_id,

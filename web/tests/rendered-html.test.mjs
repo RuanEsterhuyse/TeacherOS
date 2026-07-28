@@ -56,6 +56,10 @@ test("interface preserves the v0.2 generation workflow", async () => {
   assert.match(page, /Export Playbook as Markdown/);
   assert.match(page, /Export Slide Prompts as Markdown/);
   assert.match(page, /Reopen a saved daily package/);
+  assert.match(
+    page,
+    /Configure GEMINI_API_KEY or OPENAI_API_KEY for live lesson\s+generation/,
+  );
   assert.match(page, /\/api\/daily-lessons\/generate/);
   assert.match(page, /data-testid="daily-lesson-view"/);
   assert.match(page, /Paste a lesson/);

@@ -17,6 +17,25 @@ production lesson generation.
 6. Review the three tabs: **Teacher Playbook**, **Slide Outline**, and
    **Gemini Prompts**.
 
+## Local provider configuration
+
+Gemini is the default live provider. Store its key only in your local
+environment or an ignored `.env` file:
+
+```shell
+export GEMINI_API_KEY="your-local-key"
+```
+
+The default Gemini model is `gemini-3.6-flash`. A different Daily workflow
+model can be selected locally with `TEACHEROS_DAILY_GEMINI_MODEL`.
+
+OpenAI remains an optional fallback when `OPENAI_API_KEY` is configured. To
+choose a provider explicitly, set `TEACHEROS_DAILY_PROVIDER` to `gemini` or
+`openai`. Explicit selection requires the matching key.
+
+Never add API keys to source files, committed configuration, lesson text, or
+saved Daily lesson packages. Environment files are ignored by the repository.
+
 The operation first runs the existing deterministic pasted-lesson analyzer.
 That baseline supplies the source identity, activity IDs, and allowed source
 references. A provider then creates a structured teaching playbook. TeacherOS
