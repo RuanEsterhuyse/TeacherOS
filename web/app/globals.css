@@ -1162,8 +1162,175 @@ button:focus-visible {
   color: var(--danger);
 }
 
+.presentation-planner {
+  margin-top: 1.5rem;
+  padding: clamp(1rem, 2vw, 1.75rem);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.presentation-config {
+  display: grid;
+  grid-template-columns: 2fr repeat(3, minmax(120px, 1fr));
+  gap: 0.9rem;
+  margin: 1rem 0;
+}
+
+.presentation-config label {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--ink-faint);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.presentation-config input,
+.presentation-config select {
+  width: 100%;
+}
+
+.presentation-option-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.presentation-option-grid label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 13px;
+}
+
+.presentation-review {
+  margin-top: 1.5rem;
+}
+
+.presentation-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.presentation-summary span {
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+
+.presentation-summary strong {
+  display: block;
+  color: var(--ink);
+  font-size: 18px;
+}
+
+.locked-order-note {
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--brand) 8%, transparent);
+  color: var(--ink-faint);
+  font-size: 12px;
+}
+
+.slide-spec-list {
+  display: grid;
+  gap: 0.9rem;
+  margin: 1rem 0;
+}
+
+.slide-spec-list > article {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.slide-spec-list > article > header {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 0.8rem;
+  align-items: start;
+}
+
+.slide-spec-list > article > header > span {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--brand);
+  color: white;
+  font-weight: 800;
+}
+
+.slide-spec-list header h3,
+.slide-spec-list header p {
+  margin: 0.2rem 0;
+}
+
+.slide-spec-list header small {
+  color: var(--brand);
+  text-transform: capitalize;
+}
+
+.slide-spec-list header b {
+  color: var(--brand);
+  font-size: 11px;
+}
+
+.slide-order-actions {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.slide-order-actions button {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.slide-order-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.slide-review-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.9rem;
+}
+
+.slide-review-grid > section {
+  padding: 0.8rem;
+  border-radius: 10px;
+  background: var(--surface-strong);
+}
+
+.slide-review-grid h4 {
+  margin: 0 0 0.6rem;
+}
+
+.slide-review-grid p,
+.slide-review-grid li {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 @media (max-width: 760px) {
   .enrichment-comparison {
+    grid-template-columns: 1fr;
+  }
+
+  .presentation-config,
+  .presentation-summary,
+  .slide-review-grid {
     grid-template-columns: 1fr;
   }
 }

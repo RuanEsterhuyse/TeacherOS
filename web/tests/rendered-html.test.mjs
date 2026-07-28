@@ -54,6 +54,11 @@ test("interface preserves the v0.2 generation workflow", async () => {
   assert.match(page, /Baseline and enriched playbook/);
   assert.match(page, /Approve and Save Enriched Playbook/);
   assert.match(page, /\/api\/playbook-enrichments/);
+  assert.match(page, /Build a renderer-neutral slide specification/);
+  assert.match(page, /Generate Presentation Specification/);
+  assert.match(page, /Approve and Save Presentation Specification/);
+  assert.match(page, /presentation-spec/);
+  assert.match(page, /data-testid="presentation-spec-planner"/);
   assert.match(page, /Original source text/);
   assert.match(page, /Extracted structured information/);
   assert.match(page, /Warnings and missing information/);

@@ -1,0 +1,49 @@
+{
+  "lesson_title": "Identity, Place, and Perspective",
+  "instructional_days": [1, 2],
+  "estimated_total_minutes": 102,
+  "slide_count": 21,
+  "ordered_slide_types": [
+    "title",
+    "agenda",
+    "essential_question",
+    "learning_objectives",
+    "vocabulary",
+    "background_knowledge",
+    "map_or_geography",
+    "identity_or_concept",
+    "author_or_text_preview",
+    "windows_and_mirrors",
+    "vocabulary",
+    "reading_chunk",
+    "reading_checkpoint",
+    "agenda",
+    "reading_chunk",
+    "reading_checkpoint",
+    "theme_analysis",
+    "text_evidence",
+    "reflection",
+    "exit_ticket",
+    "homework"
+  ],
+  "ordered_activity_ids": [
+    "activity-core-connections",
+    "activity-geography",
+    "activity-identity",
+    "activity-author-preview",
+    "activity-windows-mirrors",
+    "activity-vocabulary",
+    "activity-reading-one",
+    "activity-checkpoint-one",
+    "activity-reading-two",
+    "activity-checkpoint-two",
+    "activity-theme-discussion",
+    "activity-text-evidence",
+    "activity-reflection"
+  ],
+  "required_reference_types": [
+    "teacher_guide",
+    "student_reader",
+    "activity_book"
+  ]
+}

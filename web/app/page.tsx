@@ -168,6 +168,94 @@ type PlaybookEnrichment = {
   failure_reason: string | null;
 };
 
+type ApprovedEnrichment = {
+  enrichment_id: string;
+  source_id: string;
+  enriched_playbook: PastedLessonAnalysis["playbook"];
+  teacher_approval_status: "approved";
+};
+
+type PresentationReference = {
+  source_type: string;
+  page_start: number | null;
+  page_end: number | null;
+  section: string | null;
+  activity_reference: string | null;
+};
+
+type PresentationBuildResult = {
+  presentation_spec: {
+    presentation_id: string;
+    lesson_title: string;
+    presentation_title: string;
+    estimated_total_minutes: number;
+    theme: { name: string };
+    validation_status: string;
+    approval_status: string;
+    slides: {
+      slide_id: string;
+      slide_number: number;
+      instructional_day: number | null;
+      activity_id: string | null;
+      slide_type: string;
+      layout_type: string;
+      title: string;
+      estimated_minutes: number | null;
+      required: boolean;
+      student_facing_content: {
+        element_id: string;
+        element_type: string;
+        text: string | null;
+        items: string[];
+        label: string | null;
+        grounding_label: string;
+      }[];
+      speaker_notes: {
+        purpose: string | null;
+        teacher_script: string[];
+        teacher_actions: string[];
+        anticipated_responses: string[];
+        misconception_support: string[];
+        checks_for_understanding: string[];
+        transition_language: string | null;
+        pacing_notes: string | null;
+      };
+      source_references: PresentationReference[];
+      grounding_labels: string[];
+      eld_supports: string[];
+      visual_spec: {
+        visual_type: string;
+        description: string | null;
+        image_prompt: string | null;
+        alt_text: string | null;
+      } | null;
+    }[];
+  };
+  warnings: { code: string; message: string }[];
+  missing_sections: string[];
+  source_coverage: {
+    expected_reference_count: number;
+    retained_reference_count: number;
+    complete: boolean;
+  };
+  activity_coverage: {
+    activity_id: string;
+    covered: boolean;
+    slide_ids: string[];
+  }[];
+  validation_report: {
+    status: string;
+    valid: boolean;
+    issues: {
+      code: string;
+      severity: string;
+      message: string;
+      slide_id: string | null;
+      activity_id: string | null;
+    }[];
+  };
+};
+
 const API_BASE =
   process.env.NEXT_PUBLIC_TEACHEROS_API_URL || "http://127.0.0.1:8765";
 const GAMMA_URL =
@@ -233,6 +321,31 @@ export default function Home() {
     preserve_original_wording: true,
     strict_grounding: true,
   });
+  const [approvedEnrichments, setApprovedEnrichments] = useState<
+    ApprovedEnrichment[]
+  >([]);
+  const [selectedApprovedEnrichment, setSelectedApprovedEnrichment] =
+    useState("");
+  const [presentationResult, setPresentationResult] =
+    useState<PresentationBuildResult | null>(null);
+  const [presentationLoading, setPresentationLoading] = useState(false);
+  const [presentationStatus, setPresentationStatus] = useState("");
+  const [presentationOptions, setPresentationOptions] = useState({
+    target_slide_count: "",
+    maximum_slide_count: "",
+    detail_level: "comprehensive",
+    include_agenda: true,
+    include_objectives: true,
+    include_vocabulary: true,
+    include_eld_supports: true,
+    include_teacher_only_slides: false,
+    include_homework: true,
+    include_exit_ticket: true,
+    include_visual_prompts: true,
+    preferred_theme_id: "teacheros_classroom",
+    split_long_activities: true,
+    strict_required_section_coverage: true,
+  });
 
   useEffect(() => {
     const savedMode = localStorage.getItem("teacheros-theme");
@@ -261,6 +374,16 @@ export default function Home() {
       })
       .catch((error) => setConnectionError(error.message))
       .finally(() => setLoading(false));
+    fetch(`${API_BASE}/api/playbook-enrichments`)
+      .then((response) => response.ok ? response.json() : { enrichments: [] })
+      .then((payload) => {
+        const values: ApprovedEnrichment[] = payload.enrichments || [];
+        setApprovedEnrichments(values);
+        setSelectedApprovedEnrichment(
+          (current) => current || values[0]?.enrichment_id || "",
+        );
+      })
+      .catch(() => setApprovedEnrichments([]));
   }, []);
 
   useEffect(() => {
@@ -517,9 +640,127 @@ export default function Home() {
         throw new Error(payload.error || "Unable to approve enrichment.");
       }
       setPastedStatus(`Approved enrichment saved: ${payload.enrichment_id}`);
+      setApprovedEnrichments((current) => [
+        ...current.filter(
+          (value) => value.enrichment_id !== payload.enrichment_id
+        ),
+        payload,
+      ]);
+      setSelectedApprovedEnrichment(payload.enrichment_id);
     } catch (error) {
       setPastedStatus(
         error instanceof Error ? error.message : "Approval failed.",
+      );
+    }
+  }
+
+  async function buildPresentationSpec() {
+    if (!selectedApprovedEnrichment) return;
+    setPresentationLoading(true);
+    setPresentationStatus("Building deterministic presentation plan…");
+    try {
+      const options = {
+        ...presentationOptions,
+        target_slide_count:
+          presentationOptions.target_slide_count
+            ? Number(presentationOptions.target_slide_count) : null,
+        maximum_slide_count:
+          presentationOptions.maximum_slide_count
+            ? Number(presentationOptions.maximum_slide_count) : null,
+      };
+      const response = await fetch(
+        `${API_BASE}/api/teacher-playbooks/${selectedApprovedEnrichment}/presentation-spec`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(options),
+        },
+      );
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || "Unable to build presentation plan.");
+      }
+      setPresentationResult(payload);
+      setPresentationStatus(
+        payload.validation_report.valid
+          ? "Presentation plan is valid and ready for teacher review."
+          : "Presentation plan needs attention before approval.",
+      );
+    } catch (error) {
+      setPresentationStatus(
+        error instanceof Error ? error.message : "Planning failed.",
+      );
+    } finally {
+      setPresentationLoading(false);
+    }
+  }
+
+  async function approvePresentationSpec() {
+    if (!presentationResult?.validation_report.valid) return;
+    const presentationId =
+      presentationResult.presentation_spec.presentation_id;
+    setPresentationStatus("Saving approved presentation specification…");
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/presentation-specs/${presentationId}/approve`,
+        { method: "POST", headers: { "Content-Type": "application/json" } },
+      );
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || "Unable to approve presentation plan.");
+      }
+      setPresentationResult((current) => current ? {
+        ...current,
+        presentation_spec: payload,
+      } : current);
+      setPresentationStatus(
+        `Approved presentation specification saved: ${presentationId}`,
+      );
+    } catch (error) {
+      setPresentationStatus(
+        error instanceof Error ? error.message : "Approval failed.",
+      );
+    }
+  }
+
+  async function movePresentationSlide(
+    index: number,
+    direction: -1 | 1,
+  ) {
+    if (!presentationResult) return;
+    const slides = presentationResult.presentation_spec.slides;
+    const target = index + direction;
+    if (target < 0 || target >= slides.length) return;
+    const reordered = [...slides];
+    [reordered[index], reordered[target]] = [
+      reordered[target], reordered[index],
+    ];
+    setPresentationStatus("Checking instructional sequence…");
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/presentation-specs/${
+          presentationResult.presentation_spec.presentation_id
+        }/reorder`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ordered_slide_ids: reordered.map((slide) => slide.slide_id),
+          }),
+        },
+      );
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          payload.error || "That move would break instructional order.",
+        );
+      }
+      setPresentationResult(payload);
+      setPresentationStatus("Slide order updated and revalidated.");
+    } catch (error) {
+      setPresentationStatus(
+        error instanceof Error
+          ? error.message : "That move is not allowed.",
       );
     }
   }
@@ -1394,6 +1635,385 @@ export default function Home() {
                   )}
                 </section>
               )}
+              <section
+                className="presentation-planner"
+                data-testid="presentation-spec-planner"
+              >
+                <div className="review-heading">
+                  <div>
+                    <span className="eyebrow">Presentation planning</span>
+                    <h2>Build a renderer-neutral slide specification</h2>
+                    <p>
+                      Select a teacher-approved enriched playbook. This creates
+                      a structured plan only; it does not render slides.
+                    </p>
+                  </div>
+                </div>
+                <div className="presentation-config">
+                  <label className="wide-field">
+                    Approved enriched playbook
+                    <select
+                      value={selectedApprovedEnrichment}
+                      onChange={(event) => {
+                        setSelectedApprovedEnrichment(event.target.value);
+                        setPresentationResult(null);
+                      }}
+                      data-testid="approved-playbook-select"
+                    >
+                      <option value="">Select an approved playbook</option>
+                      {approvedEnrichments.map((value) => (
+                        <option
+                          value={value.enrichment_id}
+                          key={value.enrichment_id}
+                        >
+                          Grade {value.enriched_playbook.lesson_metadata.grade}
+                          {" · Unit "}
+                          {value.enriched_playbook.lesson_metadata.unit}
+                          {" · Lesson "}
+                          {value.enriched_playbook.lesson_metadata.lesson_number}
+                          {" · "}
+                          {value.enriched_playbook.lesson_metadata.lesson_title}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Target slides
+                    <input
+                      type="number"
+                      min="1"
+                      value={presentationOptions.target_slide_count}
+                      onChange={(event) =>
+                        setPresentationOptions((current) => ({
+                          ...current,
+                          target_slide_count: event.target.value,
+                        }))
+                      }
+                      placeholder="Optional"
+                    />
+                  </label>
+                  <label>
+                    Maximum slides
+                    <input
+                      type="number"
+                      min="1"
+                      value={presentationOptions.maximum_slide_count}
+                      onChange={(event) =>
+                        setPresentationOptions((current) => ({
+                          ...current,
+                          maximum_slide_count: event.target.value,
+                        }))
+                      }
+                      placeholder="Optional"
+                    />
+                  </label>
+                  <label>
+                    Detail
+                    <select
+                      value={presentationOptions.detail_level}
+                      onChange={(event) =>
+                        setPresentationOptions((current) => ({
+                          ...current,
+                          detail_level: event.target.value,
+                        }))
+                      }
+                    >
+                      <option value="comprehensive">Comprehensive</option>
+                      <option value="focused">Focused</option>
+                    </select>
+                  </label>
+                </div>
+                <div className="presentation-option-grid">
+                  {[
+                    ["include_agenda", "Agenda"],
+                    ["include_objectives", "Objectives"],
+                    ["include_vocabulary", "Vocabulary"],
+                    ["include_eld_supports", "ELD supports"],
+                    ["include_homework", "Homework"],
+                    ["include_exit_ticket", "Exit ticket"],
+                    ["include_visual_prompts", "Visual direction"],
+                  ].map(([key, label]) => (
+                    <label key={key}>
+                      <input
+                        type="checkbox"
+                        checked={
+                          presentationOptions[
+                            key as keyof typeof presentationOptions
+                          ] as boolean
+                        }
+                        onChange={(event) =>
+                          setPresentationOptions((current) => ({
+                            ...current,
+                            [key]: event.target.checked,
+                          }))
+                        }
+                      />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+                {!approvedEnrichments.length && (
+                  <p className="missing-copy">
+                    Approve an enriched playbook before planning a presentation.
+                  </p>
+                )}
+                <div className="pasted-actions">
+                  <button
+                    className="primary-button"
+                    onClick={buildPresentationSpec}
+                    disabled={
+                      !selectedApprovedEnrichment || presentationLoading
+                    }
+                    data-testid="build-presentation-spec"
+                  >
+                    {presentationLoading
+                      ? "Building plan…"
+                      : "Generate Presentation Specification"}
+                  </button>
+                </div>
+                {presentationStatus && (
+                  <p className="pasted-status" role="status">
+                    {presentationStatus}
+                  </p>
+                )}
+
+                {presentationResult && (
+                  <div
+                    className="presentation-review"
+                    data-testid="presentation-spec-review"
+                  >
+                    <div className="presentation-summary">
+                      <span>
+                        <strong>
+                          {presentationResult.presentation_spec.slides.length}
+                        </strong>
+                        slides
+                      </span>
+                      <span>
+                        <strong>
+                          {
+                            presentationResult.presentation_spec
+                              .estimated_total_minutes
+                          }
+                        </strong>
+                        minutes
+                      </span>
+                      <span>
+                        <strong>
+                          {
+                            presentationResult.activity_coverage.filter(
+                              (value) => value.covered,
+                            ).length
+                          }
+                        </strong>
+                        activities covered
+                      </span>
+                      <span>
+                        <strong>
+                          {presentationResult.source_coverage.complete
+                            ? "Complete" : "Incomplete"}
+                        </strong>
+                        source coverage
+                      </span>
+                    </div>
+                    <p className="locked-order-note">
+                      Instructional-day and activity order is protected. Slides
+                      cannot be reordered into an invalid lesson sequence.
+                    </p>
+                    <div className="slide-spec-list">
+                      {presentationResult.presentation_spec.slides.map(
+                        (slide, slideIndex) => (
+                          <article key={slide.slide_id}>
+                            <header>
+                              <span>
+                                {String(slide.slide_number).padStart(2, "0")}
+                              </span>
+                              <div>
+                                <small>
+                                  {slide.slide_type.replaceAll("_", " ")}
+                                  {" · "}
+                                  {slide.layout_type.replaceAll("_", " ")}
+                                </small>
+                                <h3>{slide.title}</h3>
+                                <p>
+                                  {slide.instructional_day
+                                    ? `Day ${slide.instructional_day} · `
+                                    : ""}
+                                  {slide.estimated_minutes !== null
+                                    ? `${slide.estimated_minutes} min`
+                                    : "Structural slide"}
+                                </p>
+                              </div>
+                              {slide.required && <b>Required</b>}
+                              <div className="slide-order-actions">
+                                <button
+                                  onClick={() =>
+                                    movePresentationSlide(slideIndex, -1)
+                                  }
+                                  disabled={
+                                    slideIndex === 0
+                                    || presentationResult.presentation_spec
+                                      .approval_status === "approved"
+                                  }
+                                  aria-label={`Move ${slide.title} earlier`}
+                                >
+                                  ↑
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    movePresentationSlide(slideIndex, 1)
+                                  }
+                                  disabled={
+                                    slideIndex
+                                      === presentationResult.presentation_spec
+                                        .slides.length - 1
+                                    || presentationResult.presentation_spec
+                                      .approval_status === "approved"
+                                  }
+                                  aria-label={`Move ${slide.title} later`}
+                                >
+                                  ↓
+                                </button>
+                              </div>
+                            </header>
+                            <div className="slide-review-grid">
+                              <section>
+                                <h4>Student-facing content</h4>
+                                {slide.student_facing_content.map((element) => (
+                                  <div key={element.element_id}>
+                                    <small>
+                                      {element.element_type.replaceAll("_", " ")}
+                                      {" · "}
+                                      {element.grounding_label.replaceAll("_", " ")}
+                                    </small>
+                                    {element.text && <p>{element.text}</p>}
+                                    {!!element.items.length && (
+                                      <ul>
+                                        {element.items.map((item) => (
+                                          <li key={item}>{item}</li>
+                                        ))}
+                                      </ul>
+                                    )}
+                                  </div>
+                                ))}
+                              </section>
+                              <section>
+                                <h4>Speaker notes</h4>
+                                {slide.speaker_notes.purpose && (
+                                  <p>{slide.speaker_notes.purpose}</p>
+                                )}
+                                {slide.speaker_notes.teacher_script.map(
+                                  (line) => <p key={line}>{line}</p>,
+                                )}
+                                {slide.speaker_notes.transition_language && (
+                                  <p>
+                                    <strong>Transition:</strong>{" "}
+                                    {slide.speaker_notes.transition_language}
+                                  </p>
+                                )}
+                              </section>
+                              <section>
+                                <h4>Sources and visual direction</h4>
+                                {slide.source_references.map(
+                                  (reference, index) => (
+                                    <p key={`${reference.source_type}-${index}`}>
+                                      {reference.source_type.replaceAll("_", " ")}
+                                      {reference.page_start !== null
+                                        ? ` pp. ${reference.page_start}${
+                                            reference.page_end
+                                              !== reference.page_start
+                                              ? `–${reference.page_end}`
+                                              : ""
+                                          }`
+                                        : ""}
+                                      {reference.activity_reference
+                                        ? ` · ${reference.activity_reference}`
+                                        : ""}
+                                    </p>
+                                  ),
+                                )}
+                                {slide.visual_spec?.description && (
+                                  <p>{slide.visual_spec.description}</p>
+                                )}
+                                <div className="tag-list">
+                                  {slide.grounding_labels.map((label) => (
+                                    <span key={label}>
+                                      {label.replaceAll("_", " ")}
+                                    </span>
+                                  ))}
+                                </div>
+                              </section>
+                            </div>
+                          </article>
+                        ),
+                      )}
+                    </div>
+                    <div className="review-alert-grid">
+                      <article className="grounding-panel">
+                        <h3>Coverage</h3>
+                        <p>
+                          {presentationResult.activity_coverage.filter(
+                            (value) => value.covered,
+                          ).length}
+                          /{presentationResult.activity_coverage.length}
+                          {" "}required activities represented
+                        </p>
+                        <p>
+                          {
+                            presentationResult.source_coverage
+                              .retained_reference_count
+                          }
+                          /{
+                            presentationResult.source_coverage
+                              .expected_reference_count
+                          }
+                          {" "}source references retained
+                        </p>
+                        {!!presentationResult.missing_sections.length && (
+                          <p>
+                            Missing:{" "}
+                            {presentationResult.missing_sections.join(", ")}
+                          </p>
+                        )}
+                      </article>
+                      <article className="warning-panel">
+                        <h3>Validation</h3>
+                        <p>
+                          Status:{" "}
+                          {presentationResult.validation_report.status}
+                        </p>
+                        {presentationResult.validation_report.issues.map(
+                          (issue) => (
+                            <p key={`${issue.code}-${issue.slide_id}`}>
+                              <strong>{issue.code}</strong>: {issue.message}
+                            </p>
+                          ),
+                        )}
+                        {presentationResult.warnings.map((warning) => (
+                          <p key={warning.code}>
+                            <strong>{warning.code}</strong>: {warning.message}
+                          </p>
+                        ))}
+                      </article>
+                    </div>
+                    <button
+                      className="primary-button"
+                      onClick={approvePresentationSpec}
+                      disabled={
+                        !presentationResult.validation_report.valid
+                        || presentationResult.presentation_spec
+                          .approval_status === "approved"
+                      }
+                      data-testid="approve-presentation-spec"
+                    >
+                      {presentationResult.presentation_spec.approval_status
+                        === "approved"
+                        ? "Presentation Specification Approved"
+                        : "Approve and Save Presentation Specification"}
+                    </button>
+                  </div>
+                )}
+              </section>
             </div>
           )}
 

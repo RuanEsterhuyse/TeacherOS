@@ -32,6 +32,12 @@ from curriculum.intelligence.playbook_enrichment import (
 from curriculum.intelligence.playbook_enrichment_provider import (
     PlaybookEnrichmentProvider,
 )
+from curriculum.intelligence.presentation_spec import (
+    build_presentation_spec,
+)
+from curriculum.intelligence.presentation_spec_validator import (
+    validate_presentation_spec,
+)
 from curriculum.intelligence.publishing import write_publishing_metadata
 from renderer.google_docs_publisher import GoogleDocsPublisher
 from renderer.teaching_package_slides import (
@@ -46,6 +52,11 @@ from schemas.playbook_enrichment_schema import (
     TeacherApprovalStatus,
 )
 from schemas.pasted_lesson_schema import utc_now
+from schemas.presentation_spec_schema import (
+    ApprovalStatus,
+    PresentationBuildOptions,
+    PresentationBuildResult,
+)
 
 
 PROJECT_ROOT = Path(__file__).parents[1].resolve()
@@ -104,6 +115,7 @@ class TeacherOSInterface:
         )
         self.playbook_enrichment_provider = playbook_enrichment_provider
         self.enrichment_previews: dict[str, PlaybookEnrichmentResult] = {}
+        self.presentation_previews: dict[str, PresentationBuildResult] = {}
         self.jobs: dict[str, GenerationJob] = {}
         self._lock = threading.Lock()
 
@@ -625,6 +637,135 @@ class TeacherOSInterface:
             for value in self.pasted_repository.list_approved_enrichments()
         ]
 
+    def _approved_enrichment(self, identifier: str):
+        try:
+            return self.pasted_repository.load_approved_enrichment(identifier)
+        except FileNotFoundError:
+            matches = [
+                value
+                for value in self.pasted_repository.list_approved_enrichments()
+                if value.enriched_playbook.playbook_id == identifier
+            ]
+            if len(matches) != 1:
+                raise ValueError(
+                    "Approved playbook identifier is missing or ambiguous."
+                )
+            return matches[0]
+
+    def build_presentation_spec(
+        self, approved_playbook_id: str, payload: dict[str, Any]
+    ) -> dict[str, Any]:
+        approved = self._approved_enrichment(approved_playbook_id)
+        options = PresentationBuildOptions.model_validate(payload or {})
+        result = build_presentation_spec(approved, options)
+        self.presentation_previews[
+            result.presentation_spec.presentation_id
+        ] = result
+        return result.model_dump(mode="json")
+
+    def list_presentation_specs(self) -> list[dict[str, Any]]:
+        return [
+            value.model_dump(mode="json")
+            for value in self.pasted_repository.list_presentation_specs()
+        ]
+
+    def load_presentation_spec(
+        self, presentation_id: str
+    ) -> dict[str, Any]:
+        return self.pasted_repository.load_presentation_spec(
+            presentation_id
+        ).model_dump(mode="json")
+
+    def validate_presentation_preview(
+        self, presentation_id: str
+    ) -> dict[str, Any]:
+        preview = self.presentation_previews.get(presentation_id)
+        if preview is not None:
+            spec = preview.presentation_spec
+        else:
+            spec = self.pasted_repository.load_presentation_spec(
+                presentation_id
+            )
+        approved = self.pasted_repository.load_approved_enrichment(
+            spec.approved_enrichment_id
+        )
+        return validate_presentation_spec(
+            spec, approved
+        ).model_dump(mode="json")
+
+    def reorder_presentation_preview(
+        self, presentation_id: str, ordered_slide_ids: list[str]
+    ) -> dict[str, Any]:
+        preview = self.presentation_previews.get(presentation_id)
+        if preview is None:
+            raise KeyError(presentation_id)
+        current = preview.presentation_spec
+        current_ids = [slide.slide_id for slide in current.slides]
+        if (
+            len(ordered_slide_ids) != len(set(ordered_slide_ids))
+            or set(ordered_slide_ids) != set(current_ids)
+        ):
+            raise ValueError(
+                "Reordering must include every existing slide exactly once."
+            )
+        by_id = {slide.slide_id: slide for slide in current.slides}
+        slides = [
+            by_id[slide_id].model_copy(update={"slide_number": index})
+            for index, slide_id in enumerate(ordered_slide_ids, 1)
+        ]
+        candidate = current.model_copy(update={
+            "slides": slides,
+            "validation_status": current.validation_status,
+        })
+        approved = self.pasted_repository.load_approved_enrichment(
+            current.approved_enrichment_id
+        )
+        report = validate_presentation_spec(candidate, approved)
+        if not report.valid:
+            codes = ", ".join(
+                sorted({issue.code for issue in report.issues})
+            )
+            raise ValueError(
+                f"Reordering would break instructional requirements: {codes}"
+            )
+        candidate = candidate.model_copy(update={
+            "validation_status": report.status
+        })
+        updated = preview.model_copy(update={
+            "presentation_spec": candidate,
+            "source_coverage": report.source_coverage,
+            "activity_coverage": report.activity_coverage,
+            "validation_report": report,
+        })
+        self.presentation_previews[presentation_id] = updated
+        return updated.model_dump(mode="json")
+
+    def approve_presentation_spec(
+        self, presentation_id: str
+    ) -> dict[str, Any]:
+        preview = self.presentation_previews.get(presentation_id)
+        if preview is None:
+            raise KeyError(presentation_id)
+        spec = preview.presentation_spec
+        approved_playbook = (
+            self.pasted_repository.load_approved_enrichment(
+                spec.approved_enrichment_id
+            )
+        )
+        report = validate_presentation_spec(spec, approved_playbook)
+        if not report.valid:
+            raise ValueError(
+                "Presentation specification failed validation and cannot be approved."
+            )
+        approved_spec = spec.model_copy(update={
+            "validation_status": report.status,
+            "approval_status": ApprovalStatus.approved,
+            "approved_at": utc_now(),
+        })
+        saved = self.pasted_repository.save_presentation_spec(approved_spec)
+        self.presentation_previews.pop(presentation_id, None)
+        return saved.model_dump(mode="json")
+
 
 INTERFACE = TeacherOSInterface()
 
@@ -706,6 +847,20 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
                     "enrichments":
                         INTERFACE.list_approved_playbook_enrichments()
                 })
+                return
+            if path == "/api/presentation-specs":
+                self._json({
+                    "presentation_specs":
+                        INTERFACE.list_presentation_specs()
+                })
+                return
+            if path.startswith("/api/presentation-specs/"):
+                parts = path.strip("/").split("/")
+                if len(parts) != 3:
+                    raise KeyError(path)
+                self._json(
+                    INTERFACE.load_presentation_spec(parts[2])
+                )
                 return
             if path.startswith("/api/teacher-playbooks/"):
                 parts = path.strip("/").split("/")
@@ -801,6 +956,56 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
                     raise KeyError(path)
                 self._json(
                     INTERFACE.approve_playbook_enrichment(parts[2]),
+                    HTTPStatus.CREATED,
+                )
+                return
+            if (
+                path.startswith("/api/teacher-playbooks/")
+                and path.endswith("/presentation-spec")
+            ):
+                parts = path.strip("/").split("/")
+                if len(parts) != 4:
+                    raise KeyError(path)
+                self._json(
+                    INTERFACE.build_presentation_spec(parts[2], payload)
+                )
+                return
+            if (
+                path.startswith("/api/presentation-specs/")
+                and path.endswith("/validate")
+            ):
+                parts = path.strip("/").split("/")
+                if len(parts) != 4:
+                    raise KeyError(path)
+                self._json(
+                    INTERFACE.validate_presentation_preview(parts[2])
+                )
+                return
+            if (
+                path.startswith("/api/presentation-specs/")
+                and path.endswith("/reorder")
+            ):
+                parts = path.strip("/").split("/")
+                if len(parts) != 4:
+                    raise KeyError(path)
+                ordered = payload.get("ordered_slide_ids")
+                if not isinstance(ordered, list):
+                    raise ValueError("ordered_slide_ids must be a list.")
+                self._json(
+                    INTERFACE.reorder_presentation_preview(
+                        parts[2], [str(value) for value in ordered]
+                    )
+                )
+                return
+            if (
+                path.startswith("/api/presentation-specs/")
+                and path.endswith("/approve")
+            ):
+                parts = path.strip("/").split("/")
+                if len(parts) != 4:
+                    raise KeyError(path)
+                self._json(
+                    INTERFACE.approve_presentation_spec(parts[2]),
                     HTTPStatus.CREATED,
                 )
                 return

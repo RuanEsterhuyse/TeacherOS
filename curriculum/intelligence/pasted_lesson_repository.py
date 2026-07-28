@@ -22,6 +22,11 @@ from schemas.playbook_enrichment_schema import (
     ApprovedPlaybookEnrichment,
     TeacherApprovalStatus,
 )
+from schemas.presentation_spec_schema import (
+    ApprovalStatus,
+    PresentationSpec,
+    ValidationStatus,
+)
 
 
 SAFE_ID = re.compile(r"^[a-zA-Z0-9_-]+$")
@@ -72,9 +77,11 @@ class PastedLessonRepository:
         self.sources_directory = self.root / "sources"
         self.playbooks_directory = self.root / "playbooks"
         self.enriched_playbooks_directory = self.root / "enriched_playbooks"
+        self.presentation_specs_directory = self.root / "presentation_specs"
         self.sources_directory.mkdir(parents=True, exist_ok=True)
         self.playbooks_directory.mkdir(parents=True, exist_ok=True)
         self.enriched_playbooks_directory.mkdir(parents=True, exist_ok=True)
+        self.presentation_specs_directory.mkdir(parents=True, exist_ok=True)
 
     @staticmethod
     def _validate_id(value: str) -> str:
@@ -95,6 +102,11 @@ class PastedLessonRepository:
     def _enriched_playbook_path(self, enrichment_id: str) -> Path:
         return self.enriched_playbooks_directory / (
             self._validate_id(enrichment_id) + ".json"
+        )
+
+    def _presentation_spec_path(self, presentation_id: str) -> Path:
+        return self.presentation_specs_directory / (
+            self._validate_id(presentation_id) + ".json"
         )
 
     @staticmethod
@@ -218,6 +230,54 @@ class PastedLessonRepository:
             self._read(path, ApprovedPlaybookEnrichment)
             for path in sorted(
                 self.enriched_playbooks_directory.glob("*.json")
+            )
+        ]
+
+    def save_presentation_spec(
+        self, spec: PresentationSpec
+    ) -> PresentationSpec:
+        if spec.approval_status != ApprovalStatus.approved:
+            raise ValueError(
+                "Only teacher-approved presentation specifications may be saved."
+            )
+        if spec.validation_status not in {
+            ValidationStatus.passed,
+            ValidationStatus.passed_with_warnings,
+        }:
+            raise ValueError(
+                "Only validated presentation specifications may be saved."
+            )
+        enrichment = self.load_approved_enrichment(
+            spec.approved_enrichment_id
+        )
+        if (
+            enrichment.teacher_approval_status
+            != TeacherApprovalStatus.approved
+            or enrichment.enriched_playbook.playbook_id != spec.playbook_id
+            or enrichment.source_id != spec.source_id
+        ):
+            raise ValueError(
+                "Presentation specification association is invalid."
+            )
+        self._write(
+            self._presentation_spec_path(spec.presentation_id),
+            spec.model_dump(mode="json"),
+        )
+        return spec
+
+    def load_presentation_spec(
+        self, presentation_id: str
+    ) -> PresentationSpec:
+        return self._read(
+            self._presentation_spec_path(presentation_id),
+            PresentationSpec,
+        )
+
+    def list_presentation_specs(self) -> list[PresentationSpec]:
+        return [
+            self._read(path, PresentationSpec)
+            for path in sorted(
+                self.presentation_specs_directory.glob("*.json")
             )
         ]
 
