@@ -38,6 +38,12 @@ from curriculum.intelligence.presentation_spec import (
 from curriculum.intelligence.presentation_spec_validator import (
     validate_presentation_spec,
 )
+from curriculum.intelligence.renderer_instruction_adapter import (
+    build_renderer_instruction_package,
+)
+from curriculum.intelligence.renderer_instruction_validator import (
+    validate_renderer_instruction_package,
+)
 from curriculum.intelligence.publishing import write_publishing_metadata
 from renderer.google_docs_publisher import GoogleDocsPublisher
 from renderer.teaching_package_slides import (
@@ -56,6 +62,11 @@ from schemas.presentation_spec_schema import (
     ApprovalStatus,
     PresentationBuildOptions,
     PresentationBuildResult,
+)
+from schemas.renderer_instruction_schema import (
+    RendererInstructionOptions,
+    RendererInstructionResult,
+    RendererPackageApprovalStatus,
 )
 
 
@@ -116,6 +127,12 @@ class TeacherOSInterface:
         self.playbook_enrichment_provider = playbook_enrichment_provider
         self.enrichment_previews: dict[str, PlaybookEnrichmentResult] = {}
         self.presentation_previews: dict[str, PresentationBuildResult] = {}
+        self.renderer_package_previews: dict[
+            str, RendererInstructionResult
+        ] = {}
+        self.renderer_package_options: dict[
+            str, RendererInstructionOptions
+        ] = {}
         self.jobs: dict[str, GenerationJob] = {}
         self._lock = threading.Lock()
 
@@ -766,6 +783,92 @@ class TeacherOSInterface:
         self.presentation_previews.pop(presentation_id, None)
         return saved.model_dump(mode="json")
 
+    def build_renderer_instruction_package(
+        self, presentation_id: str, payload: dict[str, Any]
+    ) -> dict[str, Any]:
+        presentation = self.pasted_repository.load_presentation_spec(
+            presentation_id
+        )
+        options = RendererInstructionOptions.model_validate(payload or {})
+        result = build_renderer_instruction_package(presentation, options)
+        package_id = result.instruction_package.package_id
+        self.renderer_package_previews[package_id] = result
+        self.renderer_package_options[package_id] = options
+        return result.model_dump(mode="json")
+
+    def list_renderer_instruction_packages(self) -> list[dict[str, Any]]:
+        return [
+            value.model_dump(mode="json")
+            for value in (
+                self.pasted_repository.list_renderer_instruction_packages()
+            )
+        ]
+
+    def load_renderer_instruction_package(
+        self, package_id: str
+    ) -> dict[str, Any]:
+        return self.pasted_repository.load_renderer_instruction_package(
+            package_id
+        ).model_dump(mode="json")
+
+    def validate_renderer_instruction_preview(
+        self, package_id: str
+    ) -> dict[str, Any]:
+        preview = self.renderer_package_previews.get(package_id)
+        if preview is not None:
+            package = preview.instruction_package
+        else:
+            package = (
+                self.pasted_repository.load_renderer_instruction_package(
+                    package_id
+                )
+            )
+        presentation = self.pasted_repository.load_presentation_spec(
+            package.presentation_id
+        )
+        return validate_renderer_instruction_package(
+            package, presentation
+        ).model_dump(mode="json")
+
+    def approve_renderer_instruction_package(
+        self, package_id: str
+    ) -> dict[str, Any]:
+        preview = self.renderer_package_previews.get(package_id)
+        options = self.renderer_package_options.get(package_id)
+        if preview is None or options is None:
+            raise KeyError(package_id)
+        package = preview.instruction_package
+        presentation = self.pasted_repository.load_presentation_spec(
+            package.presentation_id
+        )
+        rebuilt = build_renderer_instruction_package(
+            presentation, options
+        )
+        if rebuilt.instruction_package.package_id != package_id:
+            raise ValueError(
+                "Renderer instruction package source association changed."
+            )
+        report = validate_renderer_instruction_package(
+            rebuilt.instruction_package, presentation
+        )
+        if not report.valid:
+            raise ValueError(
+                "Renderer instruction package failed validation."
+            )
+        approved = rebuilt.instruction_package.model_copy(update={
+            "validation_report": report,
+            "approval_status": RendererPackageApprovalStatus.approved,
+            "approved_at": utc_now(),
+        })
+        saved = (
+            self.pasted_repository.save_renderer_instruction_package(
+                approved
+            )
+        )
+        self.renderer_package_previews.pop(package_id, None)
+        self.renderer_package_options.pop(package_id, None)
+        return saved.model_dump(mode="json")
+
 
 INTERFACE = TeacherOSInterface()
 
@@ -853,6 +956,20 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
                     "presentation_specs":
                         INTERFACE.list_presentation_specs()
                 })
+                return
+            if path == "/api/renderer-packages":
+                self._json({
+                    "renderer_packages":
+                        INTERFACE.list_renderer_instruction_packages()
+                })
+                return
+            if path.startswith("/api/renderer-packages/"):
+                parts = path.strip("/").split("/")
+                if len(parts) != 3:
+                    raise KeyError(path)
+                self._json(
+                    INTERFACE.load_renderer_instruction_package(parts[2])
+                )
                 return
             if path.startswith("/api/presentation-specs/"):
                 parts = path.strip("/").split("/")
@@ -972,6 +1089,19 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
                 return
             if (
                 path.startswith("/api/presentation-specs/")
+                and path.endswith("/renderer-package")
+            ):
+                parts = path.strip("/").split("/")
+                if len(parts) != 4:
+                    raise KeyError(path)
+                self._json(
+                    INTERFACE.build_renderer_instruction_package(
+                        parts[2], payload
+                    )
+                )
+                return
+            if (
+                path.startswith("/api/presentation-specs/")
                 and path.endswith("/validate")
             ):
                 parts = path.strip("/").split("/")
@@ -1006,6 +1136,29 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
                     raise KeyError(path)
                 self._json(
                     INTERFACE.approve_presentation_spec(parts[2]),
+                    HTTPStatus.CREATED,
+                )
+                return
+            if (
+                path.startswith("/api/renderer-packages/")
+                and path.endswith("/validate")
+            ):
+                parts = path.strip("/").split("/")
+                if len(parts) != 4:
+                    raise KeyError(path)
+                self._json(
+                    INTERFACE.validate_renderer_instruction_preview(parts[2])
+                )
+                return
+            if (
+                path.startswith("/api/renderer-packages/")
+                and path.endswith("/approve")
+            ):
+                parts = path.strip("/").split("/")
+                if len(parts) != 4:
+                    raise KeyError(path)
+                self._json(
+                    INTERFACE.approve_renderer_instruction_package(parts[2]),
                     HTTPStatus.CREATED,
                 )
                 return

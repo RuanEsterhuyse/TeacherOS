@@ -256,6 +256,119 @@ type PresentationBuildResult = {
   };
 };
 
+type RendererInstructionResult = {
+  instruction_package: {
+    package_id: string;
+    presentation_id: string;
+    approval_status: "pending" | "approved";
+    renderer_contract_version: string;
+    canvas: {
+      width: number;
+      height: number;
+      units: string;
+      aspect_ratio: string;
+    };
+    theme: {
+      theme_id: string;
+      heading_font_family: string;
+      body_font_family: string;
+      background_colors: string[];
+      heading_color: string;
+      body_color: string;
+      accent_colors: string[];
+    };
+    slides: {
+      slide_id: string;
+      slide_number: number;
+      slide_type: string;
+      layout_type: string;
+      timing: number | null;
+      required: boolean;
+      sequence_group: string | null;
+      text_blocks: {
+        block_id: string;
+        role: string;
+        text: string;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        font_family: string;
+        font_size: number;
+        color: string;
+        source_reference: PresentationReference | null;
+        grounding_label: string;
+      }[];
+      visual_blocks: {
+        block_id: string;
+        visual_type: string;
+        description: string;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        alt_text: string | null;
+        required: boolean;
+        grounding_label: string;
+      }[];
+      notes_payload: {
+        purpose: string | null;
+        teacher_script: string[];
+        teacher_actions: string[];
+        anticipated_responses: string[];
+        misconception_support: string[];
+        checks_for_understanding: string[];
+        transition_language: string | null;
+        pacing_notes: string | null;
+        plain_text_fallback: string;
+      };
+      source_references: PresentationReference[];
+      grounding_labels: string[];
+    }[];
+    asset_manifest: {
+      asset_id: string;
+      slide_id: string;
+      asset_type: string;
+      description: string;
+      status: string;
+    }[];
+    font_manifest: {
+      family: string;
+      roles: string[];
+      fallback_families: string[];
+    }[];
+    validation_report: {
+      status: string;
+      valid: boolean;
+      expected_slide_count: number;
+      represented_slide_count: number;
+      issues: {
+        code: string;
+        severity: string;
+        message: string;
+        slide_id: string | null;
+      }[];
+    };
+  };
+  warnings: {
+    code: string;
+    message: string;
+    slide_id: string | null;
+    block_id: string | null;
+  }[];
+  unsupported_features: {
+    code: string;
+    message: string;
+    slide_id: string | null;
+  }[];
+  overflow_risks: {
+    code: string;
+    message: string;
+    slide_id: string | null;
+    block_id: string | null;
+  }[];
+};
+
 const API_BASE =
   process.env.NEXT_PUBLIC_TEACHEROS_API_URL || "http://127.0.0.1:8765";
 const GAMMA_URL =
@@ -346,6 +459,14 @@ export default function Home() {
     split_long_activities: true,
     strict_required_section_coverage: true,
   });
+  const [approvedPresentationSpecs, setApprovedPresentationSpecs] = useState<
+    PresentationBuildResult["presentation_spec"][]
+  >([]);
+  const [selectedPresentationSpec, setSelectedPresentationSpec] = useState("");
+  const [rendererResult, setRendererResult] =
+    useState<RendererInstructionResult | null>(null);
+  const [rendererLoading, setRendererLoading] = useState(false);
+  const [rendererStatus, setRendererStatus] = useState("");
 
   useEffect(() => {
     const savedMode = localStorage.getItem("teacheros-theme");
@@ -384,6 +505,18 @@ export default function Home() {
         );
       })
       .catch(() => setApprovedEnrichments([]));
+    fetch(`${API_BASE}/api/presentation-specs`)
+      .then((response) => response.ok
+        ? response.json() : { presentation_specs: [] })
+      .then((payload) => {
+        const values: PresentationBuildResult["presentation_spec"][] =
+          payload.presentation_specs || [];
+        setApprovedPresentationSpecs(values);
+        setSelectedPresentationSpec(
+          (current) => current || values[0]?.presentation_id || "",
+        );
+      })
+      .catch(() => setApprovedPresentationSpecs([]));
   }, []);
 
   useEffect(() => {
@@ -716,8 +849,76 @@ export default function Home() {
       setPresentationStatus(
         `Approved presentation specification saved: ${presentationId}`,
       );
+      setApprovedPresentationSpecs((current) => [
+        ...current.filter(
+          (value) => value.presentation_id !== payload.presentation_id,
+        ),
+        payload,
+      ]);
+      setSelectedPresentationSpec(payload.presentation_id);
     } catch (error) {
       setPresentationStatus(
+        error instanceof Error ? error.message : "Approval failed.",
+      );
+    }
+  }
+
+  async function buildRendererInstructions() {
+    if (!selectedPresentationSpec) return;
+    setRendererLoading(true);
+    setRendererStatus("Compiling provider-neutral renderer instructions…");
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/presentation-specs/${selectedPresentationSpec}/renderer-package`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        },
+      );
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          payload.error || "Unable to compile renderer instructions.",
+        );
+      }
+      setRendererResult(payload);
+      setRendererStatus(
+        payload.validation_report.valid
+          ? "Renderer instructions are valid and ready for review."
+          : "Renderer instructions need attention before approval.",
+      );
+    } catch (error) {
+      setRendererStatus(
+        error instanceof Error ? error.message : "Compilation failed.",
+      );
+    } finally {
+      setRendererLoading(false);
+    }
+  }
+
+  async function approveRendererInstructions() {
+    if (!rendererResult?.instruction_package.validation_report.valid) return;
+    const packageId = rendererResult.instruction_package.package_id;
+    setRendererStatus("Rebuilding, validating, and saving instructions…");
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/renderer-packages/${packageId}/approve`,
+        { method: "POST", headers: { "Content-Type": "application/json" } },
+      );
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          payload.error || "Unable to approve renderer instructions.",
+        );
+      }
+      setRendererResult((current) => current ? {
+        ...current,
+        instruction_package: payload,
+      } : current);
+      setRendererStatus(`Approved renderer package saved: ${packageId}`);
+    } catch (error) {
+      setRendererStatus(
         error instanceof Error ? error.message : "Approval failed.",
       );
     }
@@ -2010,6 +2211,318 @@ export default function Home() {
                         === "approved"
                         ? "Presentation Specification Approved"
                         : "Approve and Save Presentation Specification"}
+                    </button>
+                  </div>
+                )}
+              </section>
+              <section
+                className="renderer-instruction-planner"
+                data-testid="renderer-instruction-planner"
+              >
+                <div className="review-heading">
+                  <div>
+                    <span className="eyebrow">Renderer handoff</span>
+                    <h2>Compile renderer-neutral instructions</h2>
+                    <p>
+                      Convert an approved Presentation Specification into a
+                      coordinate-based instruction package. This review does
+                      not create or publish a presentation.
+                    </p>
+                  </div>
+                </div>
+                <label className="renderer-spec-select">
+                  Approved Presentation Specification
+                  <select
+                    value={selectedPresentationSpec}
+                    onChange={(event) => {
+                      setSelectedPresentationSpec(event.target.value);
+                      setRendererResult(null);
+                      setRendererStatus("");
+                    }}
+                    data-testid="approved-presentation-select"
+                  >
+                    <option value="">Select an approved specification</option>
+                    {approvedPresentationSpecs.map((value) => (
+                      <option
+                        value={value.presentation_id}
+                        key={value.presentation_id}
+                      >
+                        Lesson {value.presentation_title}
+                        {" · "}{value.slides.length} slides
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {!approvedPresentationSpecs.length && (
+                  <p className="missing-copy">
+                    Approve a Presentation Specification before compiling
+                    renderer instructions.
+                  </p>
+                )}
+                <button
+                  className="primary-button"
+                  onClick={buildRendererInstructions}
+                  disabled={!selectedPresentationSpec || rendererLoading}
+                  data-testid="build-renderer-instructions"
+                >
+                  {rendererLoading
+                    ? "Compiling instructions…"
+                    : "Build Renderer Instruction Package"}
+                </button>
+                {rendererStatus && (
+                  <p className="pasted-status" role="status">
+                    {rendererStatus}
+                  </p>
+                )}
+
+                {rendererResult && (
+                  <div
+                    className="renderer-instruction-review"
+                    data-testid="renderer-instruction-review"
+                  >
+                    <div className="presentation-summary">
+                      <span>
+                        <strong>
+                          {
+                            rendererResult.instruction_package
+                              .validation_report.represented_slide_count
+                          }
+                          /{
+                            rendererResult.instruction_package
+                              .validation_report.expected_slide_count
+                          }
+                        </strong>
+                        slides preserved
+                      </span>
+                      <span>
+                        <strong>
+                          {rendererResult.instruction_package.canvas.width}
+                          {" × "}
+                          {rendererResult.instruction_package.canvas.height}
+                        </strong>
+                        {rendererResult.instruction_package.canvas.units}
+                      </span>
+                      <span>
+                        <strong>
+                          {rendererResult.instruction_package
+                            .asset_manifest.filter(
+                              (asset) => asset.status !== "not_required",
+                            ).length}
+                        </strong>
+                        unresolved assets
+                      </span>
+                      <span>
+                        <strong>{rendererResult.overflow_risks.length}</strong>
+                        overflow warnings
+                      </span>
+                    </div>
+                    <div className="renderer-contract-summary">
+                      <p>
+                        <strong>Contract:</strong>{" "}
+                        {
+                          rendererResult.instruction_package
+                            .renderer_contract_version
+                        }
+                      </p>
+                      <p>
+                        <strong>Theme:</strong>{" "}
+                        {rendererResult.instruction_package.theme.theme_id}
+                        {" · "}
+                        {
+                          rendererResult.instruction_package.theme
+                            .heading_font_family
+                        }
+                        {" / "}
+                        {
+                          rendererResult.instruction_package.theme
+                            .body_font_family
+                        }
+                      </p>
+                      <p>
+                        <strong>Fonts:</strong>{" "}
+                        {rendererResult.instruction_package.font_manifest
+                          .map((font) => font.family).join(", ")}
+                      </p>
+                    </div>
+                    <div className="renderer-slide-list">
+                      {rendererResult.instruction_package.slides.map(
+                        (slide) => {
+                          const slideAssets =
+                            rendererResult.instruction_package.asset_manifest
+                              .filter(
+                                (asset) => asset.slide_id === slide.slide_id,
+                              );
+                          const slideWarnings =
+                            rendererResult.overflow_risks.filter(
+                              (warning) =>
+                                warning.slide_id === slide.slide_id,
+                            );
+                          return (
+                            <article key={slide.slide_id}>
+                              <header>
+                                <span>
+                                  {String(slide.slide_number).padStart(2, "0")}
+                                </span>
+                                <div>
+                                  <small>
+                                    {slide.slide_type.replaceAll("_", " ")}
+                                    {" · "}
+                                    {slide.layout_type.replaceAll("_", " ")}
+                                  </small>
+                                  <h3>{slide.text_blocks[0]?.text}</h3>
+                                  <p>
+                                    {slide.timing !== null
+                                      ? `${slide.timing} min`
+                                      : "Structural slide"}
+                                    {slide.sequence_group
+                                      ? ` · ${slide.sequence_group}`
+                                      : ""}
+                                  </p>
+                                </div>
+                                {slide.required && <b>Required</b>}
+                              </header>
+                              <div className="renderer-review-grid">
+                                <section>
+                                  <h4>Text blocks and coordinates</h4>
+                                  {slide.text_blocks.map((block) => (
+                                    <div
+                                      className="instruction-block"
+                                      key={block.block_id}
+                                    >
+                                      <small>
+                                        {block.role.replaceAll("_", " ")}
+                                        {" · "}
+                                        {block.x}, {block.y} · {block.width}
+                                        {" × "}{block.height} in
+                                      </small>
+                                      <p>{block.text}</p>
+                                      <code>
+                                        {block.font_family} {block.font_size}pt
+                                        {" · "}{block.grounding_label}
+                                      </code>
+                                    </div>
+                                  ))}
+                                </section>
+                                <section>
+                                  <h4>Visuals and assets</h4>
+                                  {slide.visual_blocks.map((block) => (
+                                    <div
+                                      className="instruction-block"
+                                      key={block.block_id}
+                                    >
+                                      <small>
+                                        {block.visual_type.replaceAll("_", " ")}
+                                        {" · "}
+                                        {block.x}, {block.y} · {block.width}
+                                        {" × "}{block.height} in
+                                      </small>
+                                      <p>{block.description}</p>
+                                      <code>Alt: {block.alt_text}</code>
+                                    </div>
+                                  ))}
+                                  {slideAssets.map((asset) => (
+                                    <p key={asset.asset_id}>
+                                      <strong>
+                                        {asset.asset_type.replaceAll("_", " ")}
+                                      </strong>
+                                      {" · "}{asset.status.replaceAll("_", " ")}
+                                      <br />{asset.description}
+                                    </p>
+                                  ))}
+                                </section>
+                                <section>
+                                  <h4>Speaker notes</h4>
+                                  <pre>
+                                    {slide.notes_payload.plain_text_fallback}
+                                  </pre>
+                                </section>
+                                <section>
+                                  <h4>Sources and grounding</h4>
+                                  {slide.source_references.map(
+                                    (reference, index) => (
+                                      <p
+                                        key={`${reference.source_type}-${index}`}
+                                      >
+                                        {reference.source_type
+                                          .replaceAll("_", " ")}
+                                        {reference.page_start !== null
+                                          ? ` pp. ${reference.page_start}${
+                                              reference.page_end
+                                                !== reference.page_start
+                                                ? `–${reference.page_end}`
+                                                : ""
+                                            }`
+                                          : ""}
+                                      </p>
+                                    ),
+                                  )}
+                                  <div className="tag-list">
+                                    {slide.grounding_labels.map((label) => (
+                                      <span key={label}>
+                                        {label.replaceAll("_", " ")}
+                                      </span>
+                                    ))}
+                                  </div>
+                                  {slideWarnings.map((warning) => (
+                                    <p
+                                      className="overflow-warning"
+                                      key={`${warning.code}-${warning.block_id}`}
+                                    >
+                                      <strong>{warning.code}</strong>:{" "}
+                                      {warning.message}
+                                    </p>
+                                  ))}
+                                </section>
+                              </div>
+                            </article>
+                          );
+                        },
+                      )}
+                    </div>
+                    <div className="review-alert-grid">
+                      <article className="grounding-panel">
+                        <h3>Package validation</h3>
+                        <p>
+                          Status:{" "}
+                          {
+                            rendererResult.instruction_package
+                              .validation_report.status
+                          }
+                        </p>
+                        <p>
+                          Exact slide count:{" "}
+                          {rendererResult.instruction_package.validation_report
+                            .expected_slide_count ===
+                            rendererResult.instruction_package.validation_report
+                              .represented_slide_count
+                            ? "preserved" : "mismatch"}
+                        </p>
+                      </article>
+                      <article className="warning-panel">
+                        <h3>Warnings and unsupported features</h3>
+                        {rendererResult.warnings.map((warning) => (
+                          <p key={`${warning.code}-${warning.slide_id}`}>
+                            <strong>{warning.code}</strong>: {warning.message}
+                          </p>
+                        ))}
+                        {!rendererResult.warnings.length && <p>No warnings.</p>}
+                      </article>
+                    </div>
+                    <button
+                      className="primary-button"
+                      onClick={approveRendererInstructions}
+                      disabled={
+                        !rendererResult.instruction_package.validation_report
+                          .valid
+                        || rendererResult.instruction_package.approval_status
+                          === "approved"
+                      }
+                      data-testid="approve-renderer-instructions"
+                    >
+                      {rendererResult.instruction_package.approval_status
+                        === "approved"
+                        ? "Renderer Instructions Approved"
+                        : "Approve and Save Renderer Instructions"}
                     </button>
                   </div>
                 )}

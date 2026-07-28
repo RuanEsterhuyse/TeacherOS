@@ -27,6 +27,10 @@ from schemas.presentation_spec_schema import (
     PresentationSpec,
     ValidationStatus,
 )
+from schemas.renderer_instruction_schema import (
+    RendererInstructionPackage,
+    RendererPackageApprovalStatus,
+)
 
 
 SAFE_ID = re.compile(r"^[a-zA-Z0-9_-]+$")
@@ -78,10 +82,14 @@ class PastedLessonRepository:
         self.playbooks_directory = self.root / "playbooks"
         self.enriched_playbooks_directory = self.root / "enriched_playbooks"
         self.presentation_specs_directory = self.root / "presentation_specs"
+        self.renderer_packages_directory = (
+            self.root / "renderer_instruction_packages"
+        )
         self.sources_directory.mkdir(parents=True, exist_ok=True)
         self.playbooks_directory.mkdir(parents=True, exist_ok=True)
         self.enriched_playbooks_directory.mkdir(parents=True, exist_ok=True)
         self.presentation_specs_directory.mkdir(parents=True, exist_ok=True)
+        self.renderer_packages_directory.mkdir(parents=True, exist_ok=True)
 
     @staticmethod
     def _validate_id(value: str) -> str:
@@ -107,6 +115,11 @@ class PastedLessonRepository:
     def _presentation_spec_path(self, presentation_id: str) -> Path:
         return self.presentation_specs_directory / (
             self._validate_id(presentation_id) + ".json"
+        )
+
+    def _renderer_package_path(self, package_id: str) -> Path:
+        return self.renderer_packages_directory / (
+            self._validate_id(package_id) + ".json"
         )
 
     @staticmethod
@@ -278,6 +291,65 @@ class PastedLessonRepository:
             self._read(path, PresentationSpec)
             for path in sorted(
                 self.presentation_specs_directory.glob("*.json")
+            )
+        ]
+
+    def save_renderer_instruction_package(
+        self, package: RendererInstructionPackage
+    ) -> RendererInstructionPackage:
+        if (
+            package.approval_status
+            != RendererPackageApprovalStatus.approved
+        ):
+            raise ValueError(
+                "Only approved renderer instruction packages may be saved."
+            )
+        if not package.validation_report.valid:
+            raise ValueError(
+                "Only validated renderer instruction packages may be saved."
+            )
+        presentation = self.load_presentation_spec(
+            package.presentation_id
+        )
+        if (
+            presentation.approval_status != ApprovalStatus.approved
+            or presentation.playbook_id != package.playbook_id
+            or presentation.source_id != package.source_id
+        ):
+            raise ValueError(
+                "Renderer instruction package association is invalid."
+            )
+        expected_digest = content_digest(
+            presentation.model_dump(mode="json")
+        )
+        if (
+            package.generation_metadata.presentation_digest
+            != expected_digest
+        ):
+            raise ValueError(
+                "Renderer instruction package source digest is invalid."
+            )
+        self._write(
+            self._renderer_package_path(package.package_id),
+            package.model_dump(mode="json"),
+        )
+        return package
+
+    def load_renderer_instruction_package(
+        self, package_id: str
+    ) -> RendererInstructionPackage:
+        return self._read(
+            self._renderer_package_path(package_id),
+            RendererInstructionPackage,
+        )
+
+    def list_renderer_instruction_packages(
+        self,
+    ) -> list[RendererInstructionPackage]:
+        return [
+            self._read(path, RendererInstructionPackage)
+            for path in sorted(
+                self.renderer_packages_directory.glob("*.json")
             )
         ]
 

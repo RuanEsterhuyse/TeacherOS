@@ -59,6 +59,12 @@ test("interface preserves the v0.2 generation workflow", async () => {
   assert.match(page, /Approve and Save Presentation Specification/);
   assert.match(page, /presentation-spec/);
   assert.match(page, /data-testid="presentation-spec-planner"/);
+  assert.match(page, /data-testid="renderer-instruction-planner"/);
+  assert.match(page, /data-testid="approved-presentation-select"/);
+  assert.match(page, /data-testid="build-renderer-instructions"/);
+  assert.match(page, /Build Renderer Instruction Package/);
+  assert.match(page, /Approve and Save Renderer Instructions/);
+  assert.match(page, /does\s+not create or publish a presentation/);
   assert.match(page, /Original source text/);
   assert.match(page, /Extracted structured information/);
   assert.match(page, /Warnings and missing information/);

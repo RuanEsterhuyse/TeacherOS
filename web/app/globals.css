@@ -1170,6 +1170,146 @@ button:focus-visible {
   background: var(--surface);
 }
 
+.renderer-instruction-planner {
+  margin-top: 1.5rem;
+  padding: clamp(1rem, 2vw, 1.75rem);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.renderer-spec-select {
+  display: grid;
+  gap: 0.4rem;
+  max-width: 640px;
+  margin: 1rem 0;
+  color: var(--ink-faint);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.renderer-spec-select select {
+  width: 100%;
+}
+
+.renderer-instruction-review {
+  margin-top: 1.5rem;
+}
+
+.renderer-contract-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--brand) 8%, transparent);
+  color: var(--ink-faint);
+  font-size: 12px;
+}
+
+.renderer-contract-summary p {
+  margin: 0;
+}
+
+.renderer-slide-list {
+  display: grid;
+  gap: 0.9rem;
+  margin: 1rem 0;
+}
+
+.renderer-slide-list > article {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.renderer-slide-list > article > header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.8rem;
+  align-items: start;
+}
+
+.renderer-slide-list > article > header > span {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--brand);
+  color: white;
+  font-weight: 800;
+}
+
+.renderer-slide-list header h3,
+.renderer-slide-list header p {
+  margin: 0.2rem 0;
+}
+
+.renderer-slide-list header small,
+.renderer-slide-list header b {
+  color: var(--brand);
+  text-transform: capitalize;
+}
+
+.renderer-review-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.9rem;
+}
+
+.renderer-review-grid > section {
+  min-width: 0;
+  padding: 0.8rem;
+  border-radius: 10px;
+  background: var(--surface-strong);
+}
+
+.renderer-review-grid h4 {
+  margin: 0 0 0.6rem;
+}
+
+.renderer-review-grid p,
+.renderer-review-grid code {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.renderer-review-grid pre {
+  max-height: 260px;
+  margin: 0;
+  overflow: auto;
+  white-space: pre-wrap;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.instruction-block {
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.instruction-block:last-child {
+  border-bottom: 0;
+}
+
+.instruction-block small,
+.instruction-block code {
+  color: var(--ink-faint);
+}
+
+.instruction-block p {
+  white-space: pre-wrap;
+}
+
+.overflow-warning {
+  color: var(--danger);
+}
+
 .presentation-config {
   display: grid;
   grid-template-columns: 2fr repeat(3, minmax(120px, 1fr));
@@ -1330,7 +1470,8 @@ button:focus-visible {
 
   .presentation-config,
   .presentation-summary,
-  .slide-review-grid {
+  .slide-review-grid,
+  .renderer-review-grid {
     grid-template-columns: 1fr;
   }
 }
