@@ -87,6 +87,35 @@ type PastedLessonSource = {
   source_notes: string | null;
 };
 
+type DailyLessonPackage = {
+  package_id: string;
+  status: "playbook_ready" | "complete";
+  source_identity: {
+    grade: string;
+    unit: string;
+    lesson_number: number;
+    lesson_title: string;
+  };
+  teacher_playbook_markdown: string;
+  slide_outline: {
+    slide_number: number;
+    title: string;
+    instructional_purpose: string;
+    related_activity: string | null;
+    suggested_layout: string;
+    student_facing_content_summary: string;
+    suggested_visual: string | null;
+    source_references: PresentationReference[];
+  }[];
+  gemini_slide_prompts: {
+    slide_number: number;
+    title: string;
+    prompt: string;
+    speaker_notes_markdown: string;
+  }[];
+  warnings: string[];
+};
+
 type PastedLessonAnalysis = {
   playbook: {
     playbook_id: string;
@@ -415,8 +444,27 @@ export default function Home() {
   const [job, setJob] = useState<JobStatus | null>(null);
   const [copyStatus, setCopyStatus] = useState("");
   const [view, setView] = useState<
-    "catalog" | "generation" | "complete" | "pasted"
+    "catalog" | "generation" | "complete" | "pasted" | "daily"
   >("catalog");
+  const [dailyForm, setDailyForm] = useState({
+    grade: "8",
+    unit: "1",
+    lesson_number: "1",
+    lesson_title: "",
+    teacher_guide_page_start: "",
+    teacher_guide_page_end: "",
+    teacher_guide_text: "",
+    student_reader_text: "",
+    activity_book_text: "",
+  });
+  const [dailyPackage, setDailyPackage] =
+    useState<DailyLessonPackage | null>(null);
+  const [savedDailyPackages, setSavedDailyPackages] =
+    useState<DailyLessonPackage[]>([]);
+  const [dailyLoading, setDailyLoading] = useState(false);
+  const [dailyStatus, setDailyStatus] = useState("");
+  const [dailyTab, setDailyTab] =
+    useState<"playbook" | "outline" | "prompts">("playbook");
   const [pastedForm, setPastedForm] = useState({
     grade: "8",
     unit: "1",
@@ -548,6 +596,10 @@ export default function Home() {
         setSelectedRendererPackage(values[0]?.package_id || "");
       })
       .catch(() => setApprovedRendererPackages([]));
+    fetch(`${API_BASE}/api/daily-lessons`)
+      .then((response) => response.ok ? response.json() : { packages: [] })
+      .then((payload) => setSavedDailyPackages(payload.packages || []))
+      .catch(() => setSavedDailyPackages([]));
   }, []);
 
   useEffect(() => {
@@ -690,6 +742,63 @@ export default function Home() {
     setPastedAnalysis(null);
     setEnrichment(null);
     setPastedStatus("");
+  }
+
+  function updateDailyField(field: string, value: string) {
+    setDailyForm((current) => ({ ...current, [field]: value }));
+    setDailyStatus("");
+  }
+
+  async function generateDailyLesson() {
+    setDailyLoading(true);
+    setDailyStatus("Generating the Teacher Playbook…");
+    try {
+      const response = await fetch(`${API_BASE}/api/daily-lessons/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...dailyForm,
+          lesson_number: Number(dailyForm.lesson_number),
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || "Daily lesson generation failed.");
+      }
+      setDailyPackage(payload);
+      setSavedDailyPackages((current) => [
+        payload,
+        ...current.filter((value) => value.package_id !== payload.package_id),
+      ]);
+      setDailyTab("playbook");
+      setDailyStatus(
+        payload.status === "complete"
+          ? "Playbook and slide prompts are ready."
+          : "The playbook is ready. Slide prompts could not be completed.",
+      );
+    } catch (error) {
+      setDailyStatus(
+        error instanceof Error ? error.message : "Daily generation failed.",
+      );
+    } finally {
+      setDailyLoading(false);
+    }
+  }
+
+  async function copyDailyText(text: string, success: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setDailyStatus(success);
+    } catch {
+      setDailyStatus("Clipboard access is unavailable.");
+    }
+  }
+
+  function allDailyPrompts() {
+    return (dailyPackage?.gemini_slide_prompts || []).map((item) =>
+      `==============================\nSLIDE ${item.slide_number}\n` +
+      `==============================\n\n${item.prompt}`
+    ).join("\n\n");
   }
 
   async function savePastedSource() {
@@ -1149,6 +1258,22 @@ export default function Home() {
           ))}
           <button
             className={`curriculum-item pasted-workspace-link ${
+              view === "daily" ? "active" : ""
+            }`}
+            onClick={() => {
+              setView("daily");
+              setDailyStatus("");
+            }}
+            data-testid="daily-lesson-workspace"
+          >
+            <span className="curriculum-monogram">D</span>
+            <span>
+              <strong>Daily Lesson Generator</strong>
+              <small>Playbook + Gemini prompts</small>
+            </span>
+          </button>
+          <button
+            className={`curriculum-item pasted-workspace-link ${
               view === "pasted" ? "active" : ""
             }`}
             onClick={() => {
@@ -1362,6 +1487,324 @@ export default function Home() {
                 )}
               </div>
             </>
+          )}
+
+          {!loading && !connectionError && view === "daily" && (
+            <div
+              className="daily-lesson-workspace"
+              data-testid="daily-lesson-view"
+            >
+              <div className="page-heading">
+                <div>
+                  <span className="eyebrow">Daily Lesson Generator</span>
+                  <h1>One lesson in. A teaching plan and slide prompts out.</h1>
+                  <p>
+                    Paste one Teacher Guide lesson. TeacherOS creates a detailed
+                    Teacher Playbook and independent, numbered prompts for Gemini
+                    inside your presentation editor.
+                  </p>
+                </div>
+              </div>
+
+              <section className="pasted-form-card daily-form-card">
+                {!!savedDailyPackages.length && (
+                  <label className="daily-saved-select">
+                    Reopen a saved daily package
+                    <select
+                      value={dailyPackage?.package_id || ""}
+                      onChange={(event) => {
+                        const selected = savedDailyPackages.find(
+                          (value) => value.package_id === event.target.value,
+                        );
+                        if (selected) {
+                          setDailyPackage(selected);
+                          setDailyTab("playbook");
+                          setDailyStatus("Saved daily package reopened.");
+                        }
+                      }}
+                    >
+                      <option value="">Choose a saved package</option>
+                      {savedDailyPackages.map((item) => (
+                        <option key={item.package_id} value={item.package_id}>
+                          Grade {item.source_identity.grade} · Unit{" "}
+                          {item.source_identity.unit} · Lesson{" "}
+                          {item.source_identity.lesson_number} ·{" "}
+                          {item.source_identity.lesson_title}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+                <div className="form-grid">
+                  <label>
+                    Grade
+                    <input
+                      value={dailyForm.grade}
+                      onChange={(event) =>
+                        updateDailyField("grade", event.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Unit
+                    <input
+                      value={dailyForm.unit}
+                      onChange={(event) =>
+                        updateDailyField("unit", event.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Lesson number
+                    <input
+                      type="number"
+                      min="1"
+                      value={dailyForm.lesson_number}
+                      onChange={(event) =>
+                        updateDailyField("lesson_number", event.target.value)}
+                    />
+                  </label>
+                  <label className="wide-field">
+                    Lesson title
+                    <input
+                      value={dailyForm.lesson_title}
+                      onChange={(event) =>
+                        updateDailyField("lesson_title", event.target.value)}
+                      placeholder="Enter the exact lesson title"
+                    />
+                  </label>
+                  <label>
+                    Teacher Guide start page
+                    <input
+                      type="number"
+                      min="1"
+                      value={dailyForm.teacher_guide_page_start}
+                      onChange={(event) => updateDailyField(
+                        "teacher_guide_page_start", event.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Teacher Guide end page
+                    <input
+                      type="number"
+                      min="1"
+                      value={dailyForm.teacher_guide_page_end}
+                      onChange={(event) => updateDailyField(
+                        "teacher_guide_page_end", event.target.value)}
+                    />
+                  </label>
+                </div>
+                <label className="text-source-field">
+                  Teacher Guide lesson text
+                  <span>Required</span>
+                  <textarea
+                    rows={16}
+                    value={dailyForm.teacher_guide_text}
+                    onChange={(event) => updateDailyField(
+                      "teacher_guide_text", event.target.value)}
+                    placeholder="Paste the complete lesson text here."
+                  />
+                </label>
+                <div className="optional-source-grid">
+                  <label className="text-source-field">
+                    Student Reader text
+                    <span>Optional</span>
+                    <textarea
+                      rows={7}
+                      value={dailyForm.student_reader_text}
+                      onChange={(event) => updateDailyField(
+                        "student_reader_text", event.target.value)}
+                    />
+                  </label>
+                  <label className="text-source-field">
+                    Activity Book text
+                    <span>Optional</span>
+                    <textarea
+                      rows={7}
+                      value={dailyForm.activity_book_text}
+                      onChange={(event) => updateDailyField(
+                        "activity_book_text", event.target.value)}
+                    />
+                  </label>
+                </div>
+                <button
+                  className="primary-button daily-generate-button"
+                  onClick={generateDailyLesson}
+                  disabled={
+                    dailyLoading
+                    || !dailyForm.lesson_title.trim()
+                    || !dailyForm.teacher_guide_text.trim()
+                  }
+                  data-testid="generate-daily-lesson"
+                >
+                  {dailyLoading
+                    ? "Generating…"
+                    : "Generate Playbook & Slide Prompts"}
+                </button>
+                {dailyStatus && (
+                  <p className="pasted-status" role="status">
+                    {dailyStatus}
+                  </p>
+                )}
+              </section>
+
+              {dailyPackage && (
+                <section
+                  className="daily-package-review"
+                  data-testid="daily-package-review"
+                >
+                  <div className="daily-package-heading">
+                    <div>
+                      <span className="eyebrow">Daily package ready</span>
+                      <h2>{dailyPackage.source_identity.lesson_title}</h2>
+                      <p>
+                        Grade {dailyPackage.source_identity.grade} · Unit{" "}
+                        {dailyPackage.source_identity.unit} · Lesson{" "}
+                        {dailyPackage.source_identity.lesson_number}
+                      </p>
+                    </div>
+                    <div className="daily-package-actions">
+                      <button
+                        className="secondary-button"
+                        onClick={() => copyDailyText(
+                          dailyPackage.teacher_playbook_markdown,
+                          "Complete Teacher Playbook copied.",
+                        )}
+                      >
+                        Copy Complete Teacher Playbook
+                      </button>
+                      <button
+                        className="secondary-button"
+                        disabled={!dailyPackage.gemini_slide_prompts.length}
+                        onClick={() => copyDailyText(
+                          allDailyPrompts(),
+                          "All Gemini prompts copied.",
+                        )}
+                        data-testid="copy-all-daily-prompts"
+                      >
+                        Copy All Gemini Prompts
+                      </button>
+                      <a
+                        className="secondary-button"
+                        href={`${API_BASE}/api/daily-lessons/${
+                          dailyPackage.package_id
+                        }/artifacts/teacher_playbook.md?download=1`}
+                      >
+                        Export Playbook as Markdown
+                      </a>
+                      {dailyPackage.gemini_slide_prompts.length > 0 && (
+                        <a
+                          className="secondary-button"
+                          href={`${API_BASE}/api/daily-lessons/${
+                            dailyPackage.package_id
+                          }/artifacts/gemini_slide_prompts.md?download=1`}
+                        >
+                          Export Slide Prompts as Markdown
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  {!!dailyPackage.warnings.length && (
+                    <div className="warning-panel">
+                      <h3>Warnings</h3>
+                      {dailyPackage.warnings.map((warning) => (
+                        <p key={warning}>{warning}</p>
+                      ))}
+                    </div>
+                  )}
+                  <div className="daily-tabs" role="tablist">
+                    {[
+                      ["playbook", "Teacher Playbook"],
+                      ["outline", "Slide Outline"],
+                      ["prompts", "Gemini Prompts"],
+                    ].map(([id, label]) => (
+                      <button
+                        key={id}
+                        className={dailyTab === id ? "active" : ""}
+                        onClick={() => setDailyTab(
+                          id as "playbook" | "outline" | "prompts"
+                        )}
+                        role="tab"
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  {dailyTab === "playbook" && (
+                    <pre className="daily-markdown">
+                      {dailyPackage.teacher_playbook_markdown}
+                    </pre>
+                  )}
+                  {dailyTab === "outline" && (
+                    <div className="daily-outline-list">
+                      {dailyPackage.slide_outline.map((slide) => (
+                        <article key={slide.slide_number}>
+                          <span>Slide {slide.slide_number}</span>
+                          <h3>{slide.title}</h3>
+                          <p>{slide.instructional_purpose}</p>
+                          <dl>
+                            <dt>Activity</dt>
+                            <dd>{slide.related_activity || "Lesson-level"}</dd>
+                            <dt>Layout</dt>
+                            <dd>{slide.suggested_layout}</dd>
+                            <dt>Student content</dt>
+                            <dd>{slide.student_facing_content_summary}</dd>
+                            <dt>Visual</dt>
+                            <dd>{slide.suggested_visual || "None required"}</dd>
+                          </dl>
+                        </article>
+                      ))}
+                    </div>
+                  )}
+                  {dailyTab === "prompts" && (
+                    <div className="daily-prompt-list">
+                      {dailyPackage.gemini_slide_prompts.map((slide) => (
+                        <article key={slide.slide_number}>
+                          <div className="daily-prompt-heading">
+                            <div>
+                              <span>Slide {slide.slide_number}</span>
+                              <h3>{slide.title}</h3>
+                            </div>
+                            <div>
+                              <button
+                                className="secondary-button"
+                                onClick={() => copyDailyText(
+                                  slide.prompt,
+                                  `Slide ${slide.slide_number} prompt copied.`,
+                                )}
+                                data-testid={`copy-daily-prompt-${
+                                  slide.slide_number
+                                }`}
+                              >
+                                Copy Gemini Prompt
+                              </button>
+                              <button
+                                className="secondary-button"
+                                onClick={() => copyDailyText(
+                                  slide.speaker_notes_markdown,
+                                  `Slide ${slide.slide_number} notes copied.`,
+                                )}
+                              >
+                                Copy Speaker Notes
+                              </button>
+                            </div>
+                          </div>
+                          <pre>{slide.prompt}</pre>
+                          <details>
+                            <summary>Speaker notes</summary>
+                            <pre>{slide.speaker_notes_markdown}</pre>
+                          </details>
+                        </article>
+                      ))}
+                      {!dailyPackage.gemini_slide_prompts.length && (
+                        <p className="missing-copy">
+                          Slide prompts are unavailable. Your completed Teacher
+                          Playbook remains saved above.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </section>
+              )}
+            </div>
           )}
 
           {!loading && !connectionError && view === "pasted" && (

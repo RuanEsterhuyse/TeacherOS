@@ -22,6 +22,15 @@ from curriculum.intelligence.generate_teaching_package import (
 from curriculum.intelligence.pasted_lesson_analyzer import (
     analyze_pasted_lesson,
 )
+from curriculum.intelligence.daily_lesson_generator import (
+    generate_daily_lesson_package,
+)
+from curriculum.intelligence.daily_lesson_provider import (
+    DailyLessonProvider,
+)
+from curriculum.intelligence.daily_lesson_repository import (
+    DailyLessonRepository,
+)
 from curriculum.intelligence.pasted_lesson_repository import (
     PastedLessonRepository,
     create_pasted_lesson_source,
@@ -73,6 +82,7 @@ from schemas.renderer_instruction_schema import (
     RendererPackageApprovalStatus,
 )
 from schemas.powerpoint_render_schema import PowerPointRenderOptions
+from schemas.daily_lesson_schema import DailyLessonGenerationOptions
 
 
 PROJECT_ROOT = Path(__file__).parents[1].resolve()
@@ -121,6 +131,8 @@ class TeacherOSInterface:
         teacheros: TeacherOS | None = None,
         pasted_repository: PastedLessonRepository | None = None,
         playbook_enrichment_provider: PlaybookEnrichmentProvider | None = None,
+        daily_lesson_repository: DailyLessonRepository | None = None,
+        daily_lesson_provider: DailyLessonProvider | None = None,
     ) -> None:
         self.teacheros = teacheros or TeacherOS(project_root=PROJECT_ROOT)
         self.pasted_repository = (
@@ -130,6 +142,13 @@ class TeacherOSInterface:
             )
         )
         self.playbook_enrichment_provider = playbook_enrichment_provider
+        self.daily_lesson_repository = (
+            daily_lesson_repository
+            or DailyLessonRepository(
+                PROJECT_ROOT / "output" / "daily_lesson_generator"
+            )
+        )
+        self.daily_lesson_provider = daily_lesson_provider
         self.powerpoint_repository = PowerPointRenderRepository(
             PROJECT_ROOT / "output" / "powerpoint_renderer"
         )
@@ -567,6 +586,68 @@ class TeacherOSInterface:
             mode="json"
         )
 
+    def generate_daily_lesson(
+        self, payload: dict[str, Any]
+    ) -> dict[str, Any]:
+        source = create_pasted_lesson_source(
+            grade=str(payload["grade"]),
+            unit=str(payload["unit"]),
+            lesson_number=int(payload["lesson_number"]),
+            lesson_title=str(payload["lesson_title"]),
+            teacher_guide_page_start=(
+                int(payload["teacher_guide_page_start"])
+                if payload.get("teacher_guide_page_start") not in {None, ""}
+                else None
+            ),
+            teacher_guide_page_end=(
+                int(payload["teacher_guide_page_end"])
+                if payload.get("teacher_guide_page_end") not in {None, ""}
+                else None
+            ),
+            teacher_guide_text=str(payload["teacher_guide_text"]),
+            student_reader_text=(
+                str(payload["student_reader_text"])
+                if payload.get("student_reader_text") not in {None, ""}
+                else None
+            ),
+            activity_book_text=(
+                str(payload["activity_book_text"])
+                if payload.get("activity_book_text") not in {None, ""}
+                else None
+            ),
+        )
+        self.pasted_repository.save_source(source)
+        options = DailyLessonGenerationOptions.model_validate(
+            payload.get("options") or {}
+        )
+        result = generate_daily_lesson_package(
+            source,
+            options,
+            provider=self.daily_lesson_provider,
+            repository=self.daily_lesson_repository,
+        )
+        return result.model_dump(mode="json")
+
+    def list_daily_lesson_packages(self) -> list[dict[str, Any]]:
+        return [
+            value.model_dump(mode="json")
+            for value in self.daily_lesson_repository.list_packages()
+        ]
+
+    def load_daily_lesson_package(
+        self, package_id: str
+    ) -> dict[str, Any]:
+        return self.daily_lesson_repository.load(package_id).model_dump(
+            mode="json"
+        )
+
+    def read_daily_lesson_artifact(
+        self, package_id: str, artifact: str
+    ) -> str:
+        return self.daily_lesson_repository.read_markdown(
+            package_id, artifact
+        )
+
     def list_pasted_lesson_sources(self) -> list[dict[str, Any]]:
         return [
             value.model_dump(mode="json")
@@ -975,6 +1056,35 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
                     "sources": INTERFACE.list_pasted_lesson_sources()
                 })
                 return
+            if path == "/api/daily-lessons":
+                self._json({
+                    "packages": INTERFACE.list_daily_lesson_packages()
+                })
+                return
+            if path.startswith("/api/daily-lessons/"):
+                parts = path.strip("/").split("/")
+                if len(parts) == 3:
+                    self._json(
+                        INTERFACE.load_daily_lesson_package(parts[2])
+                    )
+                    return
+                if (
+                    len(parts) == 5
+                    and parts[3] == "artifacts"
+                    and parts[4] in {
+                        "teacher_playbook.md",
+                        "gemini_slide_prompts.md",
+                    }
+                ):
+                    download = urlparse(self.path).query == "download=1"
+                    self._text(
+                        INTERFACE.read_daily_lesson_artifact(
+                            parts[2], parts[4]
+                        ),
+                        filename=parts[4] if download else None,
+                    )
+                    return
+                raise KeyError(path)
             if path.startswith("/api/pasted-lessons/"):
                 parts = path.strip("/").split("/")
                 if len(parts) != 3:
@@ -1082,6 +1192,12 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         try:
             payload = self._body()
+            if path == "/api/daily-lessons/generate":
+                self._json(
+                    INTERFACE.generate_daily_lesson(payload),
+                    HTTPStatus.CREATED,
+                )
+                return
             if path == "/api/pasted-lessons":
                 self._json(
                     INTERFACE.save_pasted_lesson_source(payload),

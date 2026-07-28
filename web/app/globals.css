@@ -1611,6 +1611,193 @@ button:focus-visible {
   margin-top: 26px;
 }
 
+.daily-lesson-workspace,
+.daily-package-review {
+  margin: 0 auto;
+  max-width: 1320px;
+}
+
+.daily-form-card {
+  margin-bottom: 28px;
+}
+
+.daily-saved-select {
+  display: grid;
+  font-size: 12px;
+  font-weight: 750;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.daily-saved-select select {
+  background: var(--panel);
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  color: var(--ink);
+  font: inherit;
+  padding: 11px 12px;
+}
+
+.daily-generate-button {
+  margin-top: 22px;
+  width: 100%;
+}
+
+.daily-package-review {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: clamp(20px, 3vw, 34px);
+}
+
+.daily-package-heading,
+.daily-prompt-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 22px;
+  justify-content: space-between;
+}
+
+.daily-package-heading h2,
+.daily-prompt-heading h3 {
+  margin: 0;
+}
+
+.daily-package-heading p {
+  color: var(--ink-soft);
+  margin: 8px 0 0;
+}
+
+.daily-package-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  max-width: 630px;
+}
+
+.daily-package-actions a {
+  align-items: center;
+  display: inline-flex;
+  text-decoration: none;
+}
+
+.daily-tabs {
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 4px;
+  margin: 28px 0 20px;
+  overflow-x: auto;
+}
+
+.daily-tabs button {
+  background: transparent;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-weight: 750;
+  padding: 12px 16px;
+  white-space: nowrap;
+}
+
+.daily-tabs button.active {
+  border-bottom-color: var(--brand);
+  color: var(--brand-deep);
+}
+
+.daily-markdown,
+.daily-prompt-list pre {
+  background: var(--panel-soft);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.65;
+  margin: 0;
+  max-height: 720px;
+  overflow: auto;
+  padding: 20px;
+  white-space: pre-wrap;
+}
+
+.daily-outline-list,
+.daily-prompt-list {
+  display: grid;
+  gap: 14px;
+}
+
+.daily-outline-list article,
+.daily-prompt-list article {
+  background: var(--panel-soft);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.daily-outline-list article > span,
+.daily-prompt-heading span {
+  color: var(--brand);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.daily-outline-list h3 {
+  margin: 7px 0;
+}
+
+.daily-outline-list p {
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+
+.daily-outline-list dl {
+  display: grid;
+  gap: 8px 16px;
+  grid-template-columns: 110px 1fr;
+  margin: 18px 0 0;
+}
+
+.daily-outline-list dt {
+  color: var(--ink-faint);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.daily-outline-list dd {
+  margin: 0;
+}
+
+.daily-prompt-heading {
+  margin-bottom: 14px;
+}
+
+.daily-prompt-heading > div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.daily-prompt-list details {
+  border-top: 1px solid var(--line);
+  margin-top: 16px;
+  padding-top: 14px;
+}
+
+.daily-prompt-list summary {
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.daily-prompt-list details pre {
+  margin-top: 12px;
+  max-height: 360px;
+}
+
 .activity-review-list {
   display: grid;
   gap: 10px;
@@ -1812,9 +1999,19 @@ button:focus-visible {
   }
 
   .review-heading,
-  .source-review-panel > div:first-child {
+  .source-review-panel > div:first-child,
+  .daily-package-heading,
+  .daily-prompt-heading {
     align-items: start;
     flex-direction: column;
+  }
+
+  .daily-package-actions {
+    justify-content: flex-start;
+  }
+
+  .daily-outline-list dl {
+    grid-template-columns: 1fr;
   }
 
   .analysis-stats {

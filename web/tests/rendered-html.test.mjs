@@ -44,6 +44,20 @@ test("interface preserves the v0.2 generation workflow", async () => {
 
   assert.match(page, /Generate Lesson/);
   assert.match(page, /Generate Teaching Package/);
+  assert.match(page, /Daily Lesson Generator/);
+  assert.match(page, /Generate Playbook & Slide Prompts/);
+  assert.match(page, /Teacher Playbook/);
+  assert.match(page, /Slide Outline/);
+  assert.match(page, /Gemini Prompts/);
+  assert.match(page, /Copy Gemini Prompt/);
+  assert.match(page, /Copy Speaker Notes/);
+  assert.match(page, /Copy All Gemini Prompts/);
+  assert.match(page, /Copy Complete Teacher Playbook/);
+  assert.match(page, /Export Playbook as Markdown/);
+  assert.match(page, /Export Slide Prompts as Markdown/);
+  assert.match(page, /Reopen a saved daily package/);
+  assert.match(page, /\/api\/daily-lessons\/generate/);
+  assert.match(page, /data-testid="daily-lesson-view"/);
   assert.match(page, /Paste a lesson/);
   assert.match(page, /Build a preliminary Teacher Playbook/);
   assert.match(page, /Save Source/);
