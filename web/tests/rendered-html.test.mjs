@@ -65,6 +65,11 @@ test("interface preserves the v0.2 generation workflow", async () => {
   assert.match(page, /Build Renderer Instruction Package/);
   assert.match(page, /Approve and Save Renderer Instructions/);
   assert.match(page, /does\s+not create or publish a presentation/);
+  assert.match(page, /data-testid="powerpoint-renderer-planner"/);
+  assert.match(page, /data-testid="generate-powerpoint"/);
+  assert.match(page, /Generate Editable PowerPoint/);
+  assert.match(page, /Download PowerPoint/);
+  assert.match(page, /Nothing is sent to Google Slides/);
   assert.match(page, /Original source text/);
   assert.match(page, /Extracted structured information/);
   assert.match(page, /Warnings and missing information/);

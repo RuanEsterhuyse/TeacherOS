@@ -369,6 +369,21 @@ type RendererInstructionResult = {
   }[];
 };
 
+type PowerPointResult = {
+  render_id: string;
+  output_path: string;
+  slide_count: number;
+  file_digest: string;
+  notes_support_status: string;
+  warnings: { code: string; message: string }[];
+  overflow_report: { code: string; message: string }[];
+  asset_report: { disposition: string }[];
+  font_substitutions: {
+    role: string; requested: string; rendered: string;
+  }[];
+  validation_report: { valid: boolean; actual_slide_count: number };
+};
+
 const API_BASE =
   process.env.NEXT_PUBLIC_TEACHEROS_API_URL || "http://127.0.0.1:8765";
 const GAMMA_URL =
@@ -467,6 +482,13 @@ export default function Home() {
     useState<RendererInstructionResult | null>(null);
   const [rendererLoading, setRendererLoading] = useState(false);
   const [rendererStatus, setRendererStatus] = useState("");
+  const [approvedRendererPackages, setApprovedRendererPackages] =
+    useState<RendererInstructionResult["instruction_package"][]>([]);
+  const [selectedRendererPackage, setSelectedRendererPackage] = useState("");
+  const [powerPointResult, setPowerPointResult] =
+    useState<PowerPointResult | null>(null);
+  const [powerPointLoading, setPowerPointLoading] = useState(false);
+  const [powerPointStatus, setPowerPointStatus] = useState("");
 
   useEffect(() => {
     const savedMode = localStorage.getItem("teacheros-theme");
@@ -517,6 +539,15 @@ export default function Home() {
         );
       })
       .catch(() => setApprovedPresentationSpecs([]));
+    fetch(`${API_BASE}/api/renderer-packages`)
+      .then((response) => response.ok
+        ? response.json() : { renderer_packages: [] })
+      .then((payload) => {
+        const values = payload.renderer_packages || [];
+        setApprovedRendererPackages(values);
+        setSelectedRendererPackage(values[0]?.package_id || "");
+      })
+      .catch(() => setApprovedRendererPackages([]));
   }, []);
 
   useEffect(() => {
@@ -917,10 +948,43 @@ export default function Home() {
         instruction_package: payload,
       } : current);
       setRendererStatus(`Approved renderer package saved: ${packageId}`);
+      setApprovedRendererPackages((current) => [
+        ...current.filter((value) => value.package_id !== payload.package_id),
+        payload,
+      ]);
+      setSelectedRendererPackage(payload.package_id);
     } catch (error) {
       setRendererStatus(
         error instanceof Error ? error.message : "Approval failed.",
       );
+    }
+  }
+
+  async function generatePowerPoint() {
+    if (!selectedRendererPackage) return;
+    setPowerPointLoading(true);
+    setPowerPointStatus("Creating and validating editable PowerPoint…");
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/renderer-packages/${selectedRendererPackage}/powerpoint`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filename: "teacheros_presentation.pptx" }),
+        },
+      );
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || "PowerPoint generation failed.");
+      }
+      setPowerPointResult(payload);
+      setPowerPointStatus("Editable PowerPoint generated and validated.");
+    } catch (error) {
+      setPowerPointStatus(
+        error instanceof Error ? error.message : "PowerPoint generation failed.",
+      );
+    } finally {
+      setPowerPointLoading(false);
     }
   }
 
@@ -2524,6 +2588,97 @@ export default function Home() {
                         ? "Renderer Instructions Approved"
                         : "Approve and Save Renderer Instructions"}
                     </button>
+                  </div>
+                )}
+              </section>
+              <section
+                className="powerpoint-planner"
+                data-testid="powerpoint-renderer-planner"
+              >
+                <span className="eyebrow">Editable presentation</span>
+                <h2>Generate PowerPoint</h2>
+                <p>
+                  Create a validated editable 16:9 PowerPoint from an approved
+                  renderer package. Nothing is sent to Google Slides.
+                </p>
+                <label className="renderer-spec-select">
+                  Approved renderer package
+                  <select
+                    value={selectedRendererPackage}
+                    onChange={(event) => {
+                      setSelectedRendererPackage(event.target.value);
+                      setPowerPointResult(null);
+                    }}
+                    data-testid="approved-renderer-package-select"
+                  >
+                    <option value="">Select an approved package</option>
+                    {approvedRendererPackages.map((value) => (
+                      <option value={value.package_id} key={value.package_id}>
+                        {value.slides.length} slides · {value.theme.theme_id}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <p className="locked-order-note">
+                  Uses Georgia for editorial headings and Arial for classroom
+                  body copy. Standard editable shapes are chosen for reliable
+                  Google Slides import. Minor font wrapping or shadow changes
+                  may occur after import.
+                </p>
+                <button
+                  className="primary-button"
+                  onClick={generatePowerPoint}
+                  disabled={!selectedRendererPackage || powerPointLoading}
+                  data-testid="generate-powerpoint"
+                >
+                  {powerPointLoading
+                    ? "Generating PowerPoint…"
+                    : "Generate Editable PowerPoint"}
+                </button>
+                {powerPointStatus && (
+                  <p className="pasted-status" role="status">
+                    {powerPointStatus}
+                  </p>
+                )}
+                {powerPointResult && (
+                  <div
+                    className="powerpoint-result"
+                    data-testid="powerpoint-render-result"
+                  >
+                    <div className="presentation-summary">
+                      <span><strong>{powerPointResult.slide_count}</strong>slides</span>
+                      <span>
+                        <strong>
+                          {powerPointResult.validation_report.valid
+                            ? "Passed" : "Failed"}
+                        </strong>
+                        structural validation
+                      </span>
+                      <span>
+                        <strong>
+                          {powerPointResult.asset_report.filter(
+                            (asset) => asset.disposition !== "not_required",
+                          ).length}
+                        </strong>
+                        asset placeholders
+                      </span>
+                      <span>
+                        <strong>
+                          {powerPointResult.notes_support_status
+                            .replaceAll("_", " ")}
+                        </strong>
+                        notes support
+                      </span>
+                    </div>
+                    <a
+                      className="primary-button"
+                      href={`${API_BASE}/api/powerpoint-renders/${
+                        powerPointResult.render_id
+                      }/download`}
+                      data-testid="download-powerpoint"
+                    >
+                      Download PowerPoint
+                    </a>
                   </div>
                 )}
               </section>

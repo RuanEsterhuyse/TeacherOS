@@ -49,6 +49,10 @@ from renderer.google_docs_publisher import GoogleDocsPublisher
 from renderer.teaching_package_slides import (
     TeachingPackageGoogleSlidesPublisher,
 )
+from renderer.powerpoint_instruction_renderer import (
+    PowerPointRenderRepository,
+    render_powerpoint,
+)
 from schemas.teaching_package_schema import StructuredTeachingPackage
 from schemas.playbook_enrichment_schema import (
     ApprovedPlaybookEnrichment,
@@ -68,6 +72,7 @@ from schemas.renderer_instruction_schema import (
     RendererInstructionResult,
     RendererPackageApprovalStatus,
 )
+from schemas.powerpoint_render_schema import PowerPointRenderOptions
 
 
 PROJECT_ROOT = Path(__file__).parents[1].resolve()
@@ -125,6 +130,9 @@ class TeacherOSInterface:
             )
         )
         self.playbook_enrichment_provider = playbook_enrichment_provider
+        self.powerpoint_repository = PowerPointRenderRepository(
+            PROJECT_ROOT / "output" / "powerpoint_renderer"
+        )
         self.enrichment_previews: dict[str, PlaybookEnrichmentResult] = {}
         self.presentation_previews: dict[str, PresentationBuildResult] = {}
         self.renderer_package_previews: dict[
@@ -869,6 +877,26 @@ class TeacherOSInterface:
         self.renderer_package_options.pop(package_id, None)
         return saved.model_dump(mode="json")
 
+    def render_powerpoint(self, package_id: str, payload: dict[str, Any]):
+        package = self.pasted_repository.load_renderer_instruction_package(
+            package_id
+        )
+        options = PowerPointRenderOptions.model_validate(payload or {})
+        return render_powerpoint(
+            package, options,
+            output_root=self.powerpoint_repository.root,
+        ).model_dump(mode="json")
+
+    def list_powerpoint_renders(self):
+        return [value.model_dump(mode="json")
+                for value in self.powerpoint_repository.list()]
+
+    def load_powerpoint_render(self, render_id: str):
+        return self.powerpoint_repository.load(render_id).model_dump(mode="json")
+
+    def powerpoint_download_path(self, render_id: str) -> Path:
+        return self.powerpoint_repository.download_path(render_id)
+
 
 INTERFACE = TeacherOSInterface()
 
@@ -910,6 +938,21 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
             )
         self.end_headers()
         self.wfile.write(encoded)
+
+    def _powerpoint(self, path: Path) -> None:
+        body = path.read_bytes()
+        self.send_response(HTTPStatus.OK)
+        self.send_header(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        )
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header(
+            "Content-Disposition", f'attachment; filename="{path.name}"'
+        )
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        self.wfile.write(body)
 
     def _body(self) -> dict[str, Any]:
         length = int(self.headers.get("Content-Length", "0"))
@@ -963,6 +1006,21 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
                         INTERFACE.list_renderer_instruction_packages()
                 })
                 return
+            if path == "/api/powerpoint-renders":
+                self._json({"powerpoint_renders":
+                            INTERFACE.list_powerpoint_renders()})
+                return
+            if path.startswith("/api/powerpoint-renders/"):
+                parts = path.strip("/").split("/")
+                if len(parts) == 4 and parts[3] == "download":
+                    self._powerpoint(
+                        INTERFACE.powerpoint_download_path(parts[2])
+                    )
+                    return
+                if len(parts) == 3:
+                    self._json(INTERFACE.load_powerpoint_render(parts[2]))
+                    return
+                raise KeyError(path)
             if path.startswith("/api/renderer-packages/"):
                 parts = path.strip("/").split("/")
                 if len(parts) != 3:
@@ -1141,6 +1199,18 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
                 return
             if (
                 path.startswith("/api/renderer-packages/")
+                and path.endswith("/powerpoint")
+            ):
+                parts = path.strip("/").split("/")
+                if len(parts) != 4:
+                    raise KeyError(path)
+                self._json(
+                    INTERFACE.render_powerpoint(parts[2], payload),
+                    HTTPStatus.CREATED,
+                )
+                return
+            if (
+                path.startswith("/api/renderer-packages/")
                 and path.endswith("/validate")
             ):
                 parts = path.strip("/").split("/")
@@ -1148,6 +1218,19 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
                     raise KeyError(path)
                 self._json(
                     INTERFACE.validate_renderer_instruction_preview(parts[2])
+                )
+                return
+            if (
+                path.startswith("/api/powerpoint-renders/")
+                and path.endswith("/validate")
+            ):
+                parts = path.strip("/").split("/")
+                if len(parts) != 4:
+                    raise KeyError(path)
+                self._json(
+                    INTERFACE.load_powerpoint_render(parts[2])[
+                        "validation_report"
+                    ]
                 )
                 return
             if (

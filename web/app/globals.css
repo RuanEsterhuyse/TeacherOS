@@ -1178,6 +1178,25 @@ button:focus-visible {
   background: var(--surface);
 }
 
+.powerpoint-planner {
+  margin-top: 1.5rem;
+  padding: clamp(1rem, 2vw, 1.75rem);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.powerpoint-result {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.powerpoint-result > .primary-button {
+  justify-self: start;
+  text-decoration: none;
+}
+
 .renderer-spec-select {
   display: grid;
   gap: 0.4rem;
