@@ -1,7 +1,11 @@
 from pathlib import Path
 from brain.visual_storyboard import build_visual_storyboard, evaluate_visual_quality
 from renderer.presentation_theme import load_visual_theme
-from schemas.presentation_design_schema import PresentationDesignOutput
+from schemas.presentation_design_schema import (
+    PresentationDesignOutput,
+    SlideLayout,
+    VisualType,
+)
 from schemas.visual_storyboard_schema import ComponentType, SlideFamily
 
 FIXTURE=Path(__file__).parent/"fixtures"/"sample_lesson_1_presentation_design.json"
@@ -35,7 +39,22 @@ def test_storyboard_quality_evaluator_detects_layout_monotony():
 
 
 def test_lesson_storyboard_map_is_native_component():
-    presentation=PresentationDesignOutput.model_validate_json(Path("output/generation_runs/ckla-grade-8-unit-1-lesson-1/04_presentation_design.json").read_text())
+    presentation=PresentationDesignOutput.model_validate_json(FIXTURE.read_text())
+    synthetic_map = presentation.slides[0].model_copy(deep=True)
+    synthetic_map.slide_id = "SYNTHETIC_MAP"
+    synthetic_map.sequence_number = 1
+    synthetic_map.slide_type = "map"
+    synthetic_map.student_view.title = "Regional Context Map"
+    synthetic_map.student_view.subtitle = None
+    synthetic_map.design.layout = SlideLayout.MAP_FOCUS
+    synthetic_map.visuals.visual_required = True
+    synthetic_map.visuals.visual_type = VisualType.MAP
+    synthetic_map.visuals.visual_description = (
+        "A generic regional map with two labeled locations"
+    )
+    synthetic_map.visuals.source_asset_reference = "synthetic-map-fixture"
+    synthetic_map.source_references = ["Synthetic geography source"]
+    presentation = presentation.model_copy(update={"slides": [synthetic_map]})
     value=build_visual_storyboard(presentation)
     maps=[s for s in value.slides if s.family==SlideFamily.ANNOTATED_MAP]
     assert maps and any(c.component_type==ComponentType.MAP_PANEL for c in maps[0].components)

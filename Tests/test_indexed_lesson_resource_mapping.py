@@ -47,11 +47,23 @@ BOUNDARIES = {
     8: (122, 132),
     9: (133, 139),
 }
+PRIVATE_CURRICULUM_PREREQUISITES = (
+    INDEX,
+    DATABASE,
+    LESSON_ONE_MAPPING,
+    LESSON_TWO_MANIFEST,
+)
+
+pytestmark = pytest.mark.skipif(
+    not all(path.is_file() for path in PRIVATE_CURRICULUM_PREREQUISITES),
+    reason=(
+        "Registered/private Unit 1 curriculum fixtures are unavailable in "
+        "the public clone."
+    ),
+)
 
 
 def _repository():
-    if not INDEX.is_file() or not DATABASE.is_file():
-        pytest.skip("Registered Unit 1 curriculum intelligence unavailable.")
     return CurriculumIntelligenceRepository(DATABASE)
 
 

@@ -74,12 +74,28 @@ ANSWER_KEYS = {
     8: {"7.2", "8.2", "8.3"},
     9: {"9.1"},
 }
+PRIVATE_PRODUCTION_PREREQUISITES = (
+    DATABASE,
+    INDEX,
+    *(
+        MAPPINGS
+        / f"ckla_grade_8_unit_1_lesson_{lesson}_resource_manifest.json"
+        for lesson in range(3, 10)
+    ),
+)
+
+
+def _require_private_production_sources() -> None:
+    if not all(path.is_file() for path in PRIVATE_PRODUCTION_PREREQUISITES):
+        pytest.skip(
+            "Registered/private Unit 1 curriculum fixtures are unavailable "
+            "in the public clone."
+        )
 
 
 @pytest.fixture(scope="module")
 def production_workspace(tmp_path_factory):
-    if not DATABASE.is_file():
-        pytest.skip("Registered Unit 1 curriculum is unavailable.")
+    _require_private_production_sources()
     root = tmp_path_factory.mktemp("unit-one-production")
     database = root / "library.sqlite3"
     shutil.copy2(DATABASE, database)
@@ -227,6 +243,7 @@ def test_answer_keys_remain_owned_by_exact_activity_labels(
 
 
 def test_lesson_nine_stops_on_unmapped_selfie_assessment(tmp_path):
+    _require_private_production_sources()
     database = tmp_path / "library.sqlite3"
     shutil.copy2(DATABASE, database)
     service = CurriculumIntelligenceService(

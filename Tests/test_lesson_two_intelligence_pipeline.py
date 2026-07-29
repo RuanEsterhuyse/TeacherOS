@@ -29,12 +29,35 @@ from schemas.source_grounded_instruction_schema import (
 
 ROOT = Path(__file__).resolve().parents[1]
 DATABASE = ROOT / "data/curriculum/library.sqlite3"
+INDEX = ROOT / "data/indexes/ckla_grade_8_unit_1_index.json"
+LESSON_ONE_MAPPING = (
+    ROOT
+    / "curriculum/mappings/"
+    "ckla_grade_8_unit_1_lesson_1_coordinate_mappings.json"
+)
+LESSON_TWO_MANIFEST = (
+    ROOT
+    / "curriculum/mappings/"
+    "ckla_grade_8_unit_1_lesson_2_resource_manifest.json"
+)
 REFERENCE_LESSON_ONE = ROOT / "output/lesson_001"
+PRIVATE_LESSON_TWO_PREREQUISITES = (
+    DATABASE,
+    INDEX,
+    LESSON_TWO_MANIFEST,
+)
+
+
+def _require_paths(paths: tuple[Path, ...]) -> None:
+    if not all(path.is_file() for path in paths):
+        pytest.skip(
+            "Registered/private curriculum fixtures are unavailable in "
+            "the public clone."
+        )
 
 
 def _prepared(tmp_path: Path):
-    if not DATABASE.is_file():
-        pytest.skip("Registered curriculum intelligence is unavailable.")
+    _require_paths(PRIVATE_LESSON_TWO_PREREQUISITES)
     database = tmp_path / "library.sqlite3"
     shutil.copy2(DATABASE, database)
     cache_root = tmp_path / "cache"
@@ -177,8 +200,12 @@ def test_lesson_one_reference_outputs_remain_byte_identical(tmp_path):
         REFERENCE_LESSON_ONE / "lesson_intelligence_package.md",
         REFERENCE_LESSON_ONE / "google_slides_prompt.md",
     ]
-    if not all(path.is_file() for path in expected):
-        pytest.skip("Existing Lesson 1 reference outputs are unavailable.")
+    _require_paths((
+        DATABASE,
+        INDEX,
+        LESSON_ONE_MAPPING,
+        *expected,
+    ))
     teacher, slides = generate_lesson_intelligence(
         lesson=1,
         output_directory=tmp_path / "lesson_001",
