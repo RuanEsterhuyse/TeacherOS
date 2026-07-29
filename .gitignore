@@ -1,23 +1,60 @@
 # Google authentication
 credentials*.json
-token.json
+token*.json
+*service-account*.json
+*service_account*.json
+*.pem
+*.key
+*.p12
+*.pfx
 
 # Python
 __pycache__/
 *.py[cod]
 .venv/
 venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+**/.cache/
 
 # Environment variables
 .env
 .env.*
+!.env.example
 
 # macOS
 .DS_Store
 
-# Generated output
+# Local databases
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Private curriculum, indexes, and uploads
+data/curriculum/**
+!data/curriculum/.gitkeep
+data/indexes/**
+!data/indexes/.gitkeep
+uploads/
+private_curriculum/
+
+# Generated output and lesson packages
 output/
-credentials.json.json
-token.json
-data/curriculum/library.sqlite3
-data/curriculum/CKLA/
+generated/
+lesson_packages/*
+!lesson_packages/.gitkeep
+*.pptx
+*.pdf
+
+# Local IDE state
+.idea/
+.vscode/
+
+# Accidental root npm locks (the web lock belongs under web/)
+/package-lock.json
+/package-lock 2.json

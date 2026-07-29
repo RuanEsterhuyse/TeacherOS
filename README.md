@@ -2,11 +2,33 @@
 
 TeacherOS is an extensible instructional-design system that transforms curriculum evidence into structured, classroom-ready lesson packages. Its deterministic orchestration layer now connects the Curriculum Library and saved lesson indexes to a validated instructional-pipeline handoff.
 
+## Security and content boundaries
+
+TeacherOS is a **local-only application**. The Python API binds to
+`127.0.0.1` and is intended to be used only with the local web interface at
+`http://localhost:3000` or `http://127.0.0.1:3000`. Do not expose port 8765
+through a public host, tunnel, container port, or reverse proxy.
+
+Users must supply curriculum and instructional resources they are authorized
+to access and process. Do not commit curriculum PDFs, trade books, pasted
+curriculum, student information, generated lesson packages, or presentation
+exports. Third-party trade-book content is explicitly excluded from this
+repository. See [CONTENT_LICENSES.md](CONTENT_LICENSES.md) for the software
+and curriculum licensing boundaries.
+
+Copy `.env.example` to `.env`, add only local credentials, and restrict the
+file to the current user. Gemini and OpenAI keys are read by the Python
+backend only; they are never sent to the frontend. Keep Google OAuth client
+files and tokens in ignored local files such as `credentials.json` and
+`token.json`.
+
 ## Instructional generation pipeline
 
 `TeacherOS.generate_lesson(...)` executes the Curriculum Reader, Curriculum Analyzer, Instruction Designer, Presentation Designer, Lesson Assembler, Lesson Validator, and existing Lesson Package parser. Each AI stage uses the official OpenAI Python SDK Responses API with a Pydantic structured output. The model is configured once with `TEACHEROS_MODEL` (default: `gpt-5-mini`); the API key is read only from `OPENAI_API_KEY`.
 
-Copy `.env.example` into your preferred secret-management workflow and export the variables in your shell. TeacherOS does not load or commit secrets automatically.
+Copy `.env.example` into your preferred secret-management workflow and export
+the variables in your shell. TeacherOS does not commit secrets automatically.
+Never put a real value in `.env.example`.
 
 First validate the real curriculum input and planned workflow without making an API call:
 
@@ -35,6 +57,12 @@ adapter alongside the unchanged renderer-neutral bundle. Setup and launch
 instructions are in `web/README.md`.
 
 Generated lesson metadata carries this attribution: “This work is based on an original work of the Core Knowledge Foundation made available under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License. This does not imply endorsement by the Core Knowledge Foundation.” This attribution does not apply the CKLA license to independently published trade-book text.
+
+Retained CKLA-derived configuration is modified for deterministic curriculum
+mapping and is available only for noncommercial use under CC BY-NC-SA 4.0.
+The license requires attribution, a link to the license, an indication of
+changes, and ShareAlike distribution. Independently published trade-book
+content is not included.
 
 ## Lesson preparation orchestration
 
@@ -196,6 +224,11 @@ python -m pip install -r requirements.txt
 pytest
 ```
 
+`requirements.in` records direct Python dependencies and `requirements.txt`
+pins the complete tested environment. The software is licensed under
+AGPL-3.0-only because the current PDF implementation uses the AGPL-licensed
+PyMuPDF distribution. See `LICENSE` and `CONTENT_LICENSES.md`.
+
 ## Google Cloud and OAuth setup
 
 1. Create or select a project in the [Google Cloud Console](https://console.cloud.google.com/).
@@ -205,6 +238,12 @@ pytest
 5. Download the client file, keep it outside version control, and provide its path to the renderer.
 
 On first authentication, a browser opens for consent. The renderer saves the OAuth token at `token_path` (default `token.json`) and refreshes it when possible. Never commit either credential file. The Slides scope permits presentation editing; `drive.file` permits access to presentations TeacherOS creates and exports.
+
+OAuth authentication occurs locally. OAuth tokens are not returned by the
+TeacherOS API or exposed to the browser. TeacherOS does not add public,
+domain-wide, or link-sharing permissions: newly created Google documents and
+presentations remain private to the authenticated account unless that user
+later changes sharing in Google Drive.
 
 ```python
 from renderer.google_slides_renderer import GoogleSlidesRenderer

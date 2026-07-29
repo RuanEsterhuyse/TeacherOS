@@ -143,6 +143,15 @@ class DailyGenerationMetadata(StrictModel):
     generator_version: str = DAILY_LESSON_GENERATOR_VERSION
 
 
+class DailyGoogleSlidesArtifact(StrictModel):
+    presentation_id: str = Field(min_length=1)
+    presentation_url: str = Field(min_length=1)
+    created_at: datetime = Field(default_factory=utc_now)
+    slide_count: int = Field(ge=1)
+    title: str = Field(min_length=1)
+    warnings: list[str] = Field(default_factory=list)
+
+
 class DailyLessonPackage(StrictModel):
     package_id: str = Field(min_length=1)
     source_identity: DailySourceIdentity
@@ -154,6 +163,7 @@ class DailyLessonPackage(StrictModel):
     warnings: list[str] = Field(default_factory=list)
     source_references: list[SourceReference] = Field(default_factory=list)
     generation_metadata: DailyGenerationMetadata
+    google_slides: Optional[DailyGoogleSlidesArtifact] = None
     schema_version: str = DAILY_LESSON_SCHEMA_VERSION
 
     @model_validator(mode="after")
@@ -198,6 +208,7 @@ __all__ = [
     "DailyActivityCoaching",
     "DailyAgendaItem",
     "DailyGenerationMetadata",
+    "DailyGoogleSlidesArtifact",
     "DailyLessonGenerationOptions",
     "DailyLessonPackage",
     "DailyLessonStatus",

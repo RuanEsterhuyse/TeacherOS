@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 import json
+import hmac
+import logging
+import re
+import secrets
 import subprocess
 import threading
 import time
@@ -27,6 +31,7 @@ from curriculum.intelligence.daily_lesson_generator import (
 )
 from curriculum.intelligence.daily_lesson_provider import (
     DailyLessonProvider,
+    daily_lesson_provider_status,
 )
 from curriculum.intelligence.daily_lesson_repository import (
     DailyLessonRepository,
@@ -62,6 +67,9 @@ from renderer.powerpoint_instruction_renderer import (
     PowerPointRenderRepository,
     render_powerpoint,
 )
+from curriculum.intelligence.daily_lesson_google_slides import (
+    DailyLessonGoogleSlidesPublisher,
+)
 from schemas.teaching_package_schema import StructuredTeachingPackage
 from schemas.playbook_enrichment_schema import (
     ApprovedPlaybookEnrichment,
@@ -86,6 +94,30 @@ from schemas.daily_lesson_schema import DailyLessonGenerationOptions
 
 
 PROJECT_ROOT = Path(__file__).parents[1].resolve()
+ALLOWED_WEB_ORIGINS = frozenset({
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+})
+SESSION_HEADER = "X-TeacherOS-Session"
+MAX_REQUEST_BODY_BYTES = 10 * 1024 * 1024
+LOCAL_SESSION_TOKEN = secrets.token_urlsafe(32)
+LOGGER = logging.getLogger("teacheros.interface")
+_LOCAL_PATH_PATTERN = re.compile(
+    r"(?:/Users|/home|[A-Za-z]:\\\\Users)[/\\\\][^\s\"']+"
+)
+
+
+def _redacted_diagnostic(error: BaseException) -> str:
+    """Return a useful local diagnostic without secrets or home paths."""
+    message = f"{type(error).__name__}: {error}"
+    message = _LOCAL_PATH_PATTERN.sub("<local-path>", message)
+    message = re.sub(
+        r"(?i)(api[_-]?key|access[_-]?token|refresh[_-]?token|"
+        r"client[_-]?secret)([\"'\s:=]+)[^\s,\"']+",
+        r"\1\2<redacted>",
+        message,
+    )
+    return message
 GENERATION_STAGES = [
     ("prepare_lesson", None, "Preparing lesson"),
     ("curriculum_reader", "01_reader_output.json", "Reading curriculum"),
@@ -133,6 +165,9 @@ class TeacherOSInterface:
         playbook_enrichment_provider: PlaybookEnrichmentProvider | None = None,
         daily_lesson_repository: DailyLessonRepository | None = None,
         daily_lesson_provider: DailyLessonProvider | None = None,
+        daily_google_slides_publisher: (
+            DailyLessonGoogleSlidesPublisher | None
+        ) = None,
     ) -> None:
         self.teacheros = teacheros or TeacherOS(project_root=PROJECT_ROOT)
         self.pasted_repository = (
@@ -149,6 +184,7 @@ class TeacherOSInterface:
             )
         )
         self.daily_lesson_provider = daily_lesson_provider
+        self.daily_google_slides_publisher = daily_google_slides_publisher
         self.powerpoint_repository = PowerPointRenderRepository(
             PROJECT_ROOT / "output" / "powerpoint_renderer"
         )
@@ -634,6 +670,20 @@ class TeacherOSInterface:
             for value in self.daily_lesson_repository.list_packages()
         ]
 
+    def daily_lesson_provider_status(self) -> dict[str, Any]:
+        return daily_lesson_provider_status(self.daily_lesson_provider)
+
+    def create_daily_lesson_google_slides(
+        self, package_id: str
+    ) -> dict[str, Any]:
+        publisher = (
+            self.daily_google_slides_publisher
+            or DailyLessonGoogleSlidesPublisher(
+                self.daily_lesson_repository
+            )
+        )
+        return publisher.publish(package_id)
+
     def load_daily_lesson_package(
         self, package_id: str
     ) -> dict[str, Any]:
@@ -987,11 +1037,41 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
 
     server_version = "TeacherOSInterface/0.2"
 
+    def _request_origin(self) -> str | None:
+        return self.headers.get("Origin")
+
+    def _origin_is_allowed(self) -> bool:
+        origin = self._request_origin()
+        return origin is None or origin in ALLOWED_WEB_ORIGINS
+
+    def _require_state_change_authorization(self) -> bool:
+        origin = self._request_origin()
+        if origin is not None and origin not in ALLOWED_WEB_ORIGINS:
+            self._json(
+                {"error": "Request origin is not allowed."},
+                HTTPStatus.FORBIDDEN,
+            )
+            return False
+        supplied = self.headers.get(SESSION_HEADER, "")
+        if not hmac.compare_digest(supplied, LOCAL_SESSION_TOKEN):
+            self._json(
+                {"error": "Local session authorization is required."},
+                HTTPStatus.FORBIDDEN,
+            )
+            return False
+        return True
+
     def _headers(self, content_type: str, status: int = HTTPStatus.OK) -> None:
         self.send_response(status)
         self.send_header("Content-Type", content_type)
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        origin = self._request_origin()
+        if origin in ALLOWED_WEB_ORIGINS:
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Vary", "Origin")
+        self.send_header(
+            "Access-Control-Allow-Headers",
+            f"Content-Type, {SESSION_HEADER}",
+        )
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.end_headers()
 
@@ -1011,7 +1091,10 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "text/markdown; charset=utf-8")
         self.send_header("Content-Length", str(len(encoded)))
-        self.send_header("Access-Control-Allow-Origin", "*")
+        origin = self._request_origin()
+        if origin in ALLOWED_WEB_ORIGINS:
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Vary", "Origin")
         if filename:
             self.send_header(
                 "Content-Disposition",
@@ -1031,22 +1114,48 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
         self.send_header(
             "Content-Disposition", f'attachment; filename="{path.name}"'
         )
-        self.send_header("Access-Control-Allow-Origin", "*")
+        origin = self._request_origin()
+        if origin in ALLOWED_WEB_ORIGINS:
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Vary", "Origin")
         self.end_headers()
         self.wfile.write(body)
 
     def _body(self) -> dict[str, Any]:
-        length = int(self.headers.get("Content-Length", "0"))
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+        except ValueError as error:
+            raise ValueError("Invalid request body length.") from error
+        if length < 0 or length > MAX_REQUEST_BODY_BYTES:
+            raise ValueError("Request body exceeds the local API limit.")
         return json.loads(self.rfile.read(length) or b"{}")
 
     def do_OPTIONS(self) -> None:
+        if not self._origin_is_allowed():
+            self._json(
+                {"error": "Request origin is not allowed."},
+                HTTPStatus.FORBIDDEN,
+            )
+            return
         self._headers("text/plain", HTTPStatus.NO_CONTENT)
 
     def do_GET(self) -> None:
         path = urlparse(self.path).path
         try:
+            if not self._origin_is_allowed():
+                self._json(
+                    {"error": "Request origin is not allowed."},
+                    HTTPStatus.FORBIDDEN,
+                )
+                return
             if path == "/api/health":
                 self._json({"status": "ok", "version": "0.2"})
+                return
+            if path == "/api/session":
+                self._json({
+                    "session_token": LOCAL_SESSION_TOKEN,
+                    "header_name": SESSION_HEADER,
+                })
                 return
             if path == "/api/catalog":
                 self._json(INTERFACE.catalog())
@@ -1060,6 +1169,9 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
                 self._json({
                     "packages": INTERFACE.list_daily_lesson_packages()
                 })
+                return
+            if path == "/api/daily-lessons/provider-status":
+                self._json(INTERFACE.daily_lesson_provider_status())
                 return
             if path.startswith("/api/daily-lessons/"):
                 parts = path.strip("/").split("/")
@@ -1186,15 +1298,33 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
         except KeyError:
             self._json({"error": "Not found"}, HTTPStatus.NOT_FOUND)
         except Exception as error:
-            self._json({"error": str(error)}, HTTPStatus.INTERNAL_SERVER_ERROR)
+            LOGGER.error("GET request failed: %s", _redacted_diagnostic(error))
+            self._json(
+                {"error": "TeacherOS could not complete the request."},
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+            )
 
     def do_POST(self) -> None:
         path = urlparse(self.path).path
         try:
+            if not self._require_state_change_authorization():
+                return
             payload = self._body()
             if path == "/api/daily-lessons/generate":
                 self._json(
                     INTERFACE.generate_daily_lesson(payload),
+                    HTTPStatus.CREATED,
+                )
+                return
+            if (
+                path.startswith("/api/daily-lessons/")
+                and path.endswith("/google-slides")
+            ):
+                parts = path.strip("/").split("/")
+                if len(parts) != 4:
+                    raise KeyError(path)
+                self._json(
+                    INTERFACE.create_daily_lesson_google_slides(parts[2]),
                     HTTPStatus.CREATED,
                 )
                 return
@@ -1405,11 +1535,29 @@ class InterfaceRequestHandler(BaseHTTPRequestHandler):
                 return
             self._json({"error": "Not found"}, HTTPStatus.NOT_FOUND)
         except (KeyError, TypeError, ValueError) as error:
-            self._json({"error": str(error)}, HTTPStatus.BAD_REQUEST)
+            LOGGER.warning(
+                "Invalid POST request: %s", _redacted_diagnostic(error)
+            )
+            self._json(
+                {"error": "The request was invalid."},
+                HTTPStatus.BAD_REQUEST,
+            )
         except FileNotFoundError as error:
-            self._json({"error": str(error)}, HTTPStatus.NOT_FOUND)
+            LOGGER.warning(
+                "POST resource not found: %s", _redacted_diagnostic(error)
+            )
+            self._json(
+                {"error": "The requested item was not found."},
+                HTTPStatus.NOT_FOUND,
+            )
         except Exception as error:
-            self._json({"error": str(error)}, HTTPStatus.INTERNAL_SERVER_ERROR)
+            LOGGER.error(
+                "POST request failed: %s", _redacted_diagnostic(error)
+            )
+            self._json(
+                {"error": "TeacherOS could not complete the request."},
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+            )
 
     def log_message(self, format: str, *args: Any) -> None:
         return

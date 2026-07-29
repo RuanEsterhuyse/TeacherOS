@@ -1,0 +1,1393 @@
+{
+  "curriculum": "CKLA",
+  "grade": "8",
+  "unit_number": 1,
+  "lesson_number": 3,
+  "lesson_title": "Small Group: “Firstborn” and “Cubano Two”",
+  "teacher_guide_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+  "teacher_guide_pdf_start_page": 63,
+  "teacher_guide_pdf_end_page": 76,
+  "teacher_guide_printed_start_page": 58,
+  "teacher_guide_printed_end_page": 71,
+  "assignments": [
+    {
+      "assignment_id": "mapping-proposal-lesson-3-printed-pages-58-71-ae56a8d34acdb341",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "defines_lesson",
+      "resource_type": "teacher_guide",
+      "curriculum_reference": "Lesson 3, printed pages 58–71",
+      "title_or_label": "Teacher Guide Lesson 3 range",
+      "referenced_printed_pages": [
+        "58–71"
+      ],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 63,
+      "proposed_pdf_end_page": 76,
+      "resolution_method": "saved_index_exact_boundary",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 63,
+          "teacher_guide_printed_page": "58",
+          "exact_reference_text": "evidence:mapping-proposal-lesson-3-printed-pages-58-71-ae56a8d34acdb341:1:tg-pdf-63:sha256-22b60e8fb3a247ab",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-small-group-firstborn-and-cubano-two-461e057c033a6442",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "assigned_reading",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "Small Group: “Firstborn” and “Cubano Two” [pages 95–114 and 115–121]",
+      "title_or_label": "Firstborn",
+      "referenced_printed_pages": [
+        "95–114"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": 57,
+      "proposed_pdf_end_page": 65,
+      "resolution_method": "exact_story_heading_to_next_story_heading",
+      "confidence": 0.94,
+      "verification_status": "human_reviewed_override",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 65,
+          "teacher_guide_printed_page": "60",
+          "exact_reference_text": "evidence:mapping-proposal-small-group-firstborn-and-cubano-two-461e057c033a6442:1:tg-pdf-65:sha256-2d602ed9b10c2dff",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "The exact story heading and next-story boundary are registered, but printed-page equivalence is absent from the reflowed instructional text."
+      ],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": "Human approval supplied for the named story or supporting-text registered PDF range."
+    },
+    {
+      "assignment_id": "mapping-proposal-small-group-firstborn-and-cubano-two-b19f2aa21a91ffaf",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "assigned_reading",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "Small Group: “Firstborn” and “Cubano Two” [pages 95–114 and 115–121]",
+      "title_or_label": "Cubano Two",
+      "referenced_printed_pages": [
+        "115–121"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": 66,
+      "proposed_pdf_end_page": 70,
+      "resolution_method": "exact_story_heading_to_next_story_heading",
+      "confidence": 0.94,
+      "verification_status": "human_reviewed_override",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 65,
+          "teacher_guide_printed_page": "60",
+          "exact_reference_text": "evidence:mapping-proposal-small-group-firstborn-and-cubano-two-b19f2aa21a91ffaf:1:tg-pdf-65:sha256-2900736995db70f2",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "The exact story heading and next-story boundary are registered, but printed-page equivalence is absent from the reflowed instructional text."
+      ],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": "Human approval supplied for the named story or supporting-text registered PDF range."
+    },
+    {
+      "assignment_id": "mapping-proposal-pages-95-97-1c10aebc8dad4b97",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[pages 95–97]",
+      "title_or_label": "Firstborn guided range 95–97",
+      "referenced_printed_pages": [
+        "95–97"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 69,
+          "teacher_guide_printed_page": "64",
+          "exact_reference_text": "evidence:mapping-proposal-pages-95-97-1c10aebc8dad4b97:1:tg-pdf-69:sha256-bf4c17f7c959da05",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-have-students-read-from-the-beginnin-f120cffdd1cacdab",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[Have students read from the beginning of page 95 to the break near the bottom of page 97.]",
+      "title_or_label": "Firstborn guided range 95, 97",
+      "referenced_printed_pages": [
+        "95",
+        "97"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 69,
+          "teacher_guide_printed_page": "64",
+          "exact_reference_text": "evidence:mapping-proposal-have-students-read-from-the-beginnin-f120cffdd1cacdab:1:tg-pdf-69:sha256-812a714bef25d798",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-pages-97-98-bbbc2de00a516e70",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[pages 97–98]",
+      "title_or_label": "Firstborn guided range 97–98",
+      "referenced_printed_pages": [
+        "97–98"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 69,
+          "teacher_guide_printed_page": "64",
+          "exact_reference_text": "evidence:mapping-proposal-pages-97-98-bbbc2de00a516e70:1:tg-pdf-69:sha256-0ac2d9677d85d248",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-have-students-read-from-the-bottom-o-8e84eb5dccce2701",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[Have students read from the bottom of page 97 to the break on page 98.]",
+      "title_or_label": "Firstborn guided range 97, 98",
+      "referenced_printed_pages": [
+        "97",
+        "98"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 69,
+          "teacher_guide_printed_page": "64",
+          "exact_reference_text": "evidence:mapping-proposal-have-students-read-from-the-bottom-o-8e84eb5dccce2701:1:tg-pdf-69:sha256-68a9b834d67d47c9",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-pages-98-102-4aa1692aaa597e5e",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[pages 98–102]",
+      "title_or_label": "Firstborn guided range 98–102",
+      "referenced_printed_pages": [
+        "98–102"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 69,
+          "teacher_guide_printed_page": "64",
+          "exact_reference_text": "evidence:mapping-proposal-pages-98-102-4aa1692aaa597e5e:1:tg-pdf-69:sha256-d58cdfb13a471e09",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-have-students-read-from-the-bottom-o-c14717ea75d1196f",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[Have students read from the bottom of page 98 to the break on page 102.]",
+      "title_or_label": "Firstborn guided range 98, 102",
+      "referenced_printed_pages": [
+        "98",
+        "102"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 69,
+          "teacher_guide_printed_page": "64",
+          "exact_reference_text": "evidence:mapping-proposal-have-students-read-from-the-bottom-o-c14717ea75d1196f:1:tg-pdf-69:sha256-64283f7a8fd77be9",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-pages-102-107-93eaa42875629555",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[pages 102–107]",
+      "title_or_label": "Firstborn guided range 102–107",
+      "referenced_printed_pages": [
+        "102–107"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 70,
+          "teacher_guide_printed_page": "65",
+          "exact_reference_text": "evidence:mapping-proposal-pages-102-107-93eaa42875629555:1:tg-pdf-70:sha256-4a4ebdf914105330",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-have-students-read-from-the-top-of-p-3ee8c2c115833189",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[Have students read from the top of page 102 to the break on page 107.]",
+      "title_or_label": "Firstborn guided range 102, 107",
+      "referenced_printed_pages": [
+        "102",
+        "107"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 70,
+          "teacher_guide_printed_page": "65",
+          "exact_reference_text": "evidence:mapping-proposal-have-students-read-from-the-top-of-p-3ee8c2c115833189:1:tg-pdf-70:sha256-a94642142b21f42d",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-pages-107-110-3ff39bc8c3a73908",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[pages 107–110]",
+      "title_or_label": "Firstborn guided range 107–110",
+      "referenced_printed_pages": [
+        "107–110"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 70,
+          "teacher_guide_printed_page": "65",
+          "exact_reference_text": "evidence:mapping-proposal-pages-107-110-3ff39bc8c3a73908:1:tg-pdf-70:sha256-76f44e2f90224e6c",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-have-students-read-from-the-top-of-p-7ddbc81ab3bcc71d",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[Have students read from the top of page 107 to the break on page 110.]",
+      "title_or_label": "Firstborn guided range 107, 110",
+      "referenced_printed_pages": [
+        "107",
+        "110"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 70,
+          "teacher_guide_printed_page": "65",
+          "exact_reference_text": "evidence:mapping-proposal-have-students-read-from-the-top-of-p-7ddbc81ab3bcc71d:1:tg-pdf-70:sha256-3eb98c8833cb76fc",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-pages-110-114-94a11aee7ea89c08",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[pages 110–114]",
+      "title_or_label": "Firstborn guided range 110–114",
+      "referenced_printed_pages": [
+        "110–114"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 71,
+          "teacher_guide_printed_page": "66",
+          "exact_reference_text": "evidence:mapping-proposal-pages-110-114-94a11aee7ea89c08:1:tg-pdf-71:sha256-8640174141874323",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-pages-115-117-656c0200f99e530e",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[pages 115–117]",
+      "title_or_label": "Cubano Two guided range 115–117",
+      "referenced_printed_pages": [
+        "115–117"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 71,
+          "teacher_guide_printed_page": "66",
+          "exact_reference_text": "evidence:mapping-proposal-pages-115-117-656c0200f99e530e:1:tg-pdf-71:sha256-3db859ce3b593754",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-have-students-read-the-first-three-p-96f2c6e77113027f",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[Have students read the first three paragraphs on pages 115–117.]",
+      "title_or_label": "Cubano Two guided range 115–117",
+      "referenced_printed_pages": [
+        "115–117"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 71,
+          "teacher_guide_printed_page": "66",
+          "exact_reference_text": "evidence:mapping-proposal-have-students-read-the-first-three-p-96f2c6e77113027f:1:tg-pdf-71:sha256-94e4ade2521535cc",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-pages-117-120-558efac8c9c650dd",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[pages 117–120]",
+      "title_or_label": "Cubano Two guided range 117–120",
+      "referenced_printed_pages": [
+        "117–120"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 72,
+          "teacher_guide_printed_page": "67",
+          "exact_reference_text": "evidence:mapping-proposal-pages-117-120-558efac8c9c650dd:1:tg-pdf-72:sha256-019fa08a4706383b",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-have-students-read-from-the-bottom-o-18cb7a7d48eaab3b",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[Have students read from the bottom of page 117 to the bottom of page 120.]",
+      "title_or_label": "Cubano Two guided range 117, 120",
+      "referenced_printed_pages": [
+        "117",
+        "120"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 72,
+          "teacher_guide_printed_page": "67",
+          "exact_reference_text": "evidence:mapping-proposal-have-students-read-from-the-bottom-o-18cb7a7d48eaab3b:1:tg-pdf-72:sha256-9e444a4b4e1d2cff",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-page-121-9966c17fe384d110",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[page 121]",
+      "title_or_label": "Cubano Two guided range 121",
+      "referenced_printed_pages": [
+        "121"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 72,
+          "teacher_guide_printed_page": "67",
+          "exact_reference_text": "evidence:mapping-proposal-page-121-9966c17fe384d110:1:tg-pdf-72:sha256-8e566a755365481a",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-have-students-read-the-final-paragra-ea5b73fd3561b5d9",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[Have students read the final paragraph on page 121.]",
+      "title_or_label": "Cubano Two guided range 121",
+      "referenced_printed_pages": [
+        "121"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 72,
+          "teacher_guide_printed_page": "67",
+          "exact_reference_text": "evidence:mapping-proposal-have-students-read-the-final-paragra-ea5b73fd3561b5d9:1:tg-pdf-72:sha256-804ebc5cfa4b51fe",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-have-students-read-the-rest-of-the-s-3140e40c3545d905",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "guided_reading_continuation",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[Have students read the rest of the story.]",
+      "title_or_label": "Cubano Two guided continuation 1",
+      "referenced_printed_pages": [],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "unbounded_continuation_requires_human_review",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 71,
+          "teacher_guide_printed_page": "66",
+          "exact_reference_text": "evidence:mapping-proposal-have-students-read-the-rest-of-the-s-3140e40c3545d905:1:tg-pdf-71:sha256-af5b34e84488ffd9",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "The publisher explicitly assigns the remainder of the story but gives no printed start or end coordinate in this instruction. Human review must connect it to the preceding guided-reading stop without inferring a page range."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-page-2-2-for-review-3-1-3-2-ed261547e95a9174",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "shared_review_activity",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "Activity Page 2.2 (for review), 3.1, 3.2",
+      "title_or_label": "Activity Page 2.2",
+      "referenced_printed_pages": [
+        "2.2"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 15,
+      "proposed_pdf_end_page": 16,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 63,
+          "teacher_guide_printed_page": "58",
+          "exact_reference_text": "evidence:mapping-proposal-activity-page-2-2-for-review-3-1-3-2-ed261547e95a9174:1:tg-pdf-63:sha256-827795e4e8dfb0a1",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This earlier Activity Page is explicitly cited inside Lesson 3 as a review dependency."
+      ],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-page-2-2-answer-key-resourc-d269e8f943693b72",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "shared_review_answer_key",
+      "resource_type": "teacher_guide_answer_key",
+      "curriculum_reference": "Activity Page 2.2 answer-key resource",
+      "title_or_label": "Answer Key 2.2",
+      "referenced_printed_pages": [
+        "2.2"
+      ],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 154,
+      "proposed_pdf_end_page": 154,
+      "resolution_method": "exact_answer_key_heading_and_activity_label",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 63,
+          "teacher_guide_printed_page": "58",
+          "exact_reference_text": "evidence:mapping-proposal-activity-page-2-2-answer-key-resourc-d269e8f943693b72:1:tg-pdf-63:sha256-7069865606d6d398",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "Only content carrying the exact activity or assessment label is in scope; neighboring facsimiles on the same Teacher Guide page are excluded."
+      ],
+      "human_review_required": false,
+      "required_status": "optional",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-page-2-2-for-review-3-1-3-2-6c433871b6f615ac",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "activity_resource",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "Activity Page 2.2 (for review), 3.1, 3.2",
+      "title_or_label": "Activity Page 3.1",
+      "referenced_printed_pages": [
+        "3.1"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 23,
+      "proposed_pdf_end_page": 24,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 63,
+          "teacher_guide_printed_page": "58",
+          "exact_reference_text": "evidence:mapping-proposal-activity-page-2-2-for-review-3-1-3-2-6c433871b6f615ac:1:tg-pdf-63:sha256-eaaa6b9d48b38318",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-page-2-2-for-review-3-1-3-2-8b6764ed0c8b8218",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "activity_resource",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "Activity Page 2.2 (for review), 3.1, 3.2",
+      "title_or_label": "Activity Page 3.2",
+      "referenced_printed_pages": [
+        "3.2"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 25,
+      "proposed_pdf_end_page": 30,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 63,
+          "teacher_guide_printed_page": "58",
+          "exact_reference_text": "evidence:mapping-proposal-activity-page-2-2-for-review-3-1-3-2-8b6764ed0c8b8218:1:tg-pdf-63:sha256-166cb7e87fc2d9f4",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-page-3-2-answer-key-resourc-0a1294ffcae87d82",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "publisher_answer_key",
+      "resource_type": "teacher_guide_answer_key",
+      "curriculum_reference": "Activity Page 3.2 answer-key resource",
+      "title_or_label": "Answer Key 3.2",
+      "referenced_printed_pages": [
+        "3.2"
+      ],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 155,
+      "proposed_pdf_end_page": 156,
+      "resolution_method": "exact_answer_key_heading_and_activity_label",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 63,
+          "teacher_guide_printed_page": "58",
+          "exact_reference_text": "evidence:mapping-proposal-activity-page-3-2-answer-key-resourc-0a1294ffcae87d82:1:tg-pdf-63:sha256-436c81fc6ed978a3",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "Only content carrying the exact activity or assessment label is in scope; neighboring facsimiles on the same Teacher Guide page are excluded."
+      ],
+      "human_review_required": false,
+      "required_status": "optional",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-15-min-activity-page-3-4-c1d623bd0d5d7966",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "activity_resource",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "15 min Activity Page 3.4",
+      "title_or_label": "Activity Page 3.4",
+      "referenced_printed_pages": [
+        "3.4"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 33,
+      "proposed_pdf_end_page": 34,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 63,
+          "teacher_guide_printed_page": "58",
+          "exact_reference_text": "evidence:mapping-proposal-15-min-activity-page-3-4-c1d623bd0d5d7966:1:tg-pdf-63:sha256-09dd2bdfdee7aa42",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-writing-30-min-write-a-short-story-p-3ffb08b1533e14f6",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "activity_resource",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "Writing 30 min Write a Short Story: Plan Activity Pages 3.5",
+      "title_or_label": "Activity Page 3.5",
+      "referenced_printed_pages": [
+        "3.5"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 35,
+      "proposed_pdf_end_page": 36,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 63,
+          "teacher_guide_printed_page": "58",
+          "exact_reference_text": "evidence:mapping-proposal-writing-30-min-write-a-short-story-p-3ffb08b1533e14f6:1:tg-pdf-63:sha256-6be0a4436dc69e3c",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-take-home-material-reading-activity--3c2354e5718b9064",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "activity_resource",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "Take-Home Material * Reading Activity Pages 3.2, 3.3, 3.4, 3.5",
+      "title_or_label": "Activity Page 3.3",
+      "referenced_printed_pages": [
+        "3.3"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 31,
+      "proposed_pdf_end_page": 32,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 63,
+          "teacher_guide_printed_page": "58",
+          "exact_reference_text": "evidence:mapping-proposal-take-home-material-reading-activity--3c2354e5718b9064:1:tg-pdf-63:sha256-6540c3f8ed5439b6",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-page-3-3-answer-key-resourc-79fe268f234630e7",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "publisher_answer_key",
+      "resource_type": "teacher_guide_answer_key",
+      "curriculum_reference": "Activity Page 3.3 answer-key resource",
+      "title_or_label": "Answer Key 3.3",
+      "referenced_printed_pages": [
+        "3.3"
+      ],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 157,
+      "proposed_pdf_end_page": 157,
+      "resolution_method": "exact_answer_key_heading_and_activity_label",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 63,
+          "teacher_guide_printed_page": "58",
+          "exact_reference_text": "evidence:mapping-proposal-activity-page-3-3-answer-key-resourc-79fe268f234630e7:1:tg-pdf-63:sha256-d09089bda8bc3e38",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "Only content carrying the exact activity or assessment label is in scope; neighboring facsimiles on the same Teacher Guide page are excluded.",
+        "The lesson identifies this as an open-ended writing prompt. Any labeled answer-key content is guidance or a sample, not one exact answer."
+      ],
+      "human_review_required": false,
+      "required_status": "optional",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-ask-a-few-students-to-share-some-of--68c014798b4e0e1e",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "shared_review_activity",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "• Ask a few students to share some of their story ideas from Activity Page 2.5, which they",
+      "title_or_label": "Activity Page 2.5",
+      "referenced_printed_pages": [
+        "2.5"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 21,
+      "proposed_pdf_end_page": 22,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 75,
+          "teacher_guide_printed_page": "70",
+          "exact_reference_text": "evidence:mapping-proposal-ask-a-few-students-to-share-some-of--68c014798b4e0e1e:1:tg-pdf-75:sha256-d038edeba8250b81",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This earlier Activity Page is explicitly cited inside Lesson 3 as a review dependency."
+      ],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-have-students-read-the-notes-on-the--34763311e45b7f1f",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "story_notes",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "Have students read the notes on the stories on pages 236–237. Then use the following",
+      "title_or_label": "Story notes: Firstborn and Cubano Two",
+      "referenced_printed_pages": [
+        "236–237"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": 132,
+      "proposed_pdf_end_page": 132,
+      "resolution_method": "exact_section_and_story_labels",
+      "confidence": 0.9,
+      "verification_status": "human_reviewed_override",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 73,
+          "teacher_guide_printed_page": "68",
+          "exact_reference_text": "evidence:mapping-proposal-have-students-read-the-notes-on-the--34763311e45b7f1f:1:tg-pdf-73:sha256-ddfdf7b4895efd39",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "Exact story labels occur in the registered notes section, but printed-page equivalence is absent."
+      ],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": "Human approval supplied for the named story or supporting-text registered PDF range."
+    },
+    {
+      "assignment_id": "mapping-proposal-note-to-teacher-remind-students-that-a28b312b46a15ad0",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "translation_reference",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "Note to Teacher: Remind students that translations of Spanish words and phrases used in the stories can be found beginning on page 217 of the book. Translations of the refranes that",
+      "title_or_label": "Spanish translations: Firstborn and Cubano Two",
+      "referenced_printed_pages": [
+        "217"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": 124,
+      "proposed_pdf_end_page": 124,
+      "resolution_method": "exact_section_and_story_labels",
+      "confidence": 0.9,
+      "verification_status": "human_reviewed_override",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 65,
+          "teacher_guide_printed_page": "60",
+          "exact_reference_text": "evidence:mapping-proposal-note-to-teacher-remind-students-that-a28b312b46a15ad0:1:tg-pdf-65:sha256-ddde0968c678c321",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "Exact story labels occur in the registered translation section; printed page 217 is absent."
+      ],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": "Human approval supplied for the named story or supporting-text registered PDF range."
+    },
+    {
+      "assignment_id": "mapping-proposal-the-stories-can-be-found-beginning-o-d05108790d46222b",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "refrane_reference",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "the stories can be found beginning on page 217 of the book. Translations of the refranes that accompany each story begin on page 228.",
+      "title_or_label": "Refrane translation: Firstborn and Cubano Two",
+      "referenced_printed_pages": [
+        "217",
+        "228"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": 128,
+      "proposed_pdf_end_page": 128,
+      "resolution_method": "exact_section_and_story_labels",
+      "confidence": 0.9,
+      "verification_status": "human_reviewed_override",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 65,
+          "teacher_guide_printed_page": "60",
+          "exact_reference_text": "evidence:mapping-proposal-the-stories-can-be-found-beginning-o-d05108790d46222b:1:tg-pdf-65:sha256-9b245de1d4b66e27",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "Exact story labels occur in the registered refrane section; printed numbering is absent."
+      ],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": "Human approval supplied for the named story or supporting-text registered PDF range."
+    },
+    {
+      "assignment_id": "mapping-proposal-link-to-download-the-ckla-online-res-f53b31f6e14153be",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "online_teacher_resources",
+      "resource_type": "online_resource_guide",
+      "curriculum_reference": "link to download the CKLA Online Resources for this unit, where the specifics links to bullying",
+      "title_or_label": "Lesson 3 Online Resources",
+      "referenced_printed_pages": [],
+      "resolved_resource_id": "resource-grade-8-unit-1-online-resources-013402617f51c016",
+      "proposed_pdf_start_page": 4,
+      "proposed_pdf_end_page": 4,
+      "resolution_method": "exact_lesson_number_heading",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 64,
+          "teacher_guide_printed_page": "59",
+          "exact_reference_text": "evidence:mapping-proposal-link-to-download-the-ckla-online-res-f53b31f6e14153be:1:tg-pdf-64:sha256-f74f433b827241f6",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "optional",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-display-the-maps-of-north-and-centra-3a1ad957002d8d93",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "classroom_map",
+      "resource_type": "visual_resource",
+      "curriculum_reference": "• Display the maps of North and Central America to show the distance from Kissimmee, Florida,",
+      "title_or_label": "Teacher-supplied map",
+      "referenced_printed_pages": [],
+      "resolved_resource_id": null,
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "no_registered_exact_asset_match",
+      "confidence": 0,
+      "verification_status": "unavailable_in_registered_sources",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 64,
+          "teacher_guide_printed_page": "59",
+          "exact_reference_text": "evidence:mapping-proposal-display-the-maps-of-north-and-centra-3a1ad957002d8d93:1:tg-pdf-64:sha256-0eab4c843345b344",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "The map is explicitly required by this lesson, but no exact map asset is registered. Do not substitute the online-resource index page for the map itself."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-display-the-word-roots-anchor-chart--f3e6b40a4f3bb1f3",
+      "unit_number": 1,
+      "lesson_number": 3,
+      "resource_role": "teacher_chart",
+      "resource_type": "teacher_guide",
+      "curriculum_reference": "• Display the Word Roots Anchor Chart, found on Teacher Guide page 69, in the classroom.",
+      "title_or_label": "Word Roots Anchor Chart",
+      "referenced_printed_pages": [],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 74,
+      "proposed_pdf_end_page": 74,
+      "resolution_method": "exact_chart_title_heading",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 64,
+          "teacher_guide_printed_page": "59",
+          "exact_reference_text": "evidence:mapping-proposal-display-the-word-roots-anchor-chart--f3e6b40a4f3bb1f3:1:tg-pdf-64:sha256-9525bc734e46bfd6",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    }
+  ],
+  "unresolved_references": [
+    "Firstborn guided-reading reference 95–97 requires reviewed subrange coordinates.",
+    "Firstborn guided-reading reference 95, 97 requires reviewed subrange coordinates.",
+    "Firstborn guided-reading reference 97–98 requires reviewed subrange coordinates.",
+    "Firstborn guided-reading reference 97, 98 requires reviewed subrange coordinates.",
+    "Firstborn guided-reading reference 98–102 requires reviewed subrange coordinates.",
+    "Firstborn guided-reading reference 98, 102 requires reviewed subrange coordinates.",
+    "Firstborn guided-reading reference 102–107 requires reviewed subrange coordinates.",
+    "Firstborn guided-reading reference 102, 107 requires reviewed subrange coordinates.",
+    "Firstborn guided-reading reference 107–110 requires reviewed subrange coordinates.",
+    "Firstborn guided-reading reference 107, 110 requires reviewed subrange coordinates.",
+    "Firstborn guided-reading reference 110–114 requires reviewed subrange coordinates.",
+    "Cubano Two guided-reading reference 115–117 requires reviewed subrange coordinates.",
+    "Cubano Two guided-reading reference 117–120 requires reviewed subrange coordinates.",
+    "Cubano Two guided-reading reference 117, 120 requires reviewed subrange coordinates.",
+    "Cubano Two guided-reading reference 121 requires reviewed subrange coordinates.",
+    "Cubano Two unbounded guided-reading continuation requires reviewed subrange coordinates.",
+    "Lesson 3 teacher-supplied map: exact registered asset unavailable."
+  ],
+  "warnings": [
+    "This Lesson 3 manifest is an approved production configuration.",
+    "Guided-reading printed subranges remain provenance-only references within their approved parent story; no PDF subranges were inferred.",
+    "Open-ended answer guidance remains distinguished from an exact publisher answer."
+  ],
+  "schema_version": "1.1",
+  "builder_version": "3.0"
+}

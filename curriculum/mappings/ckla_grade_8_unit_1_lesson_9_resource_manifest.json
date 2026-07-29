@@ -1,0 +1,270 @@
+{
+  "curriculum": "CKLA",
+  "grade": "8",
+  "unit_number": 1,
+  "lesson_number": 9,
+  "lesson_title": "Write a Short Story: Publish",
+  "teacher_guide_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+  "teacher_guide_pdf_start_page": 133,
+  "teacher_guide_pdf_end_page": 139,
+  "teacher_guide_printed_start_page": 128,
+  "teacher_guide_printed_end_page": 134,
+  "assignments": [
+    {
+      "assignment_id": "mapping-proposal-lesson-9-printed-pages-128-134-e5130272a9b09b7c",
+      "unit_number": 1,
+      "lesson_number": 9,
+      "resource_role": "defines_lesson",
+      "resource_type": "teacher_guide",
+      "curriculum_reference": "Lesson 9, printed pages 128–134",
+      "title_or_label": "Teacher Guide Lesson 9 range",
+      "referenced_printed_pages": [
+        "128–134"
+      ],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 133,
+      "proposed_pdf_end_page": 139,
+      "resolution_method": "saved_index_exact_boundary",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 133,
+          "teacher_guide_printed_page": "128",
+          "exact_reference_text": "evidence:mapping-proposal-lesson-9-printed-pages-128-134-e5130272a9b09b7c:1:tg-pdf-133:sha256-f4b2612a6b55e61c",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-progress-stories-about-young-latinos-7c3ac84b79dcfd91",
+      "unit_number": 1,
+      "lesson_number": 9,
+      "resource_role": "assessment_reading",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "Progress: Stories About Young Latinos. The selections students will read are on pages 17–19 and 34–35 in the trade book. You may have collected this activity page from",
+      "title_or_label": "Selfie assessment selections",
+      "referenced_printed_pages": [
+        "17–19",
+        "34–35"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subranges_not_mappable_from_guide_only",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 135,
+          "teacher_guide_printed_page": "130",
+          "exact_reference_text": "evidence:mapping-proposal-progress-stories-about-young-latinos-7c3ac84b79dcfd91:1:tg-pdf-135:sha256-887415fc16f41ebc",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "The Teacher Guide identifies printed selections 17–19 and 34–35, but provides no quoted boundary text that mechanically maps those excerpts into the registered reflowed story."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-35-min-activity-page-9-1-8eafc021114ce7ac",
+      "unit_number": 1,
+      "lesson_number": 9,
+      "resource_role": "activity_resource",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "35 min Activity Page 9.1",
+      "title_or_label": "Activity Page 9.1",
+      "referenced_printed_pages": [
+        "9.1"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 99,
+      "proposed_pdf_end_page": 110,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 133,
+          "teacher_guide_printed_page": "128",
+          "exact_reference_text": "evidence:mapping-proposal-35-min-activity-page-9-1-8eafc021114ce7ac:1:tg-pdf-133:sha256-ce41495d0d49ca46",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-page-9-1-answer-key-resourc-53c485191dec48a2",
+      "unit_number": 1,
+      "lesson_number": 9,
+      "resource_role": "publisher_answer_key",
+      "resource_type": "teacher_guide_answer_key",
+      "curriculum_reference": "Activity Page 9.1 answer-key resource",
+      "title_or_label": "Answer Key 9.1",
+      "referenced_printed_pages": [
+        "9.1"
+      ],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 165,
+      "proposed_pdf_end_page": 167,
+      "resolution_method": "exact_answer_key_heading_and_activity_label",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 133,
+          "teacher_guide_printed_page": "128",
+          "exact_reference_text": "evidence:mapping-proposal-activity-page-9-1-answer-key-resourc-53c485191dec48a2:1:tg-pdf-133:sha256-3369db3dbcd02a1e",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "Only content carrying the exact activity or assessment label is in scope; neighboring facsimiles on the same Teacher Guide page are excluded."
+      ],
+      "human_review_required": false,
+      "required_status": "optional",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-unit-feedback-survey-10-min-activity-9dd5dabca3ebd8d3",
+      "unit_number": 1,
+      "lesson_number": 9,
+      "resource_role": "activity_resource",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "Unit Feedback Survey 10 min Activity Page 9.2",
+      "title_or_label": "Activity Page 9.2",
+      "referenced_printed_pages": [
+        "9.2"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 111,
+      "proposed_pdf_end_page": 128,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 133,
+          "teacher_guide_printed_page": "128",
+          "exact_reference_text": "evidence:mapping-proposal-unit-feedback-survey-10-min-activity-9dd5dabca3ebd8d3:1:tg-pdf-133:sha256-3722f15f5c556d8b",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-unit-assessment-35-minutes-0a95dd353974bf7b",
+      "unit_number": 1,
+      "lesson_number": 9,
+      "resource_role": "assessment_resource",
+      "resource_type": "teacher_guide",
+      "curriculum_reference": "UNIT ASSESSMENT 35 minutes",
+      "title_or_label": "Unit Assessment administration",
+      "referenced_printed_pages": [],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 135,
+      "proposed_pdf_end_page": 135,
+      "resolution_method": "exact_assessment_heading_within_lesson",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 135,
+          "teacher_guide_printed_page": "130",
+          "exact_reference_text": "evidence:mapping-proposal-unit-assessment-35-minutes-0a95dd353974bf7b:1:tg-pdf-135:sha256-b146d9ad30c2500e",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-unit-assessment-analysis-cead17d125f8ef28",
+      "unit_number": 1,
+      "lesson_number": 9,
+      "resource_role": "assessment_resource",
+      "resource_type": "teacher_guide",
+      "curriculum_reference": "UNIT ASSESSMENT ANALYSIS",
+      "title_or_label": "Unit Assessment analysis and scoring",
+      "referenced_printed_pages": [],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 136,
+      "proposed_pdf_end_page": 139,
+      "resolution_method": "exact_assessment_heading_within_lesson",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 136,
+          "teacher_guide_printed_page": "131",
+          "exact_reference_text": "evidence:mapping-proposal-unit-assessment-analysis-cead17d125f8ef28:1:tg-pdf-136:sha256-23cb54e723d16c87",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    }
+  ],
+  "unresolved_references": [
+    "Selfie assessment selections pages 17–19 and 34–35 require human coordinate identification."
+  ],
+  "warnings": [
+    "This Lesson 9 manifest is an approved production configuration.",
+    "Guided-reading printed subranges remain provenance-only references within their approved parent story; no PDF subranges were inferred.",
+    "Open-ended answer guidance remains distinguished from an exact publisher answer."
+  ],
+  "schema_version": "1.1",
+  "builder_version": "3.0"
+}

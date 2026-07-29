@@ -1,0 +1,74 @@
+{
+  "package_id": "SYNTHETIC-G8-U1-L1-PARSER-SAMPLE",
+  "lesson_metadata": {
+    "title": "Identity and Theme in The Crossing",
+    "grade": "8",
+    "unit": "Unit 1: Stories of Belonging",
+    "lesson_number": 1
+  },
+  "slide_order": ["S01", "S02", "S03", "S04"],
+  "slides": [
+    {
+      "slide_id": "S01",
+      "title": "Welcome to Unit 1",
+      "layout_type": "title",
+      "student_facing_content": "Stories of Belonging\nOriginal Classroom Fiction",
+      "bullet_points": ["Unit 1 • Lesson 1"],
+      "speaker_notes": "Introduce varied perspectives in the original classroom texts.",
+      "teacher_directions": "Preview the title in students' books.",
+      "timing": "2 min",
+      "materials": "Student reader",
+      "image_prompt": "Original editable title graphic",
+      "source_references": ["Synthetic Teacher Guide, p. 1"]
+    },
+    {
+      "slide_id": "S02",
+      "title": "What Shapes Identity?",
+      "layout_type": "discussion",
+      "student_facing_content": "Identity can be shaped by:",
+      "bullet_points": ["experiences", "choices", "communities"],
+      "speaker_notes": "Keep participation analytical and voluntary.",
+      "teacher_directions": "Build a whole-class concept web.",
+      "timing": 5,
+      "materials": "Chart paper and markers",
+      "image_prompt": "Neutral editable identity concept map",
+      "source_references": ["Synthetic Teacher Guide, p. 2"]
+    },
+    {
+      "slide_id": "S03",
+      "title": "Core Vocabulary",
+      "layout_type": "vocabulary",
+      "student_facing_content": "Use Practice Page 1.2.",
+      "bullet_points": ["identity", "perspective", "inference"],
+      "speaker_notes": "Distinguish the three academic terms.",
+      "teacher_directions": "Lead a brief pronunciation rehearsal.",
+      "timing": "3 minutes",
+      "materials": "Practice Page 1.2",
+      "source_references": ["Synthetic Teacher Guide, pp. 3–4"]
+    },
+    {
+      "slide_id": "S04",
+      "title": "Theme Check and Homework",
+      "layout_type": "assessment",
+      "student_facing_content": "Write one theme and one event that develops it.",
+      "bullet_points": ["Read pp. 5–8", "Complete Practice Page 1.3"],
+      "speaker_notes": "Accept a defensible theme supported by an accurate event.",
+      "teacher_directions": "Collect the independent response.",
+      "timing": 2,
+      "materials": "Exit ticket and Practice Page 1.3",
+      "source_references": ["Synthetic Teacher Guide, p. 5"]
+    }
+  ],
+  "vocabulary": [
+    {"term": "identity", "definition": "The qualities and experiences that shape a person."}
+  ],
+  "activities": [
+    {"activity_id": "A01", "title": "Concept web", "instructions": "Add evidence-based identity factors.", "duration_minutes": 5, "interaction": "whole class"}
+  ],
+  "assessments": [
+    {"title": "Theme check", "assessment_type": "exit ticket", "instructions": "State a theme and supporting event.", "success_criteria": ["Defensible theme", "Accurate event"]}
+  ],
+  "homework": [
+    {"title": "Read The Crossing", "instructions": "Read pages 5–8 and complete Practice Page 1.3."}
+  ]
+}

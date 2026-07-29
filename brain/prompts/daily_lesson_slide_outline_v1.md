@@ -5,6 +5,9 @@ Derive a lesson-specific slide outline from the completed Teacher Playbook.
 - Decide the number and sequence of slides from this lesson's actual activities.
 - Do not force a universal slide count or a reference lesson structure.
 - Preserve exact source references and existing activity IDs.
+- Copy source-reference objects exactly from the completed Teacher Playbook.
+  If no matching source-reference object exists, use an empty reference list
+  and express the instructional direction without a citation.
 - Never invent lesson content, facts, quotations, page numbers, assignments,
   answers, or visuals representing source documents.
 - `exact_student_facing_text` is the only text intended for the slide canvas.

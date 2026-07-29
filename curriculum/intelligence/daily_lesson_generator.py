@@ -26,6 +26,7 @@ from renderer.daily_lesson_markdown import (
 )
 from schemas.daily_lesson_schema import (
     DAILY_LESSON_GENERATOR_VERSION,
+    DailyActivityCoaching,
     DailyGenerationMetadata,
     DailyLessonGenerationOptions,
     DailyLessonPackage,
@@ -136,6 +137,142 @@ def _validate_references(source, baseline, references) -> None:
         )
 
 
+def _normalized_reference_text(value: str | None) -> str:
+    if not value:
+        return ""
+    return re.sub(r"[^a-z0-9]+", "", value.casefold())
+
+
+def _reference_description(value: SourceReference) -> str:
+    pages = (
+        f"{value.page_start}–{value.page_end or value.page_start}"
+        if value.page_start is not None else "none"
+    )
+    return (
+        f"source_type={value.source_type!r}, pages={pages}, "
+        f"section={value.section!r}, "
+        f"activity_reference={value.activity_reference!r}"
+    )
+
+
+def _resolve_generated_reference(
+    value: SourceReference,
+    allowed: list[SourceReference],
+) -> SourceReference | None:
+    exact = [
+        candidate for candidate in allowed
+        if _reference_key(candidate) == _reference_key(value)
+    ]
+    if exact:
+        return exact[0]
+    source_type = _normalized_reference_text(value.source_type)
+    candidates = [
+        candidate for candidate in allowed
+        if _normalized_reference_text(candidate.source_type) == source_type
+    ]
+    if value.activity_reference:
+        expected = _normalized_reference_text(value.activity_reference)
+        matches = [
+            candidate for candidate in candidates
+            if _normalized_reference_text(
+                candidate.activity_reference
+            ) == expected
+        ]
+        if len(matches) == 1:
+            candidate = matches[0]
+            if value.page_start is not None and (
+                candidate.page_start,
+                candidate.page_end or candidate.page_start,
+            ) != (
+                value.page_start,
+                value.page_end or value.page_start,
+            ):
+                return None
+            return candidate
+    if value.page_start is not None:
+        expected_range = (
+            value.page_start,
+            value.page_end or value.page_start,
+        )
+        matches = [
+            candidate for candidate in candidates
+            if (
+                candidate.page_start,
+                candidate.page_end or candidate.page_start,
+            ) == expected_range
+        ]
+        if len(matches) == 1:
+            return matches[0]
+    if value.section:
+        expected = _normalized_reference_text(value.section)
+        matches = [
+            candidate for candidate in candidates
+            if _normalized_reference_text(
+                candidate.section
+            ) == expected
+        ]
+        if len(matches) == 1:
+            return matches[0]
+    return None
+
+
+def _sanitize_generated_references(
+    source,
+    baseline,
+    references,
+    *,
+    slide_number: int,
+    location: str,
+):
+    allowed = []
+    allowed_keys = set()
+    for reference in (
+        list(baseline.playbook.source_references)
+        + [
+            reference
+            for activity in baseline.playbook.activities
+            for reference in activity.source_references
+        ]
+    ):
+        if _reference_key(reference) not in allowed_keys:
+            allowed.append(reference)
+            allowed_keys.add(_reference_key(reference))
+    if source.teacher_guide_page_start is not None:
+        teacher_guide = SourceReference(
+            source_type="teacher_guide",
+            page_start=source.teacher_guide_page_start,
+            page_end=source.teacher_guide_page_end,
+            section=source.lesson_title,
+        )
+        if _reference_key(teacher_guide) not in allowed_keys:
+            allowed.append(teacher_guide)
+            allowed_keys.add(_reference_key(teacher_guide))
+
+    sanitized = []
+    warnings = []
+    seen = set()
+    for reference in references:
+        resolved = _resolve_generated_reference(reference, allowed)
+        if resolved is None:
+            warnings.append(
+                f"Removed unsupported {location} source reference from slide "
+                f"{slide_number}: {_reference_description(reference)}."
+            )
+            continue
+        key = _reference_key(resolved)
+        if key in seen:
+            continue
+        seen.add(key)
+        sanitized.append(resolved)
+        if key != _reference_key(reference):
+            warnings.append(
+                f"Normalized {location} source reference on slide "
+                f"{slide_number} to approved reference: "
+                f"{_reference_description(resolved)}."
+            )
+    return sanitized, warnings
+
+
 def _validate_playbook(source, baseline, playbook) -> None:
     if playbook.lesson_information != _identity(source):
         raise ValueError("Generated playbook changed the source identity.")
@@ -170,31 +307,145 @@ def _validate_playbook(source, baseline, playbook) -> None:
     )
 
 
-def _validate_slides(source, baseline, playbook, slides, options) -> None:
-    activity_ids = {activity.activity_id for activity in playbook.activities}
+def _normalized_activity_reference(value: str | None) -> str:
+    if not value:
+        return ""
+    return re.sub(r"[^a-z0-9]+", "", value.casefold())
+
+
+def _add_agenda_fallback_activities(source, playbook):
+    if playbook.activities or not playbook.agenda:
+        return playbook, []
+    activities = [
+        DailyActivityCoaching(
+            activity_id=stable_id(
+                "daily-agenda-activity",
+                source.source_id,
+                str(index),
+                item.title,
+            ),
+            title=item.title,
+            duration_minutes=item.duration_minutes,
+            purpose=(
+                item.purpose
+                or "Agenda segment from the completed Teacher Playbook."
+            ),
+            teacher_goal=(
+                f"Guide students through the {item.title} agenda segment."
+            ),
+        )
+        for index, item in enumerate(playbook.agenda, 1)
+    ]
+    titles = ", ".join(activity.title for activity in activities)
+    warning = (
+        "Created fallback activity records from the Teacher Playbook agenda "
+        f"because no timed activity headings were found: {titles}."
+    )
+    return playbook.model_copy(update={"activities": activities}), [warning]
+
+
+def _resolve_slide_activities(playbook, slides):
+    by_id = {
+        _normalized_activity_reference(activity.activity_id): activity
+        for activity in playbook.activities
+    }
+    by_title = {
+        _normalized_activity_reference(activity.title): activity
+        for activity in playbook.activities
+    }
+    resolved = []
+    warnings = []
     for slide in slides:
-        if (
-            slide.related_activity_id is not None
-            and slide.related_activity_id not in activity_ids
-        ):
-            raise ValueError("Slide outline references an unknown activity.")
-        _validate_references(
+        id_key = _normalized_activity_reference(
+            slide.related_activity_id
+        )
+        title_key = _normalized_activity_reference(
+            slide.related_activity
+        )
+        activity = (
+            by_id.get(id_key)
+            or by_title.get(title_key)
+            or by_title.get(id_key)
+            or by_id.get(title_key)
+        )
+        if activity is not None:
+            resolved.append(slide.model_copy(update={
+                "related_activity_id": activity.activity_id,
+                "related_activity": activity.title,
+            }))
+            continue
+        if id_key or title_key:
+            identifier = slide.related_activity_id or "(none)"
+            title = slide.related_activity or "(none)"
+            warnings.append(
+                "Unmatched slide activity reference treated as lesson-level: "
+                f"title={title!r}, id={identifier!r}."
+            )
+            resolved.append(slide.model_copy(update={
+                "related_activity_id": None,
+            }))
+            continue
+        resolved.append(slide)
+    return resolved, warnings
+
+
+def _validate_slides(source, baseline, playbook, slides, options):
+    sanitized_slides = []
+    reference_warnings = []
+    for slide in slides:
+        slide_references, slide_warnings = _sanitize_generated_references(
             source,
             baseline,
-            slide.source_references + slide.speaker_notes.source_references,
+            slide.source_references,
+            slide_number=slide.slide_number,
+            location="slide",
         )
+        notes_references, notes_warnings = _sanitize_generated_references(
+            source,
+            baseline,
+            slide.speaker_notes.source_references,
+            slide_number=slide.slide_number,
+            location="speaker-notes",
+        )
+        sanitized = slide.model_copy(update={
+            "source_references": slide_references,
+            "speaker_notes": slide.speaker_notes.model_copy(update={
+                "source_references": notes_references,
+            }),
+        })
+        reference_warnings.extend(slide_warnings + notes_warnings)
         visible_length = sum(
-            len(value) for value in slide.exact_student_facing_text
+            len(value) for value in sanitized.exact_student_facing_text
         )
         if visible_length > options.maximum_student_text_characters:
             raise ValueError(
                 f"Slide {slide.slide_number} exceeds the student-text limit."
             )
-    _validate_page_mentions(
-        source,
-        baseline,
-        [slide.model_dump(mode="json") for slide in slides],
+        try:
+            _validate_page_mentions(
+                source,
+                baseline,
+                sanitized.model_dump(mode="json"),
+            )
+        except ValueError as error:
+            reference_warnings.append(
+                f"Removed slide {slide.slide_number} because it contained "
+                f"an unsupported page citation: {error}"
+            )
+            continue
+        sanitized_slides.append(sanitized)
+    if not sanitized_slides:
+        raise ValueError(
+            "Every generated slide contained unsupported source citations."
+        )
+    renumbered = [
+        slide.model_copy(update={"slide_number": index})
+        for index, slide in enumerate(sanitized_slides, 1)
+    ]
+    resolved, activity_warnings = _resolve_slide_activities(
+        playbook, renumbered
     )
+    return resolved, reference_warnings + activity_warnings
 
 
 def generate_daily_lesson_package(
@@ -233,7 +484,10 @@ def generate_daily_lesson_package(
     except (ValidationError, TypeError, ValueError) as error:
         raise ValueError("Malformed daily playbook output.") from error
     _validate_playbook(source, baseline, generated_playbook.playbook)
-    markdown = render_teacher_playbook(generated_playbook.playbook)
+    playbook, fallback_warnings = _add_agenda_fallback_activities(
+        source, generated_playbook.playbook
+    )
+    markdown = render_teacher_playbook(playbook)
     metadata = DailyGenerationMetadata(
         provider_name=provider.provider_name,
         model_name=provider.model_name,
@@ -243,10 +497,10 @@ def generate_daily_lesson_package(
         package_id=package_id,
         source_identity=_identity(source),
         status=DailyLessonStatus.playbook_ready,
-        teacher_playbook=generated_playbook.playbook,
+        teacher_playbook=playbook,
         teacher_playbook_markdown=markdown,
-        warnings=generated_playbook.warnings,
-        source_references=generated_playbook.playbook.source_references,
+        warnings=generated_playbook.warnings + fallback_warnings,
+        source_references=playbook.source_references,
         generation_metadata=metadata,
     )
     if repository:
@@ -255,7 +509,7 @@ def generate_daily_lesson_package(
         slide_response = provider.generate_slide_outline(
             DailySlideContext(
                 source=source,
-                playbook=generated_playbook.playbook,
+                playbook=playbook,
                 options=options,
             ),
             SLIDE_PROMPT.read_text(encoding="utf-8"),
@@ -263,10 +517,10 @@ def generate_daily_lesson_package(
         generated_slides = GeneratedDailySlideOutline.model_validate(
             slide_response.raw_payload
         )
-        _validate_slides(
+        normalized_slides, activity_warnings = _validate_slides(
             source,
             baseline,
-            generated_playbook.playbook,
+            playbook,
             generated_slides.slides,
             options,
         )
@@ -288,13 +542,17 @@ def generate_daily_lesson_package(
             ),
             speaker_notes_markdown=render_speaker_notes(slide.speaker_notes),
         )
-        for slide in generated_slides.slides
+        for slide in normalized_slides
     ]
     complete = package.model_copy(update={
         "status": DailyLessonStatus.complete,
-        "slide_outline": generated_slides.slides,
+        "slide_outline": normalized_slides,
         "gemini_slide_prompts": prompts,
-        "warnings": package.warnings + generated_slides.warnings,
+        "warnings": (
+            package.warnings
+            + generated_slides.warnings
+            + activity_warnings
+        ),
         "generation_metadata": metadata.model_copy(update={
             "slide_usage": slide_response.usage,
         }),

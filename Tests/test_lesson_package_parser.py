@@ -24,14 +24,14 @@ def test_realistic_package_has_correct_count_order_and_validates() -> None:
     assert isinstance(lesson, Lesson)
     assert len(lesson.slides) == 4
     assert [slide.slide_id for slide in lesson.slides] == ["S01", "S02", "S03", "S04"]
-    assert lesson.slides[0].student_content.startswith("Us, in Progress")
+    assert lesson.slides[0].student_content.startswith("Stories of Belonging")
     assert lesson.slides[0].interaction == "Preview the title in students' books."
     assert lesson.slides[0].visual_instructions == "Student reader"
     assert lesson.slides[2].timing == 3
     assert lesson.activities[0].title == "Concept web"
     assert lesson.vocabulary[0].term == "identity"
     assert lesson.assessments[0].assessment_type == "exit ticket"
-    assert lesson.homework[0].title == "Read Güera"
+    assert lesson.homework[0].title == "Read The Crossing"
 
 
 def test_declared_slide_order_controls_output() -> None:

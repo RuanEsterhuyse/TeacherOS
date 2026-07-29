@@ -1,0 +1,754 @@
+{
+  "curriculum": "CKLA",
+  "grade": "8",
+  "unit_number": 1,
+  "lesson_number": 6,
+  "lesson_title": "Close Reading: “Pickup Soccer”",
+  "teacher_guide_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+  "teacher_guide_pdf_start_page": 100,
+  "teacher_guide_pdf_end_page": 111,
+  "teacher_guide_printed_start_page": 95,
+  "teacher_guide_printed_end_page": 106,
+  "assignments": [
+    {
+      "assignment_id": "mapping-proposal-lesson-6-printed-pages-95-106-6ad7ab9768168249",
+      "unit_number": 1,
+      "lesson_number": 6,
+      "resource_role": "defines_lesson",
+      "resource_type": "teacher_guide",
+      "curriculum_reference": "Lesson 6, printed pages 95–106",
+      "title_or_label": "Teacher Guide Lesson 6 range",
+      "referenced_printed_pages": [
+        "95–106"
+      ],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 100,
+      "proposed_pdf_end_page": 111,
+      "resolution_method": "saved_index_exact_boundary",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 100,
+          "teacher_guide_printed_page": "95",
+          "exact_reference_text": "evidence:mapping-proposal-lesson-6-printed-pages-95-106-6ad7ab9768168249:1:tg-pdf-100:sha256-a28efca7e698d8f8",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-close-reading-pickup-soccer-pages-16-aec5f9ead8e52dd8",
+      "unit_number": 1,
+      "lesson_number": 6,
+      "resource_role": "assigned_reading",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "Close Reading: “Pickup Soccer” [pages 165–173]",
+      "title_or_label": "Pickup Soccer",
+      "referenced_printed_pages": [
+        "165–173"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": 93,
+      "proposed_pdf_end_page": 98,
+      "resolution_method": "exact_story_heading_to_next_story_heading",
+      "confidence": 0.94,
+      "verification_status": "human_reviewed_override",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 102,
+          "teacher_guide_printed_page": "97",
+          "exact_reference_text": "evidence:mapping-proposal-close-reading-pickup-soccer-pages-16-aec5f9ead8e52dd8:1:tg-pdf-102:sha256-66d676a67771d278",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "The exact story heading and next-story boundary are registered, but printed-page equivalence is absent from the reflowed instructional text."
+      ],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": "Human approval supplied for the named story or supporting-text registered PDF range."
+    },
+    {
+      "assignment_id": "mapping-proposal-have-students-read-page-165-108f001b4734abe7",
+      "unit_number": 1,
+      "lesson_number": 6,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[Have students read page 165.]",
+      "title_or_label": "Pickup Soccer guided range 165",
+      "referenced_printed_pages": [
+        "165"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 105,
+          "teacher_guide_printed_page": "100",
+          "exact_reference_text": "evidence:mapping-proposal-have-students-read-page-165-108f001b4734abe7:1:tg-pdf-105:sha256-001800aba00b2f1f",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-have-students-read-all-but-the-last--b57203b230cef04d",
+      "unit_number": 1,
+      "lesson_number": 6,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[Have students read all but the last two lines of page 166.]",
+      "title_or_label": "Pickup Soccer guided range 166",
+      "referenced_printed_pages": [
+        "166"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 105,
+          "teacher_guide_printed_page": "100",
+          "exact_reference_text": "evidence:mapping-proposal-have-students-read-all-but-the-last--b57203b230cef04d:1:tg-pdf-105:sha256-24eb8a386cb40c70",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-have-students-read-from-the-bottom-o-6308f794062d20e2",
+      "unit_number": 1,
+      "lesson_number": 6,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[Have students read from the bottom of page 166 to the last two lines on page 167.]",
+      "title_or_label": "Pickup Soccer guided range 166, 167",
+      "referenced_printed_pages": [
+        "166",
+        "167"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 106,
+          "teacher_guide_printed_page": "101",
+          "exact_reference_text": "evidence:mapping-proposal-have-students-read-from-the-bottom-o-6308f794062d20e2:1:tg-pdf-106:sha256-5cb8c3b6b9cc8c56",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-have-students-read-from-the-bottom-o-9b72a60d5161337a",
+      "unit_number": 1,
+      "lesson_number": 6,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[Have students read from the bottom of page 168 to the middle of page 169.]",
+      "title_or_label": "Pickup Soccer guided range 168, 169",
+      "referenced_printed_pages": [
+        "168",
+        "169"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 106,
+          "teacher_guide_printed_page": "101",
+          "exact_reference_text": "evidence:mapping-proposal-have-students-read-from-the-bottom-o-9b72a60d5161337a:1:tg-pdf-106:sha256-b6fda22f0a8713d9",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-have-students-read-from-the-middle-o-63b8ca98fed67657",
+      "unit_number": 1,
+      "lesson_number": 6,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[Have students read from the middle of page 169 to the break on page 171.]",
+      "title_or_label": "Pickup Soccer guided range 169, 171",
+      "referenced_printed_pages": [
+        "169",
+        "171"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 106,
+          "teacher_guide_printed_page": "101",
+          "exact_reference_text": "evidence:mapping-proposal-have-students-read-from-the-middle-o-63b8ca98fed67657:1:tg-pdf-106:sha256-59db81bfefccf5f8",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-have-students-read-the-rest-of-the-s-71b446e571a8f58d",
+      "unit_number": 1,
+      "lesson_number": 6,
+      "resource_role": "guided_reading_continuation",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[Have students read the rest of the story.]",
+      "title_or_label": "Pickup Soccer guided continuation 1",
+      "referenced_printed_pages": [],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "unbounded_continuation_requires_human_review",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 107,
+          "teacher_guide_printed_page": "102",
+          "exact_reference_text": "evidence:mapping-proposal-have-students-read-the-rest-of-the-s-71b446e571a8f58d:1:tg-pdf-107:sha256-206f60d4e1ffcec5",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "The publisher explicitly assigns the remainder of the story but gives no printed start or end coordinate in this instruction. Human review must connect it to the preceding guided-reading stop without inferring a page range."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-reading-activity-page-5-3-for-review-72dddd427bb8ba2c",
+      "unit_number": 1,
+      "lesson_number": 6,
+      "resource_role": "shared_review_activity",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "Reading Activity Page 5.3 (for review)",
+      "title_or_label": "Activity Page 5.3",
+      "referenced_printed_pages": [
+        "5.3"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 59,
+      "proposed_pdf_end_page": 60,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 100,
+          "teacher_guide_printed_page": "95",
+          "exact_reference_text": "evidence:mapping-proposal-reading-activity-page-5-3-for-review-72dddd427bb8ba2c:1:tg-pdf-100:sha256-c9942a7414f09e90",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This earlier Activity Page is explicitly cited inside Lesson 6 as a review dependency."
+      ],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-page-5-3-answer-key-resourc-dd8c9412b00da9dc",
+      "unit_number": 1,
+      "lesson_number": 6,
+      "resource_role": "shared_review_answer_key",
+      "resource_type": "teacher_guide_answer_key",
+      "curriculum_reference": "Activity Page 5.3 answer-key resource",
+      "title_or_label": "Answer Key 5.3",
+      "referenced_printed_pages": [
+        "5.3"
+      ],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 161,
+      "proposed_pdf_end_page": 161,
+      "resolution_method": "exact_answer_key_heading_and_activity_label",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 100,
+          "teacher_guide_printed_page": "95",
+          "exact_reference_text": "evidence:mapping-proposal-activity-page-5-3-answer-key-resourc-dd8c9412b00da9dc:1:tg-pdf-100:sha256-fa9fa2e91cdd585a",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "Only content carrying the exact activity or assessment label is in scope; neighboring facsimiles on the same Teacher Guide page are excluded."
+      ],
+      "human_review_required": false,
+      "required_status": "optional",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-pages-6-1-6-2-cfb72a035445d863",
+      "unit_number": 1,
+      "lesson_number": 6,
+      "resource_role": "activity_resource",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "Activity Pages 6.1, 6.2",
+      "title_or_label": "Activity Page 6.1",
+      "referenced_printed_pages": [
+        "6.1"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 67,
+      "proposed_pdf_end_page": 68,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 100,
+          "teacher_guide_printed_page": "95",
+          "exact_reference_text": "evidence:mapping-proposal-activity-pages-6-1-6-2-cfb72a035445d863:1:tg-pdf-100:sha256-356d72e9487b4067",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-pages-6-1-6-2-0e94a842fc430cdc",
+      "unit_number": 1,
+      "lesson_number": 6,
+      "resource_role": "activity_resource",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "Activity Pages 6.1, 6.2",
+      "title_or_label": "Activity Page 6.2",
+      "referenced_printed_pages": [
+        "6.2"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 69,
+      "proposed_pdf_end_page": 70,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 100,
+          "teacher_guide_printed_page": "95",
+          "exact_reference_text": "evidence:mapping-proposal-activity-pages-6-1-6-2-0e94a842fc430cdc:1:tg-pdf-100:sha256-78b0cc63e2300b71",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-page-6-2-answer-key-resourc-bbf8a103404ea0d4",
+      "unit_number": 1,
+      "lesson_number": 6,
+      "resource_role": "publisher_answer_key",
+      "resource_type": "teacher_guide_answer_key",
+      "curriculum_reference": "Activity Page 6.2 answer-key resource",
+      "title_or_label": "Answer Key 6.2",
+      "referenced_printed_pages": [
+        "6.2"
+      ],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 161,
+      "proposed_pdf_end_page": 161,
+      "resolution_method": "exact_answer_key_heading_and_activity_label",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 100,
+          "teacher_guide_printed_page": "95",
+          "exact_reference_text": "evidence:mapping-proposal-activity-page-6-2-answer-key-resourc-bbf8a103404ea0d4:1:tg-pdf-100:sha256-bab574a681abbfea",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "Only content carrying the exact activity or assessment label is in scope; neighboring facsimiles on the same Teacher Guide page are excluded.",
+        "The lesson identifies this as an open-ended writing prompt. Any labeled answer-key content is guidance or a sample, not one exact answer."
+      ],
+      "human_review_required": false,
+      "required_status": "optional",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-15-min-activity-page-6-3-e91d0a4726bad9f2",
+      "unit_number": 1,
+      "lesson_number": 6,
+      "resource_role": "activity_resource",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "15 min Activity Page 6.3",
+      "title_or_label": "Activity Page 6.3",
+      "referenced_printed_pages": [
+        "6.3"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 71,
+      "proposed_pdf_end_page": 72,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 100,
+          "teacher_guide_printed_page": "95",
+          "exact_reference_text": "evidence:mapping-proposal-15-min-activity-page-6-3-e91d0a4726bad9f2:1:tg-pdf-100:sha256-950e0583e647807f",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-page-6-3-answer-key-resourc-9a66553a0c8c95da",
+      "unit_number": 1,
+      "lesson_number": 6,
+      "resource_role": "publisher_answer_key",
+      "resource_type": "teacher_guide_answer_key",
+      "curriculum_reference": "Activity Page 6.3 answer-key resource",
+      "title_or_label": "Answer Key 6.3",
+      "referenced_printed_pages": [
+        "6.3"
+      ],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 162,
+      "proposed_pdf_end_page": 162,
+      "resolution_method": "exact_answer_key_heading_and_activity_label",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 100,
+          "teacher_guide_printed_page": "95",
+          "exact_reference_text": "evidence:mapping-proposal-activity-page-6-3-answer-key-resourc-9a66553a0c8c95da:1:tg-pdf-100:sha256-626d91cd8a8addee",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "Only content carrying the exact activity or assessment label is in scope; neighboring facsimiles on the same Teacher Guide page are excluded."
+      ],
+      "human_review_required": false,
+      "required_status": "optional",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-writing-30-min-activity-pages-6-4-37fb0f9d651c004c",
+      "unit_number": 1,
+      "lesson_number": 6,
+      "resource_role": "activity_resource",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "Writing 30 min Activity Pages 6.4",
+      "title_or_label": "Activity Page 6.4",
+      "referenced_printed_pages": [
+        "6.4"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 73,
+      "proposed_pdf_end_page": 74,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 100,
+          "teacher_guide_printed_page": "95",
+          "exact_reference_text": "evidence:mapping-proposal-writing-30-min-activity-pages-6-4-37fb0f9d651c004c:1:tg-pdf-100:sha256-c31f62aa9da7f3a4",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-read-the-notes-on-the-story-on-page--6060e85fd2cde294",
+      "unit_number": 1,
+      "lesson_number": 6,
+      "resource_role": "story_notes",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "Read the notes on the story on page 240. To wrap up, arrange students in groups of four, and",
+      "title_or_label": "Story notes: Pickup Soccer",
+      "referenced_printed_pages": [
+        "240"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": 133,
+      "proposed_pdf_end_page": 133,
+      "resolution_method": "exact_section_and_story_labels",
+      "confidence": 0.9,
+      "verification_status": "human_reviewed_override",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 107,
+          "teacher_guide_printed_page": "102",
+          "exact_reference_text": "evidence:mapping-proposal-read-the-notes-on-the-story-on-page--6060e85fd2cde294:1:tg-pdf-107:sha256-8e9f810194bd37f7",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "Exact story labels occur in the registered notes section, but printed-page equivalence is absent."
+      ],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": "Human approval supplied for the named story or supporting-text registered PDF range."
+    },
+    {
+      "assignment_id": "mapping-proposal-have-students-read-the-story-title-a-94c02a8bf22f6ab3",
+      "unit_number": 1,
+      "lesson_number": 6,
+      "resource_role": "refrane_reference",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[Have students read the story title and read/translate the refrane on page 165 (translation on page 230).]",
+      "title_or_label": "Refrane translation: Pickup Soccer",
+      "referenced_printed_pages": [
+        "165",
+        "230"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": 129,
+      "proposed_pdf_end_page": 129,
+      "resolution_method": "exact_section_and_story_labels",
+      "confidence": 0.9,
+      "verification_status": "human_reviewed_override",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 104,
+          "teacher_guide_printed_page": "99",
+          "exact_reference_text": "evidence:mapping-proposal-have-students-read-the-story-title-a-94c02a8bf22f6ab3:1:tg-pdf-104:sha256-f6c12217309174cf",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "Exact story labels occur in the registered refrane section; printed numbering is absent."
+      ],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": "Human approval supplied for the named story or supporting-text registered PDF range."
+    },
+    {
+      "assignment_id": "mapping-proposal-high-tech-industries-use-this-link-t-2a88e448c20da31a",
+      "unit_number": 1,
+      "lesson_number": 6,
+      "resource_role": "online_teacher_resources",
+      "resource_type": "online_resource_guide",
+      "curriculum_reference": "high-tech industries. Use this link to download the CKLA Online Resources for this unit,",
+      "title_or_label": "Lesson 6 Online Resources",
+      "referenced_printed_pages": [],
+      "resolved_resource_id": "resource-grade-8-unit-1-online-resources-013402617f51c016",
+      "proposed_pdf_start_page": 7,
+      "proposed_pdf_end_page": 7,
+      "resolution_method": "exact_lesson_number_heading",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 101,
+          "teacher_guide_printed_page": "96",
+          "exact_reference_text": "evidence:mapping-proposal-high-tech-industries-use-this-link-t-2a88e448c20da31a:1:tg-pdf-101:sha256-2ee85be25cef9342",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "optional",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-prepare-and-display-the-grammar-revi-ae6e6c43fffffb94",
+      "unit_number": 1,
+      "lesson_number": 6,
+      "resource_role": "teacher_chart",
+      "resource_type": "teacher_guide",
+      "curriculum_reference": "• Prepare and display the Grammar Review Chart found on page 104 of this Teacher Guide",
+      "title_or_label": "Grammar Review Chart",
+      "referenced_printed_pages": [],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 109,
+      "proposed_pdf_end_page": 109,
+      "resolution_method": "exact_chart_title_heading",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 101,
+          "teacher_guide_printed_page": "96",
+          "exact_reference_text": "evidence:mapping-proposal-prepare-and-display-the-grammar-revi-ae6e6c43fffffb94:1:tg-pdf-101:sha256-0ff3032de4a064de",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    }
+  ],
+  "unresolved_references": [
+    "Pickup Soccer guided-reading reference 165 requires reviewed subrange coordinates.",
+    "Pickup Soccer guided-reading reference 166 requires reviewed subrange coordinates.",
+    "Pickup Soccer guided-reading reference 166, 167 requires reviewed subrange coordinates.",
+    "Pickup Soccer guided-reading reference 168, 169 requires reviewed subrange coordinates.",
+    "Pickup Soccer guided-reading reference 169, 171 requires reviewed subrange coordinates.",
+    "Pickup Soccer unbounded guided-reading continuation requires reviewed subrange coordinates."
+  ],
+  "warnings": [
+    "This Lesson 6 manifest is an approved production configuration.",
+    "Guided-reading printed subranges remain provenance-only references within their approved parent story; no PDF subranges were inferred.",
+    "Open-ended answer guidance remains distinguished from an exact publisher answer."
+  ],
+  "schema_version": "1.1",
+  "builder_version": "3.0"
+}

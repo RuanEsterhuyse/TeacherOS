@@ -1,0 +1,826 @@
+{
+  "curriculum": "CKLA",
+  "grade": "8",
+  "unit_number": 1,
+  "lesson_number": 8,
+  "lesson_title": "Independent: “90,000 Children”",
+  "teacher_guide_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+  "teacher_guide_pdf_start_page": 122,
+  "teacher_guide_pdf_end_page": 132,
+  "teacher_guide_printed_start_page": 117,
+  "teacher_guide_printed_end_page": 127,
+  "assignments": [
+    {
+      "assignment_id": "mapping-proposal-lesson-8-printed-pages-117-127-af292ba2d339193e",
+      "unit_number": 1,
+      "lesson_number": 8,
+      "resource_role": "defines_lesson",
+      "resource_type": "teacher_guide",
+      "curriculum_reference": "Lesson 8, printed pages 117–127",
+      "title_or_label": "Teacher Guide Lesson 8 range",
+      "referenced_printed_pages": [
+        "117–127"
+      ],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 122,
+      "proposed_pdf_end_page": 132,
+      "resolution_method": "saved_index_exact_boundary",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 122,
+          "teacher_guide_printed_page": "117",
+          "exact_reference_text": "evidence:mapping-proposal-lesson-8-printed-pages-117-127-af292ba2d339193e:1:tg-pdf-122:sha256-427911a07260cee4",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-independent-90-000-children-pages-18-c3a3f920cada168a",
+      "unit_number": 1,
+      "lesson_number": 8,
+      "resource_role": "assigned_reading",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "Independent: “90,000 Children” [pages 189–212]",
+      "title_or_label": "90,000 Children",
+      "referenced_printed_pages": [
+        "189–212"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": 109,
+      "proposed_pdf_end_page": 118,
+      "resolution_method": "exact_story_heading_to_next_story_heading",
+      "confidence": 0.94,
+      "verification_status": "human_reviewed_override",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 124,
+          "teacher_guide_printed_page": "119",
+          "exact_reference_text": "evidence:mapping-proposal-independent-90-000-children-pages-18-c3a3f920cada168a:1:tg-pdf-124:sha256-e0c54317c68eea4b",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "The exact story heading and next-story boundary are registered, but printed-page equivalence is absent from the reflowed instructional text."
+      ],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": "Human approval supplied for the named story or supporting-text registered PDF range."
+    },
+    {
+      "assignment_id": "mapping-proposal-pages-189-191-43a412bf4b76a1cb",
+      "unit_number": 1,
+      "lesson_number": 8,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[pages 189–191]",
+      "title_or_label": "90,000 Children guided range 189–191",
+      "referenced_printed_pages": [
+        "189–191"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 127,
+          "teacher_guide_printed_page": "122",
+          "exact_reference_text": "evidence:mapping-proposal-pages-189-191-43a412bf4b76a1cb:1:tg-pdf-127:sha256-a6fb06653c346f5f",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-pages-192-195-d2925faf9cb07123",
+      "unit_number": 1,
+      "lesson_number": 8,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[pages 192–195]",
+      "title_or_label": "90,000 Children guided range 192–195",
+      "referenced_printed_pages": [
+        "192–195"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 128,
+          "teacher_guide_printed_page": "123",
+          "exact_reference_text": "evidence:mapping-proposal-pages-192-195-d2925faf9cb07123:1:tg-pdf-128:sha256-61a61c48ccd33b22",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-pages-195-198-acb92bec0879cd9b",
+      "unit_number": 1,
+      "lesson_number": 8,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[pages 195–198]",
+      "title_or_label": "90,000 Children guided range 195–198",
+      "referenced_printed_pages": [
+        "195–198"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 128,
+          "teacher_guide_printed_page": "123",
+          "exact_reference_text": "evidence:mapping-proposal-pages-195-198-acb92bec0879cd9b:1:tg-pdf-128:sha256-c5623f952e7c8af8",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-pages-198-203-51d2dc3571c51e25",
+      "unit_number": 1,
+      "lesson_number": 8,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[pages 198–203]",
+      "title_or_label": "90,000 Children guided range 198–203",
+      "referenced_printed_pages": [
+        "198–203"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 128,
+          "teacher_guide_printed_page": "123",
+          "exact_reference_text": "evidence:mapping-proposal-pages-198-203-51d2dc3571c51e25:1:tg-pdf-128:sha256-7d3fd248518159b8",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-pages-203-206-bd78dc1153918899",
+      "unit_number": 1,
+      "lesson_number": 8,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[pages 203–206]",
+      "title_or_label": "90,000 Children guided range 203–206",
+      "referenced_printed_pages": [
+        "203–206"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 129,
+          "teacher_guide_printed_page": "124",
+          "exact_reference_text": "evidence:mapping-proposal-pages-203-206-bd78dc1153918899:1:tg-pdf-129:sha256-6cf369908d8fd06c",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-pages-206-207-c9c50e384ec00f2d",
+      "unit_number": 1,
+      "lesson_number": 8,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[pages 206–207]",
+      "title_or_label": "90,000 Children guided range 206–207",
+      "referenced_printed_pages": [
+        "206–207"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 130,
+          "teacher_guide_printed_page": "125",
+          "exact_reference_text": "evidence:mapping-proposal-pages-206-207-c9c50e384ec00f2d:1:tg-pdf-130:sha256-ce6ed013f7542699",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-pages-207-212-1b5467d6ea98206a",
+      "unit_number": 1,
+      "lesson_number": 8,
+      "resource_role": "guided_reading_range",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "[pages 207–212]",
+      "title_or_label": "90,000 Children guided range 207–212",
+      "referenced_printed_pages": [
+        "207–212"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "printed_subrange_requires_reviewed_text_boundary",
+      "confidence": 0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 130,
+          "teacher_guide_printed_page": "125",
+          "exact_reference_text": "evidence:mapping-proposal-pages-207-212-1b5467d6ea98206a:1:tg-pdf-130:sha256-49b55a99eb5bf523",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This guided-reading stop is distinct from the principal story assignment. The registered reflowed text has no printed labels, so its exact subrange must be located during human review."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-pages-7-2-for-review-8-1-8--e0d4a0d86f765837",
+      "unit_number": 1,
+      "lesson_number": 8,
+      "resource_role": "shared_review_activity",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "Activity Pages 7.2 (for review), 8.1, 8.2",
+      "title_or_label": "Activity Page 7.2",
+      "referenced_printed_pages": [
+        "7.2"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 77,
+      "proposed_pdf_end_page": 78,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 122,
+          "teacher_guide_printed_page": "117",
+          "exact_reference_text": "evidence:mapping-proposal-activity-pages-7-2-for-review-8-1-8--e0d4a0d86f765837:1:tg-pdf-122:sha256-fb682635747b5d0c",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This earlier Activity Page is explicitly cited inside Lesson 8 as a review dependency."
+      ],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-page-7-2-answer-key-resourc-d337410950da111c",
+      "unit_number": 1,
+      "lesson_number": 8,
+      "resource_role": "shared_review_answer_key",
+      "resource_type": "teacher_guide_answer_key",
+      "curriculum_reference": "Activity Page 7.2 answer-key resource",
+      "title_or_label": "Answer Key 7.2",
+      "referenced_printed_pages": [
+        "7.2"
+      ],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 162,
+      "proposed_pdf_end_page": 162,
+      "resolution_method": "exact_answer_key_heading_and_activity_label",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 122,
+          "teacher_guide_printed_page": "117",
+          "exact_reference_text": "evidence:mapping-proposal-activity-page-7-2-answer-key-resourc-d337410950da111c:1:tg-pdf-122:sha256-0744a31f54989f95",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "Only content carrying the exact activity or assessment label is in scope; neighboring facsimiles on the same Teacher Guide page are excluded."
+      ],
+      "human_review_required": false,
+      "required_status": "optional",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-pages-7-2-for-review-8-1-8--00f442fca2bd2236",
+      "unit_number": 1,
+      "lesson_number": 8,
+      "resource_role": "activity_resource",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "Activity Pages 7.2 (for review), 8.1, 8.2",
+      "title_or_label": "Activity Page 8.1",
+      "referenced_printed_pages": [
+        "8.1"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 85,
+      "proposed_pdf_end_page": 86,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 122,
+          "teacher_guide_printed_page": "117",
+          "exact_reference_text": "evidence:mapping-proposal-activity-pages-7-2-for-review-8-1-8--00f442fca2bd2236:1:tg-pdf-122:sha256-48fb9346e0efc7b4",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-pages-7-2-for-review-8-1-8--2a2fe0d4f9f25abb",
+      "unit_number": 1,
+      "lesson_number": 8,
+      "resource_role": "activity_resource",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "Activity Pages 7.2 (for review), 8.1, 8.2",
+      "title_or_label": "Activity Page 8.2",
+      "referenced_printed_pages": [
+        "8.2"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 87,
+      "proposed_pdf_end_page": 94,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 122,
+          "teacher_guide_printed_page": "117",
+          "exact_reference_text": "evidence:mapping-proposal-activity-pages-7-2-for-review-8-1-8--2a2fe0d4f9f25abb:1:tg-pdf-122:sha256-256524504fe68668",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-page-8-2-answer-key-resourc-841ce82b3e1ddaf9",
+      "unit_number": 1,
+      "lesson_number": 8,
+      "resource_role": "publisher_answer_key",
+      "resource_type": "teacher_guide_answer_key",
+      "curriculum_reference": "Activity Page 8.2 answer-key resource",
+      "title_or_label": "Answer Key 8.2",
+      "referenced_printed_pages": [
+        "8.2"
+      ],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 163,
+      "proposed_pdf_end_page": 164,
+      "resolution_method": "exact_answer_key_heading_and_activity_label",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 122,
+          "teacher_guide_printed_page": "117",
+          "exact_reference_text": "evidence:mapping-proposal-activity-page-8-2-answer-key-resourc-841ce82b3e1ddaf9:1:tg-pdf-122:sha256-8a3d3549e9bbda6d",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "Only content carrying the exact activity or assessment label is in scope; neighboring facsimiles on the same Teacher Guide page are excluded."
+      ],
+      "human_review_required": false,
+      "required_status": "optional",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-day-2-writing-45-min-activity-page-8-61f4e4997e4b4ce6",
+      "unit_number": 1,
+      "lesson_number": 8,
+      "resource_role": "activity_resource",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "DAY 2: Writing 45 min Activity Page 8.4",
+      "title_or_label": "Activity Page 8.4",
+      "referenced_printed_pages": [
+        "8.4"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 97,
+      "proposed_pdf_end_page": 98,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 122,
+          "teacher_guide_printed_page": "117",
+          "exact_reference_text": "evidence:mapping-proposal-day-2-writing-45-min-activity-page-8-61f4e4997e4b4ce6:1:tg-pdf-122:sha256-27df83e60ee5c2ea",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-take-home-material-reading-activity--0b233a9f2b48b461",
+      "unit_number": 1,
+      "lesson_number": 8,
+      "resource_role": "activity_resource",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "Take-Home Material * Reading Activity Pages 8.2, 8.3, 8.4",
+      "title_or_label": "Activity Page 8.3",
+      "referenced_printed_pages": [
+        "8.3"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 95,
+      "proposed_pdf_end_page": 96,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 122,
+          "teacher_guide_printed_page": "117",
+          "exact_reference_text": "evidence:mapping-proposal-take-home-material-reading-activity--0b233a9f2b48b461:1:tg-pdf-122:sha256-e407b315423d3f76",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-page-8-3-answer-key-resourc-119d4cc1571413a7",
+      "unit_number": 1,
+      "lesson_number": 8,
+      "resource_role": "publisher_answer_key",
+      "resource_type": "teacher_guide_answer_key",
+      "curriculum_reference": "Activity Page 8.3 answer-key resource",
+      "title_or_label": "Answer Key 8.3",
+      "referenced_printed_pages": [
+        "8.3"
+      ],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 165,
+      "proposed_pdf_end_page": 165,
+      "resolution_method": "exact_answer_key_heading_and_activity_label",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 122,
+          "teacher_guide_printed_page": "117",
+          "exact_reference_text": "evidence:mapping-proposal-activity-page-8-3-answer-key-resourc-119d4cc1571413a7:1:tg-pdf-122:sha256-a4da3c35e35663f3",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "Only content carrying the exact activity or assessment label is in scope; neighboring facsimiles on the same Teacher Guide page are excluded.",
+        "The lesson identifies this as an open-ended writing prompt. Any labeled answer-key content is guidance or a sample, not one exact answer."
+      ],
+      "human_review_required": false,
+      "required_status": "optional",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-read-the-notes-on-the-story-on-page--241ebb61d01cf469",
+      "unit_number": 1,
+      "lesson_number": 8,
+      "resource_role": "story_notes",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "Read the notes on the story on page 242. Then discuss students’ answers to Activity Page",
+      "title_or_label": "Story notes: 90,000 Children",
+      "referenced_printed_pages": [
+        "242"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": 134,
+      "proposed_pdf_end_page": 134,
+      "resolution_method": "exact_section_and_story_labels",
+      "confidence": 0.9,
+      "verification_status": "human_reviewed_override",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 130,
+          "teacher_guide_printed_page": "125",
+          "exact_reference_text": "evidence:mapping-proposal-read-the-notes-on-the-story-on-page--241ebb61d01cf469:1:tg-pdf-130:sha256-6a7fdb6a89af4e75",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "Exact story labels occur in the registered notes section, but printed-page equivalence is absent."
+      ],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": "Human approval supplied for the named story or supporting-text registered PDF range."
+    },
+    {
+      "assignment_id": "mapping-proposal-turn-and-talk-ask-students-how-they--c391b6ba6f790faf",
+      "unit_number": 1,
+      "lesson_number": 8,
+      "resource_role": "refrane_reference",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "Turn and Talk: Ask students how they think this story’s refrane (found on page 230) relates to the",
+      "title_or_label": "Refrane translation: 90,000 Children",
+      "referenced_printed_pages": [
+        "230"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": 129,
+      "proposed_pdf_end_page": 129,
+      "resolution_method": "exact_section_and_story_labels",
+      "confidence": 0.9,
+      "verification_status": "human_reviewed_override",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 129,
+          "teacher_guide_printed_page": "124",
+          "exact_reference_text": "evidence:mapping-proposal-turn-and-talk-ask-students-how-they--c391b6ba6f790faf:1:tg-pdf-129:sha256-8504eaa7536461d5",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "Exact story labels occur in the registered refrane section; printed numbering is absent."
+      ],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": "Human approval supplied for the named story or supporting-text registered PDF range."
+    },
+    {
+      "assignment_id": "mapping-proposal-45-min-online-resources-maps-of-nort-687cd311cc4b5448",
+      "unit_number": 1,
+      "lesson_number": 8,
+      "resource_role": "online_teacher_resources",
+      "resource_type": "online_resource_guide",
+      "curriculum_reference": "45 min Online Resources: Maps of North and",
+      "title_or_label": "Lesson 8 Online Resources",
+      "referenced_printed_pages": [],
+      "resolved_resource_id": "resource-grade-8-unit-1-online-resources-013402617f51c016",
+      "proposed_pdf_start_page": 9,
+      "proposed_pdf_end_page": 9,
+      "resolution_method": "exact_lesson_number_heading",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 122,
+          "teacher_guide_printed_page": "117",
+          "exact_reference_text": "evidence:mapping-proposal-45-min-online-resources-maps-of-nort-687cd311cc4b5448:1:tg-pdf-122:sha256-ef0e77ce51012b87",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "optional",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-display-maps-of-north-and-central-am-df3f2091c96fdd38",
+      "unit_number": 1,
+      "lesson_number": 8,
+      "resource_role": "classroom_map",
+      "resource_type": "visual_resource",
+      "curriculum_reference": "• Display maps of North and Central America to show the locations of Mission, Texas, the",
+      "title_or_label": "Teacher-supplied map",
+      "referenced_printed_pages": [],
+      "resolved_resource_id": null,
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "no_registered_exact_asset_match",
+      "confidence": 0,
+      "verification_status": "unavailable_in_registered_sources",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 123,
+          "teacher_guide_printed_page": "118",
+          "exact_reference_text": "evidence:mapping-proposal-display-maps-of-north-and-central-am-df3f2091c96fdd38:1:tg-pdf-123:sha256-f3b91e3e56583df1",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "The map is explicitly required by this lesson, but no exact map asset is registered. Do not substitute the online-resource index page for the map itself."
+      ],
+      "human_review_required": true,
+      "required_status": "required",
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-display-the-writing-process-chart-re-cc4a53c5cad4b236",
+      "unit_number": 1,
+      "lesson_number": 8,
+      "resource_role": "teacher_chart",
+      "resource_type": "teacher_guide",
+      "curriculum_reference": "• Display the Writing Process Chart. Review the steps in the process students have",
+      "title_or_label": "Writing Process Chart",
+      "referenced_printed_pages": [],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 131,
+      "proposed_pdf_end_page": 131,
+      "resolution_method": "exact_chart_title_within_lesson",
+      "confidence": 1,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 131,
+          "teacher_guide_printed_page": "126",
+          "exact_reference_text": "evidence:mapping-proposal-display-the-writing-process-chart-re-cc4a53c5cad4b236:1:tg-pdf-131:sha256-bf9ad907de19540c",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "required_status": "required",
+      "reviewer_note": null
+    }
+  ],
+  "unresolved_references": [
+    "90,000 Children guided-reading reference 189–191 requires reviewed subrange coordinates.",
+    "90,000 Children guided-reading reference 192–195 requires reviewed subrange coordinates.",
+    "90,000 Children guided-reading reference 195–198 requires reviewed subrange coordinates.",
+    "90,000 Children guided-reading reference 198–203 requires reviewed subrange coordinates.",
+    "90,000 Children guided-reading reference 203–206 requires reviewed subrange coordinates.",
+    "90,000 Children guided-reading reference 206–207 requires reviewed subrange coordinates.",
+    "90,000 Children guided-reading reference 207–212 requires reviewed subrange coordinates.",
+    "Lesson 8 teacher-supplied map: exact registered asset unavailable."
+  ],
+  "warnings": [
+    "This Lesson 8 manifest is an approved production configuration.",
+    "Guided-reading printed subranges remain provenance-only references within their approved parent story; no PDF subranges were inferred.",
+    "Open-ended answer guidance remains distinguished from an exact publisher answer."
+  ],
+  "schema_version": "1.1",
+  "builder_version": "3.0"
+}

@@ -1,6 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  canGenerateDailyLesson,
+  fetchDailyProviderStatus,
+  submitDailyLesson,
+} from "@/lib/daily-provider.mjs";
+import {
+  canCreateDailyGoogleSlides,
+  createDailyGoogleSlides,
+  GOOGLE_SLIDES_PROGRESS,
+} from "@/lib/daily-google-slides.mjs";
 
 type Lesson = {
   number: number;
@@ -114,6 +124,14 @@ type DailyLessonPackage = {
     speaker_notes_markdown: string;
   }[];
   warnings: string[];
+  google_slides: {
+    presentation_id: string;
+    presentation_url: string;
+    created_at: string;
+    slide_count: number;
+    title: string;
+    warnings: string[];
+  } | null;
 };
 
 type PastedLessonAnalysis = {
@@ -413,6 +431,13 @@ type PowerPointResult = {
   validation_report: { valid: boolean; actual_slide_count: number };
 };
 
+type DailyProviderStatus = {
+  available: boolean;
+  provider: "gemini" | "openai" | null;
+  model: string | null;
+  message: string;
+};
+
 const API_BASE =
   process.env.NEXT_PUBLIC_TEACHEROS_API_URL || "http://127.0.0.1:8765";
 const GAMMA_URL =
@@ -463,6 +488,11 @@ export default function Home() {
     useState<DailyLessonPackage[]>([]);
   const [dailyLoading, setDailyLoading] = useState(false);
   const [dailyStatus, setDailyStatus] = useState("");
+  const [dailyProviderStatus, setDailyProviderStatus] =
+    useState<DailyProviderStatus | null>(null);
+  const [dailyProviderError, setDailyProviderError] = useState("");
+  const [dailySlidesLoading, setDailySlidesLoading] = useState(false);
+  const [dailySlidesStatus, setDailySlidesStatus] = useState("");
   const [dailyTab, setDailyTab] =
     useState<"playbook" | "outline" | "prompts">("playbook");
   const [pastedForm, setPastedForm] = useState({
@@ -537,6 +567,21 @@ export default function Home() {
     useState<PowerPointResult | null>(null);
   const [powerPointLoading, setPowerPointLoading] = useState(false);
   const [powerPointStatus, setPowerPointStatus] = useState("");
+  const [localSessionToken, setLocalSessionToken] = useState("");
+
+  async function authenticatedFetch(
+    input: RequestInfo | URL,
+    init: RequestInit = {},
+  ) {
+    if (!localSessionToken) {
+      throw new Error(
+        "TeacherOS local session is not ready. Refresh the page and try again.",
+      );
+    }
+    const headers = new Headers(init.headers);
+    headers.set("X-TeacherOS-Session", localSessionToken);
+    return fetch(input, { ...init, headers });
+  }
 
   useEffect(() => {
     const savedMode = localStorage.getItem("teacheros-theme");
@@ -544,6 +589,22 @@ export default function Home() {
     queueMicrotask(() =>
       setDarkMode(savedMode ? savedMode === "dark" : prefersDark),
     );
+    fetch(`${API_BASE}/api/session`)
+      .then((response) => {
+        if (!response.ok) throw new Error("Local session setup failed.");
+        return response.json();
+      })
+      .then((payload) => {
+        if (typeof payload.session_token !== "string") {
+          throw new Error("Local session setup failed.");
+        }
+        setLocalSessionToken(payload.session_token);
+      })
+      .catch(() => {
+        setConnectionError(
+          "Cannot establish a secure local TeacherOS session.",
+        );
+      });
     fetch(`${API_BASE}/api/catalog`)
       .then((response) => {
         if (!response.ok) throw new Error("TeacherOS service is unavailable.");
@@ -600,6 +661,19 @@ export default function Home() {
       .then((response) => response.ok ? response.json() : { packages: [] })
       .then((payload) => setSavedDailyPackages(payload.packages || []))
       .catch(() => setSavedDailyPackages([]));
+    fetchDailyProviderStatus(fetch, API_BASE)
+      .then((status) => {
+        setDailyProviderStatus(status);
+        setDailyProviderError("");
+      })
+      .catch((error) => {
+        setDailyProviderStatus(null);
+        setDailyProviderError(
+          error instanceof Error
+            ? error.message
+            : "Cannot reach the TeacherOS backend.",
+        );
+      });
   }, []);
 
   useEffect(() => {
@@ -666,7 +740,7 @@ export default function Home() {
     if (!curriculum || !selectedUnit || !lesson) return;
     setView("generation");
     setJob(null);
-    const response = await fetch(`${API_BASE}/api/generate`, {
+    const response = await authenticatedFetch(`${API_BASE}/api/generate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -701,7 +775,7 @@ export default function Home() {
     if (!curriculum || !selectedUnit || !lesson) return;
     setView("generation");
     setJob(null);
-    const response = await fetch(
+    const response = await authenticatedFetch(
       `${API_BASE}/api/teaching-package/generate`,
       {
         method: "POST",
@@ -753,19 +827,12 @@ export default function Home() {
     setDailyLoading(true);
     setDailyStatus("Generating the Teacher Playbook…");
     try {
-      const response = await fetch(`${API_BASE}/api/daily-lessons/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...dailyForm,
-          lesson_number: Number(dailyForm.lesson_number),
-        }),
+      const payload = await submitDailyLesson(authenticatedFetch, API_BASE, {
+        ...dailyForm,
+        lesson_number: Number(dailyForm.lesson_number),
       });
-      const payload = await response.json();
-      if (!response.ok) {
-        throw new Error(payload.error || "Daily lesson generation failed.");
-      }
       setDailyPackage(payload);
+      setDailySlidesStatus("");
       setSavedDailyPackages((current) => [
         payload,
         ...current.filter((value) => value.package_id !== payload.package_id),
@@ -794,6 +861,52 @@ export default function Home() {
     }
   }
 
+  async function createDailyGoogleSlidesDeck() {
+    if (!dailyPackage?.slide_outline.length) return;
+    setDailySlidesLoading(true);
+    setDailySlidesStatus(GOOGLE_SLIDES_PROGRESS[0]);
+    let progressIndex = 0;
+    const progress = window.setInterval(() => {
+      progressIndex = Math.min(
+        progressIndex + 1,
+        GOOGLE_SLIDES_PROGRESS.length - 1,
+      );
+      setDailySlidesStatus(GOOGLE_SLIDES_PROGRESS[progressIndex]);
+    }, 900);
+    try {
+      const result = await createDailyGoogleSlides(
+        authenticatedFetch,
+        API_BASE,
+        dailyPackage.package_id,
+      );
+      const updated = {
+        ...dailyPackage,
+        google_slides: {
+          presentation_id: result.presentation_id,
+          presentation_url: result.presentation_url,
+          created_at: new Date().toISOString(),
+          slide_count: result.slide_count,
+          title: result.title,
+          warnings: result.warnings || [],
+        },
+      };
+      setDailyPackage(updated);
+      setSavedDailyPackages((current) => current.map((value) =>
+        value.package_id === updated.package_id ? updated : value
+      ));
+      setDailySlidesStatus("Google Slides deck created.");
+    } catch (error) {
+      setDailySlidesStatus(
+        error instanceof Error
+          ? error.message
+          : "Google Slides creation failed.",
+      );
+    } finally {
+      window.clearInterval(progress);
+      setDailySlidesLoading(false);
+    }
+  }
+
   function allDailyPrompts() {
     return (dailyPackage?.gemini_slide_prompts || []).map((item) =>
       `==============================\nSLIDE ${item.slide_number}\n` +
@@ -805,7 +918,7 @@ export default function Home() {
     setPastedStatus("Saving source…");
     setPastedAnalysis(null);
     try {
-      const response = await fetch(`${API_BASE}/api/pasted-lessons`, {
+      const response = await authenticatedFetch(`${API_BASE}/api/pasted-lessons`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -830,7 +943,7 @@ export default function Home() {
     if (!pastedSource) return;
     setPastedStatus("Running deterministic baseline analysis…");
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `${API_BASE}/api/pasted-lessons/${pastedSource.source_id}/analyze`,
         { method: "POST", headers: { "Content-Type": "application/json" } },
       );
@@ -852,7 +965,7 @@ export default function Home() {
     if (!pastedSource || !pastedAnalysis) return;
     setPastedStatus("Saving preliminary Teacher Playbook…");
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `${API_BASE}/api/pasted-lessons/${pastedSource.source_id}/playbook`,
         { method: "POST", headers: { "Content-Type": "application/json" } },
       );
@@ -873,7 +986,7 @@ export default function Home() {
     setEnrichmentLoading(true);
     setPastedStatus("Creating a source-grounded enrichment preview…");
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `${API_BASE}/api/pasted-lessons/${pastedSource.source_id}/enrich`,
         {
           method: "POST",
@@ -904,7 +1017,7 @@ export default function Home() {
     if (!enrichment || enrichment.status === "failed") return;
     setPastedStatus("Saving teacher-approved enrichment…");
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `${API_BASE}/api/playbook-enrichments/${enrichment.enrichment_id}/approve`,
         { method: "POST", headers: { "Content-Type": "application/json" } },
       );
@@ -941,7 +1054,7 @@ export default function Home() {
           presentationOptions.maximum_slide_count
             ? Number(presentationOptions.maximum_slide_count) : null,
       };
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `${API_BASE}/api/teacher-playbooks/${selectedApprovedEnrichment}/presentation-spec`,
         {
           method: "POST",
@@ -974,7 +1087,7 @@ export default function Home() {
       presentationResult.presentation_spec.presentation_id;
     setPresentationStatus("Saving approved presentation specification…");
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `${API_BASE}/api/presentation-specs/${presentationId}/approve`,
         { method: "POST", headers: { "Content-Type": "application/json" } },
       );
@@ -1008,7 +1121,7 @@ export default function Home() {
     setRendererLoading(true);
     setRendererStatus("Compiling provider-neutral renderer instructions…");
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `${API_BASE}/api/presentation-specs/${selectedPresentationSpec}/renderer-package`,
         {
           method: "POST",
@@ -1042,7 +1155,7 @@ export default function Home() {
     const packageId = rendererResult.instruction_package.package_id;
     setRendererStatus("Rebuilding, validating, and saving instructions…");
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `${API_BASE}/api/renderer-packages/${packageId}/approve`,
         { method: "POST", headers: { "Content-Type": "application/json" } },
       );
@@ -1074,7 +1187,7 @@ export default function Home() {
     setPowerPointLoading(true);
     setPowerPointStatus("Creating and validating editable PowerPoint…");
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `${API_BASE}/api/renderer-packages/${selectedRendererPackage}/powerpoint`,
         {
           method: "POST",
@@ -1111,7 +1224,7 @@ export default function Home() {
     ];
     setPresentationStatus("Checking instructional sequence…");
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `${API_BASE}/api/presentation-specs/${
           presentationResult.presentation_spec.presentation_id
         }/reorder`,
@@ -1143,7 +1256,7 @@ export default function Home() {
     target: "google-doc" | "google-slides",
   ) {
     if (!lesson) return;
-    const response = await fetch(
+    const response = await authenticatedFetch(
       `${API_BASE}/api/teaching-package/publish`,
       {
         method: "POST",
@@ -1164,7 +1277,7 @@ export default function Home() {
 
   async function openOutput(target: "folder" | "bundle") {
     if (!job?.request_id) return;
-    await fetch(`${API_BASE}/api/open`, {
+    await authenticatedFetch(`${API_BASE}/api/open`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ request_id: job.request_id, target }),
@@ -1175,7 +1288,7 @@ export default function Home() {
     if (!job?.request_id) return;
     setCopyStatus("Copying…");
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `${API_BASE}/api/artifacts/${job.request_id}/gamma`,
       );
       if (!response.ok) throw new Error("Gamma prompt is unavailable.");
@@ -1183,7 +1296,7 @@ export default function Home() {
       try {
         await navigator.clipboard.writeText(prompt);
       } catch {
-        const fallback = await fetch(`${API_BASE}/api/clipboard`, {
+        const fallback = await authenticatedFetch(`${API_BASE}/api/clipboard`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ request_id: job.request_id }),
@@ -1520,6 +1633,7 @@ export default function Home() {
                           setDailyPackage(selected);
                           setDailyTab("playbook");
                           setDailyStatus("Saved daily package reopened.");
+                          setDailySlidesStatus("");
                         }
                       }}
                     >
@@ -1628,20 +1742,26 @@ export default function Home() {
                 <button
                   className="primary-button daily-generate-button"
                   onClick={generateDailyLesson}
-                  disabled={
-                    dailyLoading
-                    || !dailyForm.lesson_title.trim()
-                    || !dailyForm.teacher_guide_text.trim()
-                  }
+                  disabled={!canGenerateDailyLesson({
+                    providerStatus: dailyProviderStatus,
+                    loading: dailyLoading || !localSessionToken,
+                    lessonTitle: dailyForm.lesson_title,
+                    teacherGuideText: dailyForm.teacher_guide_text,
+                  })}
                   data-testid="generate-daily-lesson"
                 >
                   {dailyLoading
                     ? "Generating…"
                     : "Generate Playbook & Slide Prompts"}
                 </button>
-                <p className="button-note">
-                  Configure GEMINI_API_KEY or OPENAI_API_KEY for live lesson
-                  generation.
+                <p
+                  className="button-note"
+                  role={dailyProviderError ? "alert" : undefined}
+                  data-testid="daily-provider-status"
+                >
+                  {dailyProviderError
+                    || dailyProviderStatus?.message
+                    || "Checking live lesson provider…"}
                 </p>
                 {dailyStatus && (
                   <p className="pasted-status" role="status">
@@ -1706,6 +1826,76 @@ export default function Home() {
                       )}
                     </div>
                   </div>
+                  {!!dailyPackage.slide_outline.length && (
+                    <div
+                      className="daily-google-slides-card"
+                      data-testid="daily-google-slides-action"
+                    >
+                      <div>
+                        <span className="eyebrow">Finished presentation</span>
+                        <h3>
+                          {dailyPackage.google_slides
+                            ? dailyPackage.google_slides.title
+                            : "Create an editable classroom deck"}
+                        </h3>
+                        <p>
+                          Uses the reviewed Slide Outline directly. It does not
+                          regenerate the Playbook, outline, or Gemini prompts.
+                        </p>
+                        {dailyPackage.google_slides && (
+                          <>
+                            <p>
+                              {dailyPackage.google_slides.slide_count} slides
+                            </p>
+                            {dailyPackage.google_slides.warnings.map(
+                              (warning) => (
+                                <p key={warning} className="warning-copy">
+                                  {warning}
+                                </p>
+                              ),
+                            )}
+                          </>
+                        )}
+                      </div>
+                      <div className="daily-google-slides-actions">
+                        <button
+                          className="primary-button"
+                          onClick={createDailyGoogleSlidesDeck}
+                          disabled={!canCreateDailyGoogleSlides(
+                            dailyPackage,
+                            dailySlidesLoading || !localSessionToken,
+                          )}
+                          data-testid="create-daily-google-slides"
+                        >
+                          {dailySlidesLoading
+                            ? "Creating Google Slides Deck…"
+                            : dailyPackage.google_slides
+                              ? "Create New Deck"
+                              : "Create Google Slides Deck"}
+                        </button>
+                        {dailyPackage.google_slides && (
+                          <a
+                            className="secondary-button"
+                            href={dailyPackage.google_slides.presentation_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            data-testid="open-daily-google-slides"
+                          >
+                            Open in Google Slides
+                          </a>
+                        )}
+                      </div>
+                      {dailySlidesStatus && (
+                        <p
+                          className="pasted-status"
+                          role="status"
+                          data-testid="daily-google-slides-status"
+                        >
+                          {dailySlidesStatus}
+                        </p>
+                      )}
+                    </div>
+                  )}
                   {!!dailyPackage.warnings.length && (
                     <div className="warning-panel">
                       <h3>Warnings</h3>

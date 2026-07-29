@@ -1683,6 +1683,36 @@ button:focus-visible {
   text-decoration: none;
 }
 
+.daily-google-slides-card {
+  align-items: center;
+  background: var(--panel-soft);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin: 24px 0;
+  padding: 22px;
+}
+
+.daily-google-slides-card h3,
+.daily-google-slides-card p {
+  margin: 6px 0 0;
+}
+
+.daily-google-slides-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.daily-google-slides-actions a {
+  align-items: center;
+  display: inline-flex;
+  text-decoration: none;
+}
+
 .daily-tabs {
   border-bottom: 1px solid var(--line);
   display: flex;
@@ -2007,6 +2037,14 @@ button:focus-visible {
   }
 
   .daily-package-actions {
+    justify-content: flex-start;
+  }
+
+  .daily-google-slides-card {
+    grid-template-columns: 1fr;
+  }
+
+  .daily-google-slides-actions {
     justify-content: flex-start;
   }
 

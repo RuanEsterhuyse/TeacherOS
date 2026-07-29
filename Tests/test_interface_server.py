@@ -1,6 +1,7 @@
 """Tests for the non-blocking TeacherOS interface bridge."""
 
 import json
+import io
 import os
 import time
 from types import SimpleNamespace
@@ -31,6 +32,116 @@ def test_interface_catalog_uses_registered_curriculum_and_saved_index(tmp_path) 
     assert lesson["title"] == 'Close Reading: "First Story"'
     assert lesson["duration"] == 45
     assert lesson["objectives"] == []
+
+
+def test_daily_provider_status_endpoint_response_shape(monkeypatch) -> None:
+    status = {
+        "available": True,
+        "provider": "gemini",
+        "model": "gemini-3.6-flash",
+        "message": "Gemini is configured for live lesson generation.",
+    }
+    monkeypatch.setattr(
+        interface_server,
+        "INTERFACE",
+        SimpleNamespace(daily_lesson_provider_status=lambda: status),
+    )
+    handler = object.__new__(interface_server.InterfaceRequestHandler)
+    handler.path = "/api/daily-lessons/provider-status"
+    handler.headers = {}
+    observed = {}
+    handler._json = lambda payload, status=200: observed.update(
+        payload=payload, status=status
+    )
+
+    handler.do_GET()
+
+    assert observed == {"payload": status, "status": 200}
+    assert set(observed["payload"]) == {
+        "available", "provider", "model", "message"
+    }
+
+
+def test_local_session_endpoint_returns_only_ephemeral_session_metadata() -> None:
+    handler = object.__new__(interface_server.InterfaceRequestHandler)
+    handler.path = "/api/session"
+    handler.headers = {"Origin": "http://localhost:3000"}
+    observed = {}
+    handler._json = lambda payload, status=200: observed.update(
+        payload=payload, status=status
+    )
+
+    handler.do_GET()
+
+    assert observed["status"] == 200
+    assert observed["payload"] == {
+        "session_token": interface_server.LOCAL_SESSION_TOKEN,
+        "header_name": interface_server.SESSION_HEADER,
+    }
+    assert not {
+        "api_key", "access_token", "refresh_token", "client_secret"
+    } & set(observed["payload"])
+
+
+def test_state_changes_reject_untrusted_origins_and_missing_session() -> None:
+    for headers, expected in (
+        (
+            {
+                "Origin": "https://untrusted.example",
+                interface_server.SESSION_HEADER:
+                    interface_server.LOCAL_SESSION_TOKEN,
+            },
+            "Request origin is not allowed.",
+        ),
+        (
+            {"Origin": "http://localhost:3000"},
+            "Local session authorization is required.",
+        ),
+    ):
+        handler = object.__new__(interface_server.InterfaceRequestHandler)
+        handler.headers = headers
+        observed = {}
+        handler._json = lambda payload, status=200: observed.update(
+            payload=payload, status=status
+        )
+        assert handler._require_state_change_authorization() is False
+        assert observed == {
+            "payload": {"error": expected},
+            "status": 403,
+        }
+
+
+def test_state_changes_accept_allowlisted_origin_and_session() -> None:
+    handler = object.__new__(interface_server.InterfaceRequestHandler)
+    handler.headers = {
+        "Origin": "http://127.0.0.1:3000",
+        interface_server.SESSION_HEADER:
+            interface_server.LOCAL_SESSION_TOKEN,
+    }
+    assert handler._require_state_change_authorization() is True
+
+
+def test_request_body_limit_blocks_oversized_payloads() -> None:
+    handler = object.__new__(interface_server.InterfaceRequestHandler)
+    handler.headers = {
+        "Content-Length": str(
+            interface_server.MAX_REQUEST_BODY_BYTES + 1
+        )
+    }
+    handler.rfile = io.BytesIO()
+    with pytest.raises(ValueError, match="exceeds"):
+        handler._body()
+
+
+def test_diagnostics_redact_local_paths_and_secret_values() -> None:
+    diagnostic = interface_server._redacted_diagnostic(ValueError(
+        "failed /Users/example/private/file.json "
+        "access_token=private-token-value"
+    ))
+    assert "/Users/example" not in diagnostic
+    assert "private-token-value" not in diagnostic
+    assert "<local-path>" in diagnostic
+    assert "<redacted>" in diagnostic
 
 
 def test_generation_starts_in_background_and_returns_progress(tmp_path, monkeypatch) -> None:

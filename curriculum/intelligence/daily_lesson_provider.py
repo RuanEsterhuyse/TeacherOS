@@ -262,6 +262,38 @@ def select_daily_lesson_provider(
     raise ValueError(DAILY_PROVIDER_CONFIGURATION_ERROR)
 
 
+def daily_lesson_provider_status(
+    provider: DailyLessonProvider | None = None,
+    *,
+    configured_provider: str | None = None,
+) -> dict[str, Any]:
+    """Describe provider availability without exposing credentials."""
+    try:
+        selected = select_daily_lesson_provider(
+            provider,
+            configured_provider=configured_provider,
+        )
+    except ValueError as error:
+        return {
+            "available": False,
+            "provider": None,
+            "model": None,
+            "message": str(error),
+        }
+    display_name = {
+        "gemini": "Gemini",
+        "openai": "OpenAI",
+    }.get(selected.provider_name, selected.provider_name.title())
+    return {
+        "available": True,
+        "provider": selected.provider_name,
+        "model": selected.model_name,
+        "message": (
+            f"{display_name} is configured for live lesson generation."
+        ),
+    }
+
+
 __all__ = [
     "DAILY_PROVIDER_CONFIGURATION_ERROR",
     "DAILY_PROVIDER_ENVIRONMENT_VARIABLE",
@@ -270,5 +302,6 @@ __all__ = [
     "DailyProviderResponse",
     "GeminiDailyLessonProvider",
     "OpenAIDailyLessonProvider",
+    "daily_lesson_provider_status",
     "select_daily_lesson_provider",
 ]

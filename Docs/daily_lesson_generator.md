@@ -93,6 +93,28 @@ Runtime packages are stored atomically under the ignored
 `output/daily_lesson_generator/` directory. Raw provider responses, API keys,
 and credentials are not saved.
 
+## Optional Google Slides publishing
+
+After reviewing a nonempty Slide Outline, a teacher can select **Create Google
+Slides Deck**. This separate action loads the saved package and never calls the
+lesson provider or regenerates the Playbook, outline, or Gemini prompts.
+
+The publisher reuses TeacherOS desktop OAuth with the `presentations` and
+`drive.file` scopes. Enable the Google Slides and Google Drive APIs, place the
+ignored desktop OAuth client at `credentials.json`, and keep the ignored local
+authorization token at `token.json`. The first publishing action opens Google
+authorization when a valid token is unavailable.
+
+To move a new deck into a Drive folder accessible to the OAuth application,
+configure:
+
+```shell
+export TEACHEROS_DAILY_GOOGLE_DRIVE_FOLDER_ID="your-folder-id"
+```
+
+Without that setting, the private presentation remains in the authenticated
+user's default Drive location. TeacherOS never changes sharing permissions.
+
 ## Grounding rules
 
 The workflow never permits a provider to change the source identity, introduce
@@ -107,6 +129,7 @@ screenshots, and document images.
 - Teachers must review generated coaching before classroom use.
 - The deterministic baseline can only protect references it detects in the
   pasted material.
-- The workflow creates prompts; it does not generate, upload, or publish slides.
+- Google publishing uses editable shapes and text only; it does not generate or
+  upload images in this phase.
 - Saved packages can be reopened through the local API; the initial UI focuses
   on the current package rather than a package library.

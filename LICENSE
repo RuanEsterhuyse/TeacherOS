@@ -1,0 +1,19 @@
+TeacherOS
+Copyright (C) 2026 Ruan Esterhuyse
+
+The original TeacherOS software in this repository is licensed under the
+GNU Affero General Public License, version 3 only (AGPL-3.0-only).
+
+The canonical license text is available from the Free Software Foundation:
+https://www.gnu.org/licenses/agpl-3.0.txt
+
+SPDX-License-Identifier: AGPL-3.0-only
+
+This software is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for
+details.
+
+This license applies to original TeacherOS software only. Curriculum content,
+third-party material, trademarks, and user-supplied content are governed by
+their respective rights and licenses. See CONTENT_LICENSES.md.

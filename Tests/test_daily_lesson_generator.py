@@ -17,6 +17,7 @@ from curriculum.intelligence.daily_lesson_provider import (
     DailyProviderResponse,
     GeminiDailyLessonProvider,
     OpenAIDailyLessonProvider,
+    daily_lesson_provider_status,
     select_daily_lesson_provider,
 )
 from curriculum.intelligence.daily_lesson_repository import (
@@ -58,6 +59,133 @@ def _source(lesson_number: int = 1):
         ),
         student_reader_text="Student Reader pp. 3–4: Synthetic evidence text.",
     )
+
+
+def _untimed_source():
+    return create_pasted_lesson_source(
+        grade="8",
+        unit="1",
+        lesson_number=3,
+        lesson_title="Untimed Agenda Lesson",
+        teacher_guide_page_start=20,
+        teacher_guide_page_end=22,
+        teacher_guide_text=(
+            "Objectives:\n- Explain how evidence supports an idea.\n"
+            "Materials:\n- Reader\n"
+            "Lesson sequence:\n"
+            "Launch the question.\n"
+            "Discuss evidence with a partner.\n"
+            "Complete an exit response."
+        ),
+    )
+
+
+def _untimed_playbook_payload(source):
+    baseline = analyze_pasted_lesson(source)
+    return {
+        "playbook": {
+            "lesson_information": {
+                "source_id": source.source_id,
+                "grade": source.grade,
+                "unit": source.unit,
+                "lesson_number": source.lesson_number,
+                "lesson_title": source.lesson_title,
+                "teacher_guide_page_start": 20,
+                "teacher_guide_page_end": 22,
+            },
+            "lesson_meaning": "Students explain a claim with evidence.",
+            "leave_understanding": ["Evidence must connect to the idea."],
+            "essential_question": None,
+            "content_objective": "Explain how evidence supports an idea.",
+            "language_objective": "Explain reasoning with because.",
+            "success_criteria": ["I can connect a detail to a claim."],
+            "agenda": [
+                {
+                    "title": "Evidence Launch",
+                    "duration_minutes": 8,
+                    "purpose": "Introduce the evidence question.",
+                },
+                {
+                    "title": "Partner Evidence Discussion",
+                    "duration_minutes": 12,
+                    "purpose": "Rehearse evidence-based reasoning.",
+                },
+            ],
+            "materials": ["Reader"],
+            "vocabulary": [],
+            "teacher_survival_guide": [],
+            "activities": [],
+            "exit_ticket": ["Connect one detail to a claim."],
+            "homework": [],
+            "teacher_reflection": [],
+            "source_references": [
+                value.model_dump(mode="json")
+                for value in baseline.playbook.source_references
+            ],
+            "unavailable_information": [],
+        },
+        "warnings": [],
+    }
+
+
+def _daily_slide(
+    number,
+    *,
+    related_id,
+    related_title,
+    title=None,
+):
+    return {
+        "slide_number": number,
+        "title": title or f"Evidence Slide {number}",
+        "instructional_purpose": "Support evidence-based reasoning.",
+        "related_activity_id": related_id,
+        "related_activity": related_title,
+        "suggested_layout": "Title with one concise prompt.",
+        "student_facing_content_summary": "An evidence discussion prompt.",
+        "exact_student_facing_text": [
+            "Which detail best supports the idea?"
+        ],
+        "suggested_visual": "A neutral editable evidence icon.",
+        "speaker_notes": {
+            "teacher_says": ["Ask students to explain the connection."],
+            "teacher_does": ["Listen for claim, evidence, and reasoning."],
+            "discussion_prompts": [],
+            "anticipated_responses": [],
+            "misconception_support": [],
+            "checks_for_understanding": [],
+            "transition": None,
+            "timing_minutes": 4,
+            "source_references": [],
+        },
+        "source_references": [],
+    }
+
+
+class UntimedAgendaProvider:
+    provider_name = "fake"
+    model_name = "untimed-agenda-test"
+
+    def __init__(self, source, slide_builder=None):
+        self.playbook_payload = _untimed_playbook_payload(source)
+        self.slide_builder = slide_builder
+        self.slide_context = None
+
+    def generate_playbook(self, context, prompt_contract):
+        return DailyProviderResponse(self.playbook_payload)
+
+    def generate_slide_outline(self, context, prompt_contract):
+        self.slide_context = context
+        if self.slide_builder:
+            slides = self.slide_builder(context.playbook)
+        else:
+            activity = context.playbook.activities[0]
+            slides = [_daily_slide(
+                1,
+                related_id=activity.activity_id,
+                related_title=activity.title,
+            )]
+        return DailyProviderResponse({"slides": slides, "warnings": []})
 
 
 def _playbook_payload(source):
@@ -260,6 +388,108 @@ def test_source_references_are_preserved_and_invented_pages_rejected():
     )
     with pytest.raises(ValueError, match="unsupported page reference"):
         generate_daily_lesson_package(source, provider=provider)
+
+
+def test_unsupported_slide_source_reference_is_removed_with_warning():
+    source = _source()
+    provider = FakeProvider(source)
+    invented = {
+        "source_type": "student_reader",
+        "page_start": 99,
+        "page_end": 100,
+        "section": "Invented passage",
+        "activity_reference": None,
+    }
+    provider.slide_payload["slides"][0]["source_references"] = [invented]
+
+    package = generate_daily_lesson_package(source, provider=provider)
+
+    assert package.status == DailyLessonStatus.complete
+    assert package.slide_outline[0].source_references == []
+    warning = next(
+        value for value in package.warnings
+        if "Removed unsupported slide source reference" in value
+    )
+    assert "student_reader" in warning
+    assert "99–100" in warning
+    assert "Invented passage" in warning
+
+
+def test_mixed_valid_and_invalid_slide_references_preserve_valid_reference():
+    source = _source()
+    provider = FakeProvider(source)
+    valid = provider.slide_payload["slides"][0]["source_references"][0]
+    invented = {
+        "source_type": "teacher_guide",
+        "page_start": 88,
+        "page_end": 88,
+        "section": None,
+        "activity_reference": None,
+    }
+    provider.slide_payload["slides"][0]["source_references"] = [
+        valid, invented
+    ]
+
+    package = generate_daily_lesson_package(source, provider=provider)
+
+    assert package.status == DailyLessonStatus.complete
+    assert [
+        value.model_dump(mode="json")
+        for value in package.slide_outline[0].source_references
+    ] == [valid]
+    assert any(
+        "pages=88–88" in warning
+        for warning in package.warnings
+    )
+
+
+def test_generated_reference_normalizes_to_exact_approved_reference():
+    source = _source()
+    provider = FakeProvider(source)
+    valid = provider.slide_payload["slides"][0]["source_references"][0]
+    variant = {
+        **valid,
+        "source_type": valid["source_type"].replace("_", " ").upper(),
+        "section": "Provider-added descriptive section",
+    }
+    provider.slide_payload["slides"][0]["source_references"] = [variant]
+
+    package = generate_daily_lesson_package(source, provider=provider)
+
+    assert [
+        value.model_dump(mode="json")
+        for value in package.slide_outline[0].source_references
+    ] == [valid]
+    assert any(
+        "Normalized slide source reference" in warning
+        for warning in package.warnings
+    )
+
+
+def test_one_invalid_slide_reference_preserves_all_valid_slides_and_prompts():
+    source = _source()
+    provider = FakeProvider(source, slide_count=3)
+    provider.slide_payload["slides"][1]["speaker_notes"][
+        "source_references"
+    ] = [{
+        "source_type": "novel",
+        "page_start": 404,
+        "page_end": 404,
+        "section": "Not supplied",
+        "activity_reference": None,
+    }]
+
+    package = generate_daily_lesson_package(source, provider=provider)
+
+    assert package.status == DailyLessonStatus.complete
+    assert len(package.slide_outline) == 3
+    assert len(package.gemini_slide_prompts) == 3
+    assert package.slide_outline[1].speaker_notes.source_references == []
+    assert any(
+        "Removed unsupported speaker-notes source reference from slide 2"
+        in warning
+        for warning in package.warnings
+    )
 
 
 def test_omitted_source_reference_is_rejected():
@@ -469,6 +699,62 @@ def test_missing_provider_keys_raise_neutral_configuration_error(
     assert str(caught.value) == DAILY_PROVIDER_CONFIGURATION_ERROR
 
 
+@pytest.mark.parametrize(
+    ("environment", "expected_provider"),
+    [
+        ({"GEMINI_API_KEY": "test-gemini-key"}, "gemini"),
+        ({"OPENAI_API_KEY": "test-openai-key"}, "openai"),
+    ],
+)
+def test_provider_status_reports_configured_provider_without_key(
+    monkeypatch, environment, expected_provider
+):
+    for name in (
+        "GEMINI_API_KEY",
+        "OPENAI_API_KEY",
+        "TEACHEROS_DAILY_PROVIDER",
+    ):
+        monkeypatch.delenv(name, raising=False)
+    for name, value in environment.items():
+        monkeypatch.setenv(name, value)
+
+    status = daily_lesson_provider_status()
+
+    assert status["available"] is True
+    assert status["provider"] == expected_provider
+    assert set(status) == {"available", "provider", "model", "message"}
+    assert all("test-" not in str(value) for value in status.values())
+
+
+def test_provider_status_reports_unconfigured_without_key(monkeypatch):
+    for name in (
+        "GEMINI_API_KEY",
+        "OPENAI_API_KEY",
+        "TEACHEROS_DAILY_PROVIDER",
+    ):
+        monkeypatch.delenv(name, raising=False)
+
+    assert daily_lesson_provider_status() == {
+        "available": False,
+        "provider": None,
+        "model": None,
+        "message": DAILY_PROVIDER_CONFIGURATION_ERROR,
+    }
+
+
+def test_interface_provider_status_uses_injected_provider():
+    source = _source()
+    interface = TeacherOSInterface.__new__(TeacherOSInterface)
+    interface.daily_lesson_provider = FakeProvider(source)
+
+    assert interface.daily_lesson_provider_status() == {
+        "available": True,
+        "provider": "fake",
+        "model": "daily-test",
+        "message": "Fake is configured for live lesson generation.",
+    }
+
+
 def _gemini_playbook_context(source):
     return DailyPlaybookContext(
         source=source,
@@ -561,3 +847,105 @@ def test_gemini_timeout_is_reported_without_live_call():
         provider.generate_playbook(
             _gemini_playbook_context(source), "Prompt"
         )
+
+
+def test_no_timed_headings_generates_outline_from_agenda_fallback():
+    source = _untimed_source()
+    baseline = analyze_pasted_lesson(source)
+    provider = UntimedAgendaProvider(source)
+
+    package = generate_daily_lesson_package(source, provider=provider)
+
+    assert baseline.playbook.activities == []
+    assert any(
+        warning.message == "No timed activity headings found."
+        for warning in baseline.warnings
+    )
+    assert package.status == DailyLessonStatus.complete
+    assert len(package.slide_outline) == 1
+    assert len(package.gemini_slide_prompts) == 1
+    assert package.slide_outline[0].related_activity == "Evidence Launch"
+
+
+def test_empty_activity_guide_creates_stable_fallback_activity_records():
+    source = _untimed_source()
+    provider = UntimedAgendaProvider(source)
+    assert provider.playbook_payload["playbook"]["activities"] == []
+
+    first = generate_daily_lesson_package(source, provider=provider)
+    second = generate_daily_lesson_package(
+        source, provider=UntimedAgendaProvider(source)
+    )
+
+    assert len(first.teacher_playbook.activities) == 2
+    assert [
+        activity.activity_id for activity in first.teacher_playbook.activities
+    ] == [
+        activity.activity_id for activity in second.teacher_playbook.activities
+    ]
+    assert "### 1. Evidence Launch" in first.teacher_playbook_markdown
+    assert any(
+        "Created fallback activity records" in warning
+        for warning in first.warnings
+    )
+
+
+def test_activity_title_resolves_when_provider_id_does_not_match():
+    source = _untimed_source()
+
+    def slides(playbook):
+        return [_daily_slide(
+            1,
+            related_id="provider-generated-wrong-id",
+            related_title="  evidence launch  ",
+        )]
+
+    package = generate_daily_lesson_package(
+        source,
+        provider=UntimedAgendaProvider(source, slides),
+    )
+
+    activity = package.teacher_playbook.activities[0]
+    assert package.status == DailyLessonStatus.complete
+    assert package.slide_outline[0].related_activity_id == activity.activity_id
+    assert package.slide_outline[0].related_activity == activity.title
+    assert not any(
+        "Unmatched slide activity" in warning
+        for warning in package.warnings
+    )
+
+
+def test_one_unknown_activity_keeps_all_other_slides_and_prompts():
+    source = _untimed_source()
+
+    def slides(playbook):
+        known = playbook.activities[0]
+        return [
+            _daily_slide(
+                1,
+                related_id=known.activity_id,
+                related_title=known.title,
+            ),
+            _daily_slide(
+                2,
+                related_id="unknown-provider-activity",
+                related_title="Unscheduled Debate",
+            ),
+        ]
+
+    package = generate_daily_lesson_package(
+        source,
+        provider=UntimedAgendaProvider(source, slides),
+    )
+
+    assert package.status == DailyLessonStatus.complete
+    assert len(package.slide_outline) == 2
+    assert len(package.gemini_slide_prompts) == 2
+    assert package.slide_outline[0].related_activity_id is not None
+    assert package.slide_outline[1].related_activity_id is None
+    warning = next(
+        value for value in package.warnings
+        if "Unmatched slide activity" in value
+    )
+    assert "Unscheduled Debate" in warning
+    assert "unknown-provider-activity" in warning

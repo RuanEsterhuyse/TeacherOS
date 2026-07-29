@@ -4,7 +4,9 @@ import hashlib
 import json
 from pathlib import Path
 
+import httplib2
 import pytest
+from googleapiclient.errors import HttpError
 from pydantic import ValidationError
 
 from curriculum.intelligence.generate_lesson_intelligence import (
@@ -28,8 +30,10 @@ from renderer.teaching_package_markdown import (
     deterministic_json,
 )
 from renderer.teaching_package_slides import (
+    ProductionGoogleSlidesRenderer,
     TeachingPackageGoogleSlidesPublisher,
     package_to_google_lesson,
+    package_to_production_google_lesson,
 )
 from schemas.teaching_package_schema import (
     ContentOrigin,
@@ -261,7 +265,7 @@ def test_generate_package_does_not_change_existing_lesson_intelligence(tmp_path)
     }
 
 
-def test_google_slides_adapter_is_one_to_one_and_publisher_is_injected():
+def test_google_slides_adapter_preserves_source_and_production_paginates():
     _, _, package = _source_package()
     lesson = package_to_google_lesson(package)
     assert len(lesson.slides) == len(package.student_slides)
@@ -276,6 +280,37 @@ def test_google_slides_adapter_is_one_to_one_and_publisher_is_injected():
             for question_id in [q.question_id for q in package.questions]
         )
     )
+    production = package_to_production_google_lesson(package)
+    assert len(production.slides) > len(package.student_slides)
+    actual_visible = [
+        text
+        for slide in production.slides
+        for text in slide.bullet_points
+        if not text.startswith(("Reader: ", "Activity: "))
+    ]
+    assert all(
+        len(slide.bullet_points) <= 5
+        for slide in production.slides
+    )
+    visible = "\n".join(actual_visible)
+    assert package.objectives[0].student_friendly.text in actual_visible
+    for question in package.questions:
+        assert actual_visible.count(question.exact_question.text) == 1
+    for question in package.questions:
+        if question.expected_answer.origin is not ContentOrigin.UNAVAILABLE:
+            assert question.expected_answer.text not in visible
+    assert "Advance Preparation" not in [
+        slide.title for slide in production.slides
+    ]
+    for prohibited in (
+        "Note to Teacher",
+        "possible answer",
+        "possible responses",
+        "Have students",
+        "Ask students",
+        "Call on",
+    ):
+        assert prohibited.casefold() not in visible.casefold()
 
     class FakeRenderer:
         received = None
@@ -292,8 +327,43 @@ def test_google_slides_adapter_is_one_to_one_and_publisher_is_injected():
     result = TeachingPackageGoogleSlidesPublisher(
         renderer=fake
     ).publish(package)
-    assert fake.received == lesson
-    assert len(result["slideIds"]) == len(package.student_slides)
+    assert fake.received == production
+    assert len(result["slideIds"]) == len(production.slides)
+
+
+def test_production_slide_requests_use_classroom_theme_and_readable_type():
+    _, _, package = _source_package()
+    lesson = package_to_production_google_lesson(package)
+    renderer = ProductionGoogleSlidesRenderer(
+        slides_service=object(), drive_service=object()
+    )
+    renderer.presentation_id = "presentation-id"
+    renderer._slide_ids = []
+    captured = []
+    renderer._batch_update = lambda requests: captured.extend(requests)
+
+    renderer._create_slide(lesson.slides[1], "agenda", 0)
+
+    text_styles = [
+        request["updateTextStyle"]["style"]
+        for request in captured
+        if "updateTextStyle" in request
+    ]
+    assert any(
+        style["fontSize"]["magnitude"] == 30
+        for style in text_styles
+    )
+    assert all(
+        style["fontSize"]["magnitude"] >= 10
+        for style in text_styles
+    )
+    inserted = "\n".join(
+        request["insertText"]["text"]
+        for request in captured
+        if "insertText" in request
+    )
+    assert "Expected answer" not in inserted
+    assert "Teacher move" not in inserted
 
 
 def test_google_docs_requests_are_structured_and_no_network_is_used():
@@ -309,9 +379,25 @@ def test_google_docs_requests_are_structured_and_no_network_is_used():
     styles = [
         value["updateParagraphStyle"]["paragraphStyle"]["namedStyleType"]
         for value in requests[1:]
+        if (
+            "updateParagraphStyle" in value
+            and "namedStyleType"
+            in value["updateParagraphStyle"].get("paragraphStyle", {})
+        )
     ]
     assert "TITLE" in styles
     assert "HEADING_1" in styles
+    text = requests[0]["insertText"]["text"]
+    assert "Discussion and Answer Guide" in text
+    assert "Expected answer:" in text
+    assert "package_digest" not in text
+    assert "slide_id" not in text
+    html = publisher.document_html(package)
+    assert "<table>" in html
+    assert "<h2>Discussion and Answer Guide</h2>" in html
+    assert "Expected answer:" in html
+    assert GoogleDocsPublisher.AGENDA_MARKER not in html
+    assert "package_digest" not in html
 
 
 def test_google_docs_publish_uses_injected_service_and_builds_agenda_table():
@@ -375,6 +461,64 @@ def test_google_docs_publish_uses_injected_service_and_builds_agenda_table():
     table_request = service.resource.updates[1][1]["requests"][1]
     assert table_request["insertTable"]["rows"] == len(package.agenda) + 1
     assert table_request["insertTable"]["columns"] == 5
+
+
+def test_google_docs_publish_falls_back_to_native_drive_import():
+    _, _, package = _source_package()
+
+    class Operation:
+        def __init__(self, result=None, error=None):
+            self.result = result
+            self.error = error
+
+        def execute(self):
+            if self.error:
+                raise self.error
+            return self.result
+
+    disabled = HttpError(
+        httplib2.Response({"status": "403", "reason": "Forbidden"}),
+        b'{"error":{"status":"PERMISSION_DENIED",'
+        b'"details":[{"reason":"SERVICE_DISABLED"}]}}',
+    )
+
+    class Documents:
+        def create(self, body):
+            return Operation(error=disabled)
+
+    class DocsService:
+        def documents(self):
+            return Documents()
+
+    class Files:
+        def __init__(self):
+            self.body = None
+            self.media = None
+
+        def create(self, *, body, media_body, fields):
+            self.body = body
+            self.media = media_body
+            assert fields == "id"
+            return Operation({"id": "drive-doc-id"})
+
+    class DriveService:
+        def __init__(self):
+            self.resource = Files()
+
+        def files(self):
+            return self.resource
+
+    drive = DriveService()
+    result = GoogleDocsPublisher(
+        docs_service=DocsService(),
+        drive_service=drive,
+    ).publish(package)
+
+    assert result["documentId"] == "drive-doc-id"
+    assert drive.resource.body["mimeType"] == (
+        "application/vnd.google-apps.document"
+    )
+    assert drive.resource.media.mimetype() == "text/html"
 
 
 def test_lesson_one_acceptance_has_grounding_and_honest_limitations():

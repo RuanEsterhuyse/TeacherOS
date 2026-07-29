@@ -53,14 +53,24 @@ test("interface preserves the v0.2 generation workflow", async () => {
   assert.match(page, /Copy Speaker Notes/);
   assert.match(page, /Copy All Gemini Prompts/);
   assert.match(page, /Copy Complete Teacher Playbook/);
+  assert.match(page, /Create Google Slides Deck/);
+  assert.match(page, /Open in Google Slides/);
+  assert.match(page, /createDailyGoogleSlidesDeck/);
+  assert.match(page, /dailyPackage\.slide_outline\.length/);
+  assert.match(page, /Creating Google Slides Deck/);
+  assert.match(page, /Google Slides deck created/);
+  assert.match(page, /dailySlidesStatus/);
   assert.match(page, /Export Playbook as Markdown/);
   assert.match(page, /Export Slide Prompts as Markdown/);
   assert.match(page, /Reopen a saved daily package/);
   assert.match(
     page,
-    /Configure GEMINI_API_KEY or OPENAI_API_KEY for live lesson\s+generation/,
+    /fetchDailyProviderStatus/,
   );
-  assert.match(page, /\/api\/daily-lessons\/generate/);
+  assert.match(page, /dailyProviderStatus/);
+  assert.match(page, /dailyProviderError/);
+  assert.match(page, /canGenerateDailyLesson/);
+  assert.match(page, /submitDailyLesson/);
   assert.match(page, /data-testid="daily-lesson-view"/);
   assert.match(page, /Paste a lesson/);
   assert.match(page, /Build a preliminary Teacher Playbook/);
@@ -121,4 +131,18 @@ test("interface preserves the v0.2 generation workflow", async () => {
   assert.match(css, /:root\[data-theme="dark"\]/);
   assert.match(css, /@media\s*\(max-width:\s*760px\)/);
   assert.match(packageJson, /"name": "teacheros-interface"/);
+});
+
+test("state-changing API calls use the local session header", async () => {
+  const page = await readFile(
+    new URL("../app/page.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(page, /fetch\(`\$\{API_BASE\}\/api\/session`\)/);
+  assert.match(page, /headers\.set\("X-TeacherOS-Session"/);
+  assert.match(page, /authenticatedFetch\(`\$\{API_BASE\}\/api\/generate`/);
+  assert.doesNotMatch(
+    page,
+    /await fetch\(`\$\{API_BASE\}\/api\/open`/,
+  );
 });

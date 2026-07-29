@@ -1,0 +1,710 @@
+{
+  "curriculum": "CKLA",
+  "grade": "8",
+  "unit_number": 1,
+  "lesson_number": 2,
+  "lesson_title": "Whole Group: “Burrito Man” and “Band-Aid”",
+  "teacher_guide_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+  "teacher_guide_pdf_start_page": 47,
+  "teacher_guide_pdf_end_page": 62,
+  "teacher_guide_printed_start_page": 42,
+  "teacher_guide_printed_end_page": 57,
+  "assignments": [
+    {
+      "assignment_id": "mapping-proposal-lesson-2-printed-pages-42-57-ca3775ed99fed189",
+      "unit_number": 1,
+      "lesson_number": 2,
+      "resource_role": "defines_lesson",
+      "resource_type": "teacher_guide",
+      "curriculum_reference": "Lesson 2, printed pages 42–57",
+      "title_or_label": "Teacher Guide Lesson 2 range",
+      "referenced_printed_pages": [
+        "42–57"
+      ],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 47,
+      "proposed_pdf_end_page": 62,
+      "resolution_method": "saved_index_exact_boundary",
+      "confidence": 1.0,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 47,
+          "teacher_guide_printed_page": "42",
+          "exact_reference_text": "evidence:mapping-proposal-lesson-2-printed-pages-42-57-ca3775ed99fed189:1:tg-pdf-47:sha256-1154d73cb38f704c",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-burrito-man-pages-59-69-333ca52e1766bbb8",
+      "unit_number": 1,
+      "lesson_number": 2,
+      "resource_role": "assigned_reading",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "“Burrito Man” [pages 59–69]",
+      "title_or_label": "Burrito Man",
+      "referenced_printed_pages": [
+        "59–69"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": 36,
+      "proposed_pdf_end_page": 40,
+      "resolution_method": "exact_story_heading_to_next_story_heading",
+      "confidence": 0.94,
+      "verification_status": "human_reviewed_override",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 49,
+          "teacher_guide_printed_page": "44",
+          "exact_reference_text": "evidence:mapping-proposal-burrito-man-pages-59-69-333ca52e1766bbb8:1:tg-pdf-49:sha256-aed4fb0232a82052",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "The story heading and next-story boundary are exact, but the registered reflowed PDF does not expose printed pages 59–69."
+      ],
+      "human_review_required": false,
+      "reviewer_note": "Human review approved registered instructional-text PDF pages 36–40 as equivalent to the publisher reference pages 59–69. The registered reflowed text contains the complete titled story, but does not expose printed or story-relative page numbering."
+    },
+    {
+      "assignment_id": "mapping-proposal-band-aid-pages-71-91-4e6c7d4ed88f89a3",
+      "unit_number": 1,
+      "lesson_number": 2,
+      "resource_role": "assigned_reading",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "“Band-Aid” [pages 71–91]",
+      "title_or_label": "Band-Aid",
+      "referenced_printed_pages": [
+        "71–91",
+        "guided reading through 92"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": 45,
+      "proposed_pdf_end_page": 54,
+      "resolution_method": "exact_story_heading_to_next_story_heading",
+      "confidence": 0.9,
+      "verification_status": "human_reviewed_override",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 49,
+          "teacher_guide_printed_page": "44",
+          "exact_reference_text": "evidence:mapping-proposal-band-aid-pages-71-91-4e6c7d4ed88f89a3:1:tg-pdf-49:sha256-b2d98c67ee1f3a36",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "The at-a-glance reference ends at page 91, while guided reading continues through page 92. The reflowed PDF has no printed labels."
+      ],
+      "human_review_required": false,
+      "reviewer_note": "Human review approved registered instructional-text PDF pages 45–54 as the complete required story range. The publisher's principal at-a-glance assignment remains pages 71–91; guided reading continues through printed page 92, whose closing text is present on registered PDF page 54. The reflowed text does not expose printed or story-relative page numbering."
+    },
+    {
+      "assignment_id": "mapping-proposal-homework-reading-g-era-pages-51-57-d172c90badd63845",
+      "unit_number": 1,
+      "lesson_number": 2,
+      "resource_role": "prior_lesson_homework_review",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "homework reading “Güera” (pages 51–57)",
+      "title_or_label": "Güera",
+      "referenced_printed_pages": [
+        "51–57"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": 32,
+      "proposed_pdf_end_page": 34,
+      "resolution_method": "exact_story_heading_to_next_story_heading",
+      "confidence": 0.95,
+      "verification_status": "human_reviewed_override",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 48,
+          "teacher_guide_printed_page": "43",
+          "exact_reference_text": "evidence:mapping-proposal-homework-reading-g-era-pages-51-57-d172c90badd63845:1:tg-pdf-48:sha256-149603f013d622a8",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "This is an explicit Lesson 2 review dependency, not a copied Lesson 1 assignment. Printed-page equivalence is not deterministically exposed by the registered reflowed text."
+      ],
+      "human_review_required": false,
+      "reviewer_note": "Human review approved registered instructional-text PDF pages 32–34 as equivalent to the Lesson 2 review reference pages 51–57. The registered reflowed text contains the complete titled story, but does not expose printed or story-relative page numbering."
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-page-1-3-25197a82ffb463c4",
+      "unit_number": 1,
+      "lesson_number": 2,
+      "resource_role": "prior_lesson_activity_review",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "Activity Page 1.3",
+      "title_or_label": "Activity Page 1.3",
+      "referenced_printed_pages": [
+        "1.3"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 9,
+      "proposed_pdf_end_page": 12,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1.0,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 47,
+          "teacher_guide_printed_page": "42",
+          "exact_reference_text": "evidence:mapping-proposal-activity-page-1-3-25197a82ffb463c4:1:tg-pdf-47:sha256-6d50483086a6f187",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-page-2-1-aea16f42763b8bbe",
+      "unit_number": 1,
+      "lesson_number": 2,
+      "resource_role": "vocabulary_resource",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "Activity Page 2.1",
+      "title_or_label": "Activity Page 2.1",
+      "referenced_printed_pages": [
+        "2.1"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 13,
+      "proposed_pdf_end_page": 14,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1.0,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 50,
+          "teacher_guide_printed_page": "45",
+          "exact_reference_text": "evidence:mapping-proposal-activity-page-2-1-aea16f42763b8bbe:1:tg-pdf-50:sha256-b325be1fda4e542d",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-page-2-2-957147efcaa85315",
+      "unit_number": 1,
+      "lesson_number": 2,
+      "resource_role": "homework_writing",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "Activity Page 2.2",
+      "title_or_label": "Activity Page 2.2",
+      "referenced_printed_pages": [
+        "2.2"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 15,
+      "proposed_pdf_end_page": 16,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1.0,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 62,
+          "teacher_guide_printed_page": "57",
+          "exact_reference_text": "evidence:mapping-proposal-activity-page-2-2-957147efcaa85315:1:tg-pdf-62:sha256-a3286398bb8744f2",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-page-2-3-a5ec43d233e77e6e",
+      "unit_number": 1,
+      "lesson_number": 2,
+      "resource_role": "grammar_practice_and_homework",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "Activity Page 2.3",
+      "title_or_label": "Activity Page 2.3",
+      "referenced_printed_pages": [
+        "2.3"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 17,
+      "proposed_pdf_end_page": 18,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1.0,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 61,
+          "teacher_guide_printed_page": "56",
+          "exact_reference_text": "evidence:mapping-proposal-activity-page-2-3-a5ec43d233e77e6e:1:tg-pdf-61:sha256-ddceb62a044f14f2",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-page-2-4-6c18a9a4b25e00a5",
+      "unit_number": 1,
+      "lesson_number": 2,
+      "resource_role": "writing_plan",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "Activity Page 2.4",
+      "title_or_label": "Activity Page 2.4",
+      "referenced_printed_pages": [
+        "2.4"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 19,
+      "proposed_pdf_end_page": 20,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1.0,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 61,
+          "teacher_guide_printed_page": "56",
+          "exact_reference_text": "evidence:mapping-proposal-activity-page-2-4-6c18a9a4b25e00a5:1:tg-pdf-61:sha256-9ef45bca7aaaf6a6",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-page-2-5-db3728b8cbfbeb34",
+      "unit_number": 1,
+      "lesson_number": 2,
+      "resource_role": "homework_writing_plan",
+      "resource_type": "activity_resource",
+      "curriculum_reference": "Activity Page 2.5",
+      "title_or_label": "Activity Page 2.5",
+      "referenced_printed_pages": [
+        "2.5"
+      ],
+      "resolved_resource_id": "resource-grade-8-unit-1-activity-resource-bba6c73ce382d86b",
+      "proposed_pdf_start_page": 21,
+      "proposed_pdf_end_page": 22,
+      "resolution_method": "exact_document_label_boundary",
+      "confidence": 1.0,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 62,
+          "teacher_guide_printed_page": "57",
+          "exact_reference_text": "evidence:mapping-proposal-activity-page-2-5-db3728b8cbfbeb34:1:tg-pdf-62:sha256-2c4f8fa3fb886026",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-page-1-3-answer-key-cc7fcb989b363e07",
+      "unit_number": 1,
+      "lesson_number": 2,
+      "resource_role": "prior_lesson_activity_answer_key",
+      "resource_type": "teacher_guide_answer_key",
+      "curriculum_reference": "Activity Page 1.3 answer key",
+      "title_or_label": "Answer Key 1.3",
+      "referenced_printed_pages": [],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 154,
+      "proposed_pdf_end_page": 154,
+      "resolution_method": "exact_answer_key_heading_and_activity_label",
+      "confidence": 1.0,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 47,
+          "teacher_guide_printed_page": "42",
+          "exact_reference_text": "evidence:mapping-proposal-activity-page-1-3-answer-key-cc7fcb989b363e07:1:tg-pdf-47:sha256-be1b6ee7749c9924",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "The answer-key page may contain multiple activity facsimiles; only the explicitly matching label is in scope."
+      ],
+      "human_review_required": false,
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-page-2-2-answer-key-694b95171e02bdb6",
+      "unit_number": 1,
+      "lesson_number": 2,
+      "resource_role": "publisher_answer_key",
+      "resource_type": "teacher_guide_answer_key",
+      "curriculum_reference": "Activity Page 2.2 answer key",
+      "title_or_label": "Answer Key 2.2",
+      "referenced_printed_pages": [],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 154,
+      "proposed_pdf_end_page": 154,
+      "resolution_method": "exact_answer_key_heading_and_activity_label",
+      "confidence": 1.0,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 62,
+          "teacher_guide_printed_page": "57",
+          "exact_reference_text": "evidence:mapping-proposal-activity-page-2-2-answer-key-694b95171e02bdb6:1:tg-pdf-62:sha256-ffe0d6cbf0c71ec8",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "The answer-key page may contain multiple activity facsimiles; only the explicitly matching label is in scope."
+      ],
+      "human_review_required": false,
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-activity-page-2-3-answer-key-b8c648ef8a246697",
+      "unit_number": 1,
+      "lesson_number": 2,
+      "resource_role": "publisher_answer_key",
+      "resource_type": "teacher_guide_answer_key",
+      "curriculum_reference": "Activity Page 2.3 answer key",
+      "title_or_label": "Answer Key 2.3",
+      "referenced_printed_pages": [],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 155,
+      "proposed_pdf_end_page": 155,
+      "resolution_method": "exact_answer_key_heading_and_activity_label",
+      "confidence": 1.0,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 61,
+          "teacher_guide_printed_page": "56",
+          "exact_reference_text": "evidence:mapping-proposal-activity-page-2-3-answer-key-b8c648ef8a246697:1:tg-pdf-61:sha256-692f827cdafe05db",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "The answer-key page may contain multiple activity facsimiles; only the explicitly matching label is in scope."
+      ],
+      "human_review_required": false,
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-spanish-translations-beginning-page--16dfce97badd216d",
+      "unit_number": 1,
+      "lesson_number": 2,
+      "resource_role": "translation_reference",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "Spanish translations beginning page 217",
+      "title_or_label": "Band-Aid",
+      "referenced_printed_pages": [
+        "Spanish translations beginning page 217"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": 123,
+      "proposed_pdf_end_page": 124,
+      "resolution_method": "exact_section_and_story_labels",
+      "confidence": 0.86,
+      "verification_status": "human_reviewed_override",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 49,
+          "teacher_guide_printed_page": "44",
+          "exact_reference_text": "evidence:mapping-proposal-spanish-translations-beginning-page--16dfce97badd216d:1:tg-pdf-49:sha256-b8569f08db8302a2",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "The extracted translation pages contain exact Burrito Man and Band-Aid subsection headings, but printed page 217 is absent."
+      ],
+      "human_review_required": false,
+      "reviewer_note": "Human review approved registered instructional-text PDF pages 123–124 as the translation material beginning on curriculum page 217. Exact story subsection headings support the equivalence; printed numbering is absent from the reflowed registered text."
+    },
+    {
+      "assignment_id": "mapping-proposal-refrane-translations-beginning-page--e9e80a5fe03c4202",
+      "unit_number": 1,
+      "lesson_number": 2,
+      "resource_role": "refrane_reference",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "refrane translations beginning page 228",
+      "title_or_label": "TRANSLATIONS OF THE REFRANES",
+      "referenced_printed_pages": [
+        "refrane translations beginning page 228"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": 128,
+      "proposed_pdf_end_page": 128,
+      "resolution_method": "exact_section_and_story_labels",
+      "confidence": 0.86,
+      "verification_status": "human_reviewed_override",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 49,
+          "teacher_guide_printed_page": "44",
+          "exact_reference_text": "evidence:mapping-proposal-refrane-translations-beginning-page--e9e80a5fe03c4202:1:tg-pdf-49:sha256-5b42f0d7de6bffdc",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "The section heading and both story labels are exact; printed page 228 is absent from the reflowed PDF."
+      ],
+      "human_review_required": false,
+      "reviewer_note": "Human review approved registered instructional-text PDF page 128 as the refrane translations beginning on curriculum page 228. The exact section and story labels support the equivalence; printed numbering is absent from the reflowed registered text."
+    },
+    {
+      "assignment_id": "mapping-proposal-notes-on-the-stories-on-pages-235-23-a16bacf22fe4c410",
+      "unit_number": 1,
+      "lesson_number": 2,
+      "resource_role": "story_notes",
+      "resource_type": "instructional_text",
+      "curriculum_reference": "notes on the stories on pages 235–236",
+      "title_or_label": "NOTES ON THE STORIES",
+      "referenced_printed_pages": [
+        "notes on the stories on pages 235–236"
+      ],
+      "resolved_resource_id": "resource-us-in-progress-short-stories-about-y-c568ec8e2b14871a",
+      "proposed_pdf_start_page": 131,
+      "proposed_pdf_end_page": 132,
+      "resolution_method": "exact_section_and_story_labels",
+      "confidence": 0.86,
+      "verification_status": "human_reviewed_override",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 58,
+          "teacher_guide_printed_page": "53",
+          "exact_reference_text": "evidence:mapping-proposal-notes-on-the-stories-on-pages-235-23-a16bacf22fe4c410:1:tg-pdf-58:sha256-d11d64a7851008c8",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "The notes contain Burrito Man and Band-Aid headings, but printed pages 235–236 are absent."
+      ],
+      "human_review_required": false,
+      "reviewer_note": "Human review approved registered instructional-text PDF pages 131–132 as the story notes on curriculum pages 235–236. Exact story headings support the equivalence; printed numbering is absent from the reflowed registered text."
+    },
+    {
+      "assignment_id": "mapping-proposal-ckla-online-resources-for-this-unit--c7f69ac20d9c8c9d",
+      "unit_number": 1,
+      "lesson_number": 2,
+      "resource_role": "online_teacher_resources",
+      "resource_type": "online_resource_guide",
+      "curriculum_reference": "CKLA Online Resources for this unit: Lesson 2",
+      "title_or_label": "Lesson 2 Online Resources",
+      "referenced_printed_pages": [],
+      "resolved_resource_id": "resource-grade-8-unit-1-online-resources-013402617f51c016",
+      "proposed_pdf_start_page": 3,
+      "proposed_pdf_end_page": 3,
+      "resolution_method": "exact_lesson_number_heading",
+      "confidence": 1.0,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 48,
+          "teacher_guide_printed_page": "43",
+          "exact_reference_text": "evidence:mapping-proposal-ckla-online-resources-for-this-unit--c7f69ac20d9c8c9d:1:tg-pdf-48:sha256-1c01cb231eb992d5",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-using-punctuation-to-indicate-pauses-b79097963c719377",
+      "unit_number": 1,
+      "lesson_number": 2,
+      "resource_role": "embedded_teacher_chart",
+      "resource_type": "teacher_guide",
+      "curriculum_reference": "Using Punctuation to Indicate Pauses and Breaks Chart, Teacher Guide page 55",
+      "title_or_label": "Using Punctuation to Indicate Pauses and Breaks Chart, Teacher Guide page 55",
+      "referenced_printed_pages": [],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 60,
+      "proposed_pdf_end_page": 60,
+      "resolution_method": "exact_text_within_indexed_lesson_boundary",
+      "confidence": 1.0,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 60,
+          "teacher_guide_printed_page": "55",
+          "exact_reference_text": "evidence:mapping-proposal-using-punctuation-to-indicate-pauses-b79097963c719377:1:tg-pdf-60:sha256-68432aff9cbc9cce",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-writing-process-chart-524f576a92b12ed4",
+      "unit_number": 1,
+      "lesson_number": 2,
+      "resource_role": "embedded_teacher_chart",
+      "resource_type": "teacher_guide",
+      "curriculum_reference": "Writing Process Chart",
+      "title_or_label": "Writing Process Chart",
+      "referenced_printed_pages": [],
+      "resolved_resource_id": "resource-teacher-guide-8e263a3efdd167cb",
+      "proposed_pdf_start_page": 61,
+      "proposed_pdf_end_page": 61,
+      "resolution_method": "exact_text_within_indexed_lesson_boundary",
+      "confidence": 1.0,
+      "verification_status": "deterministically_verified",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 61,
+          "teacher_guide_printed_page": "56",
+          "exact_reference_text": "evidence:mapping-proposal-writing-process-chart-524f576a92b12ed4:1:tg-pdf-61:sha256-bcfd90764693312d",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [],
+      "human_review_required": false,
+      "reviewer_note": null
+    },
+    {
+      "assignment_id": "mapping-proposal-maps-of-north-and-central-america-0db8da6f3a941244",
+      "unit_number": 1,
+      "lesson_number": 2,
+      "resource_role": "classroom_map",
+      "resource_type": "visual_resource",
+      "curriculum_reference": "maps of North and Central America",
+      "title_or_label": "Maps of North and Central America",
+      "referenced_printed_pages": [],
+      "resolved_resource_id": null,
+      "proposed_pdf_start_page": null,
+      "proposed_pdf_end_page": null,
+      "resolution_method": "no_registered_exact_asset_match",
+      "confidence": 0.0,
+      "verification_status": "unresolved",
+      "evidence": [
+        {
+          "teacher_guide_pdf_page": 48,
+          "teacher_guide_printed_page": "43",
+          "exact_reference_text": "evidence:mapping-proposal-maps-of-north-and-central-america-0db8da6f3a941244:1:tg-pdf-48:sha256-0d59e191887aa343",
+          "source_heading": null,
+          "beginning_excerpt": null,
+          "ending_excerpt": null,
+          "evidence_notes": [
+            "Public-safe evidence locator. Source text is intentionally excluded; authorized local resources are required for verification."
+          ]
+        }
+      ],
+      "ambiguity_notes": [
+        "The registered Lesson 2 online-resource page contains immigration and deportation links but no exact map asset record."
+      ],
+      "human_review_required": true,
+      "reviewer_note": null
+    }
+  ],
+  "unresolved_references": [
+    "Maps of North and Central America: exact registered asset unavailable."
+  ],
+  "warnings": [
+    "The principal Band-Aid assignment remains pages 71–91; guided reading continues through page 92, whose endpoint is included on registered PDF page 54.",
+    "No answer key is proposed for vocabulary Activity 2.1 or open-ended planning Activities 2.4 and 2.5."
+  ],
+  "schema_version": "1.0",
+  "builder_version": "1.0"
+}
