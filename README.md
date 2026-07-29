@@ -8,6 +8,21 @@ The project is designed to keep instructional decisions separate from
 presentation rendering. Teachers remain responsible for reviewing generated
 guidance and approving materials before classroom use.
 
+## Screenshots
+
+### Curriculum Library (Light)
+
+![TeacherOS curriculum library in light mode](Docs/images/curriculum-library-light.png)
+
+Shows the curriculum browser, lesson selection, objectives, resources, and
+generation workflow.
+
+### Curriculum Library (Dark)
+
+![TeacherOS curriculum library in dark mode](Docs/images/curriculum-library-dark.png)
+
+Dark mode interface with the same workflow.
+
 ## What it does
 
 A typical TeacherOS workflow is:
