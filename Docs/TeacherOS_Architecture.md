@@ -265,6 +265,133 @@ _[Placeholder for specialized agents, orchestration, handoffs, shared context, h
 
 Version 1 establishes TeacherOS as a reliable, file-based instructional-design system for CKLA Grade 8. It standardizes the repository structure, lesson package, role boundaries, fidelity workflow, storyboard requirements, renderer handoff, quality checks, and permanent storage model. Human review remains explicit at critical decisions and final approval.
 
+## Operational command reference
+
+The local web interface is the simplest way to use TeacherOS. The commands
+below remain available for development, curriculum registration, deterministic
+preparation, and direct access to the established lesson pipeline.
+
+### Register and index a curriculum unit
+
+The Curriculum Library stores local file paths and metadata in an ignored
+SQLite database. It does not copy source documents into the repository.
+
+```bash
+python -m curriculum.cli register \
+  --curriculum CKLA \
+  --grade 8 \
+  --unit 1 \
+  --unit-title "Unit title" \
+  --teacher-guide "/private/curriculum/teacher-guide.pdf" \
+  --student-reader "/private/curriculum/student-reader.pdf" \
+  --activity-book "/private/curriculum/activity-book.pdf"
+
+python -m curriculum.cli index \
+  --curriculum CKLA \
+  --grade 8 \
+  --unit 1
+
+python -m curriculum.cli list-lessons \
+  --curriculum CKLA \
+  --grade 8 \
+  --unit 1
+```
+
+Extract one indexed lesson without generating instructional content:
+
+```bash
+python -m curriculum.cli extract-lesson \
+  --curriculum CKLA \
+  --grade 8 \
+  --unit 1 \
+  --lesson 1 \
+  --output output/grade8_unit1_lesson1.txt
+```
+
+`index`, `list-lessons`, and `extract-lesson` accept `--index-file` when a
+non-default private index is required. `index` also accepts an `--override`
+JSON file for human-reviewed lesson boundaries. Override page values are
+zero-based PDF page numbers.
+
+### Prepare or generate a registered lesson
+
+Preparation creates the validated pipeline input without calling an AI
+provider:
+
+```bash
+python -m app.cli prepare-lesson \
+  --curriculum CKLA \
+  --grade 8 \
+  --unit 1 \
+  --lesson 1
+```
+
+Inspect the generation workflow without making an AI call:
+
+```bash
+python -m app.cli generate-lesson \
+  --curriculum CKLA \
+  --grade 8 \
+  --unit 1 \
+  --lesson 1 \
+  --dry-run
+```
+
+Generate a registered lesson when the required provider and curriculum files
+are configured:
+
+```bash
+python -m app.cli generate-lesson \
+  --curriculum CKLA \
+  --grade 8 \
+  --unit 1 \
+  --lesson 1
+```
+
+Completed stages are resumable. Pass `--no-resume` only when every generation
+stage should run again.
+
+### Create Google Slides from a validated lesson
+
+The established CLI can render a saved validated lesson without rerunning
+instructional generation:
+
+```bash
+python -m app.cli create-slides \
+  --curriculum CKLA \
+  --grade 8 \
+  --unit 1 \
+  --lesson 1
+```
+
+Google publishing requires the Google Slides API and Google Drive API, a
+Desktop OAuth client, and local ignored credential and token files. The first
+publishing action opens the browser for consent when no valid token exists.
+TeacherOS requests presentation-editing and `drive.file` access and does not
+change sharing permissions. Created files remain private to the authenticated
+account until that user changes sharing in Google Drive.
+
+### Structured lesson package rendering
+
+The deterministic lesson-package parser and renderer can also be used directly:
+
+```python
+from brain.lesson_package_parser import parse_lesson_package
+from renderer.google_slides_renderer import GoogleSlidesRenderer
+
+lesson = parse_lesson_package("lesson_packages/lesson.json")
+renderer = GoogleSlidesRenderer(
+    credentials_path="/secure/path/google-oauth-client.json",
+    token_path="/secure/path/teacheros-token.json",
+)
+renderer.authenticate()
+presentation = renderer.create_presentation(lesson)
+```
+
+The parser validates supplied structure and the renderer maps validated fields
+to editable presentation objects. Neither component independently redesigns
+the lesson.
+
 ### Version 2 — Assisted Production and Integrations
 
 Version 2 introduces governed automation around repeated production tasks. Priorities include stronger source intake, curriculum search, validation assistance, visual-asset workflows, presentation integration, structured revision tracking, and easier movement between lesson artifacts. Automation must preserve the approval gates and traceability established in Version 1.
