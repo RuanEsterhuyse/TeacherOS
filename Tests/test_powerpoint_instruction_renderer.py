@@ -15,6 +15,7 @@ from curriculum.intelligence.renderer_instruction_adapter import (
 from renderer.powerpoint_instruction_renderer import (
     PowerPointRenderOptions,
     PowerPointRenderRepository,
+    _runtime_paths,
     render_powerpoint,
 )
 from schemas.renderer_instruction_schema import RendererPackageApprovalStatus
@@ -29,6 +30,17 @@ def _package():
         "approval_status": RendererPackageApprovalStatus.approved,
         "approved_at": _approved_spec().approved_at,
     })
+
+
+@pytest.fixture
+def bundled_powerpoint_runtime():
+    """Require the optional Codex-bundled PowerPoint integration runtime."""
+    node, setup, _ = _runtime_paths()
+    if not node.is_file() or not setup.is_file():
+        pytest.skip(
+            "Bundled PowerPoint rendering runtime is unavailable in this "
+            "environment."
+        )
 
 
 def test_approved_package_and_safe_filename_are_required(tmp_path):
@@ -49,6 +61,7 @@ def test_approved_package_and_safe_filename_are_required(tmp_path):
 
 def test_rendered_powerpoint_is_editable_structurally_valid_and_deterministic(
     tmp_path,
+    bundled_powerpoint_runtime,
 ):
     package = _package()
     first = render_powerpoint(package, output_root=tmp_path)
@@ -75,7 +88,10 @@ def test_rendered_powerpoint_is_editable_structurally_valid_and_deterministic(
         assert "F7F4EE" in slide
 
 
-def test_notes_fallback_assets_fonts_and_repository_are_reported(tmp_path):
+def test_notes_fallback_assets_fonts_and_repository_are_reported(
+    tmp_path,
+    bundled_powerpoint_runtime,
+):
     result = render_powerpoint(_package(), output_root=tmp_path)
     assert Path(result.notes_fallback_path).read_text(encoding="utf-8")
     assert {value.rendered for value in result.font_substitutions} == {
@@ -107,7 +123,10 @@ def test_invalid_assets_and_download_ids_are_rejected(tmp_path):
         repository.download_path("../unsafe")
 
 
-def test_explicit_local_asset_is_embedded_and_reported(tmp_path):
+def test_explicit_local_asset_is_embedded_and_reported(
+    tmp_path,
+    bundled_powerpoint_runtime,
+):
     package = _package()
     asset_id = package.asset_manifest[0].asset_id
     local_asset = tmp_path / "approved-visual.png"
